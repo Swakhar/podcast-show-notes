@@ -1,0 +1,98 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# C extensions
+*.c
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VSCode
+.vscode/
+.history/
+
+# macOS
+.DS_Store
+
+# PyCharm
+.idea/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# FastAPI/Starlette
+instance/
+*.db
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis dump files
+dump.rdb
+
+# Local env files
+.env
+.env.*
+
+# Log files
+*.log
+
+# Frontend (Node.js, Next.js, React)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+coverage/
+*.local
+
+# Build artifacts
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+frontend/.env.local
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Ignore audio/video/media
