@@ -1,0 +1,34 @@
+datasource db {
+  provider = "sqlite" // change to "postgresql" in prod
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String?
+  image              String?
+
+  stripeCustomerId   String?  @unique
+  plan               Plan     @default(FREE)
+  priceId            String?  // Stripe price_...
+  subscriptionStatus String?  // active|trialing|canceled|incomplete
+
+  monthlyMinutesLimit Int      @default(30)   // change by plan
+  monthlyMinutesUsed  Int      @default(0)
+  monthlyResetAt      DateTime @default(now())
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+}
