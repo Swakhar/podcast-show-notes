@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite" // change to "postgresql" in prod
-  url      = env("DATABASE_URL")
+  provider = "sqlite"             // keep sqlite for local dev
+  url      = env("DATABASE_URL")  // e.g., file:./dev.db
 }
 
 generator client {
@@ -8,22 +8,65 @@ generator client {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  email              String   @unique
-  name               String?
-  image              String?
+  id                   String   @id @default(cuid())
+  name                 String?
+  email                String   @unique
+  emailVerified        DateTime?
+  image                String?
 
-  stripeCustomerId   String?  @unique
-  plan               Plan     @default(FREE)
-  priceId            String?  // Stripe price_...
-  subscriptionStatus String?  // active|trialing|canceled|incomplete
+  // Billing / plan
+  stripeCustomerId     String?  @unique
+  plan                 Plan     @default(FREE)
+  priceId              String?
+  subscriptionStatus   String?
 
-  monthlyMinutesLimit Int      @default(30)   // change by plan
-  monthlyMinutesUsed  Int      @default(0)
-  monthlyResetAt      DateTime @default(now())
+  monthlyMinutesLimit  Int      @default(30)
+  monthlyMinutesUsed   Int      @default(0)
+  monthlyResetAt       DateTime @default(now())
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  accounts             Account[]
+  sessions             Session[]
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+
+  // NOTE: no @db.Text on SQLite
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 enum Plan {

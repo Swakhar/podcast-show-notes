@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import axios from "axios";
 
 // ---------- Download helpers ----------
@@ -43,33 +44,48 @@ interface JobStatus {
   error?: string;
   result?: JobResult;
 }
+interface Me {
+  plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
+  subscriptionStatus: string | null;
+  monthlyMinutesLimit: number;
+  monthlyMinutesUsed: number;
+  stripeCustomerId: string | null;
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 // Map stages → progress %
 const STAGE_PROGRESS: Record<string, number> = {
-  "queued": 5,
+  queued: 5,
   "inspecting URL": 10,
   "fetching captions": 20,
   "downloading file": 20,
   "downloading audio": 30,
   "preparing preview": 35,
-  "transcribing": 50,
+  transcribing: 50,
   "generating summary": 65,
   "generating show notes": 75,
   "generating timestamps": 80,
   "generating social snippets": 85,
   "generating SEO": 90,
   "generating newsletter": 95,
-  "finished": 100,
+  finished: 100,
 };
 
 // ---------- Main ----------
 export default function Home() {
+  const { data: session, update } = useSession();
+
+  // Canonical membership (from server)
+  const [me, setMe] = useState<Me | null>(null);
+  const plan = (me?.plan as any) || ((session?.user as any)?.plan ?? "FREE");
+  const active = (me?.subscriptionStatus === "active") || ((session?.user as any)?.subscriptionStatus === "active");
+  const isFree = plan === "FREE";
+
   // Inputs
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
-  const [previewMinutes, setPreviewMinutes] = useState<number | ''>('');
+  const [previewMinutes, setPreviewMinutes] = useState<number | "">("");
 
   // Feature selection
   const [features, setFeatures] = useState({
@@ -93,20 +109,39 @@ export default function Home() {
 
   // Estimator slide-over
   const [estOpen, setEstOpen] = useState(false);
-  const [estMinutes, setEstMinutes] = useState<number | ''>('');
+  const [estMinutes, setEstMinutes] = useState<number | "">("");
   const [estInputTok, setEstInputTok] = useState<number>(3000);
   const [estOutputTok, setEstOutputTok] = useState<number>(1500);
   const [estIncludeTrans, setEstIncludeTrans] = useState<boolean>(true);
-  const [estimate, setEstimate] = useState<{transcription_usd:number; llm_usd:number; total_usd:number} | null>(null);
+  const [estimate, setEstimate] = useState<{ transcription_usd: number; llm_usd: number; total_usd: number } | null>(null);
 
   const isBusy = jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed";
-  const progress = Math.max(
-    0,
-    Math.min(
-      100,
-      jobStatus?.stage ? (STAGE_PROGRESS[jobStatus.stage] ?? (jobStatus.status === "processing" ? 50 : 0)) : 0
-    )
-  );
+  const progress = Math.max(0, Math.min(100, jobStatus?.stage ? STAGE_PROGRESS[jobStatus.stage] ?? (jobStatus.status === "processing" ? 50 : 0) : 0));
+
+  // --- Fetch canonical membership ---
+  useEffect(() => {
+    let cancel = false;
+    let tries = 0;
+
+    async function fetchMe() {
+      try {
+        const r = await fetch("/api/me");
+        const j = await r.json();
+        if (!cancel) setMe(j.user);
+        // if we just returned from success, poll a few times until active flips
+        if (j.user && j.user.subscriptionStatus !== "active" && tries < 10 && window.location.search.includes("upgraded=1")) {
+          tries++;
+          setTimeout(fetchMe, 1500);
+        }
+      } catch {}
+    }
+
+    fetchMe();
+    // optional: refresh JWT payload once when page opens (catches webhook updates)
+    (async () => { try { await update(); } catch {} })();
+
+    return () => { cancel = true; };
+  }, [update]);
 
   // Handlers
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -118,11 +153,11 @@ export default function Home() {
     const v = e.target.value;
     setUrl(v);
     if (v) setFile(null);
-    // Auto default preview for long YT links (hint, not enforced)
     if (/youtu\.be|youtube\.com/i.test(v) && previewMinutes === "") setPreviewMinutes(2);
   };
   const handlePreviewChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPreviewMinutes(e.target.value === '' ? '' : Number(e.target.value));
+    const v = e.target.value === "" ? "" : Number(e.target.value);
+    setPreviewMinutes(isFree && typeof v === "number" && v > 3 ? 3 : v);
   };
   const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] || null;
@@ -131,7 +166,7 @@ export default function Home() {
     setCoverPreviewUrl(f ? URL.createObjectURL(f) : null);
   };
   const toggleFeature = (key: keyof typeof features) => {
-    setFeatures(prev => ({ ...prev, [key]: !prev[key] }));
+    setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   async function handleSubmit(e: FormEvent) {
@@ -144,14 +179,17 @@ export default function Home() {
     if (file && url) return setErrorMessage("Choose either a file OR a URL, not both.");
 
     try {
-      const selected = Object.entries(features).filter(([_, v]) => v).map(([k]) => k);
+      const selected = Object.entries(features)
+        .filter(([_, v]) => v)
+        .map(([k]) => k);
+
       let response;
       if (file) {
         const form = new FormData();
         form.append("file", file);
         if (previewMinutes) form.append("preview_minutes", String(previewMinutes));
-        // Send selected features (backend can branch by this)
         form.append("features", selected.join(","));
+        // If you added the Next.js proxy, send to /api/jobs/upload instead:
         response = await axios.post(`${API_BASE_URL}/jobs/upload`, form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -160,6 +198,7 @@ export default function Home() {
         form.append("url", url);
         if (previewMinutes) form.append("preview_minutes", String(previewMinutes));
         form.append("features", selected.join(","));
+        // If you added the Next.js proxy, send to /api/jobs/url instead:
         response = await axios.post(`${API_BASE_URL}/jobs/url`, form);
       }
       setJobId(response.data.id);
@@ -187,54 +226,48 @@ export default function Home() {
   }, [jobId]);
 
   useEffect(() => {
-    return () => { if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); };
+    return () => {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+    };
   }, [coverPreviewUrl]);
-
-  // Render helpers
-  const renderShowNotes = (showNotes: string) => (
-    <ul className="list-disc ml-6 space-y-1 text-gray-700">
-      {showNotes.split(/\r?\n/).filter(Boolean).map((line, i) => <li key={i}>{line}</li>)}
-    </ul>
-  );
-  const renderList = (items: string[]) => (
-    <ul className="list-disc ml-6 space-y-1 text-gray-700">
-      {items.map((it, i) => <li key={i}>{it}</li>)}
-    </ul>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <style jsx global>{`
-        @keyframes pulseBar { 0% {width:0%} 100% {width:${progress}%} }
-      `}</style>
-
       {/* Header */}
       <header className="sticky top-0 z-30 backdrop-blur bg-white/70 border-b">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">AI-Powered Podcast Show Notes Generator</h1>
           <div className="flex gap-2">
-            <a
-              href="/pricing"
-              className="px-3 py-1.5 rounded-md bg-[#9CEE69] text-slate-900 font-semibold shadow hover:brightness-95"
-            >
-              Upgrade
-            </a>
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-md border bg-white hover:bg-slate-50 text-slate-700"
-              onClick={() => setEstOpen(true)}
-            >
-              Cost Estimator
-            </button>
+            {!session ? (
+              <button onClick={() => signIn()} className="px-3 py-1.5 rounded-md border">Sign in</button>
+            ) : (
+              <>
+                {!active && (
+                  <a href="/pricing" className="px-3 py-1.5 rounded-md bg-[#9CEE69] text-slate-900 font-semibold shadow hover:brightness-95">
+                    Upgrade
+                  </a>
+                )}
+                {active && (
+                  <button
+                    onClick={async () => {
+                      const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+                      const { url, error } = await r.json();
+                      if (error) return alert(error);
+                      window.location.href = url;
+                    }}
+                    className="px-3 py-1.5 rounded-md border bg-white hover:bg-slate-50"
+                  >
+                    Manage Billing
+                  </button>
+                )}
+                <button onClick={() => signOut()} className="px-3 py-1.5 rounded-md border">Sign out</button>
+              </>
+            )}
           </div>
         </div>
-        {/* Progress bar */}
         {(jobStatus && (jobStatus.status === "pending" || jobStatus.status === "processing")) && (
           <div className="h-1 w-full bg-slate-200">
-            <div
-              className="h-1 bg-blue-600 transition-all"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-1 bg-blue-600 transition-all" style={{ width: `${Math.max(1, progress)}%` }} />
           </div>
         )}
       </header>
@@ -251,8 +284,7 @@ export default function Home() {
             {/* File */}
             <div>
               <label htmlFor="file" className="block text-sm font-medium text-gray-700">Audio file</label>
-              <input id="file" type="file" accept="audio/*" onChange={handleFileChange}
-                disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
+              <input id="file" type="file" accept="audio/*" onChange={handleFileChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
             </div>
 
             <div className="text-center text-gray-400">or</div>
@@ -260,9 +292,7 @@ export default function Home() {
             {/* URL */}
             <div>
               <label htmlFor="url" className="block text-sm font-medium text-gray-700">Podcast URL</label>
-              <input id="url" type="url" placeholder="https://example.com/podcast.mp3"
-                value={url} onChange={handleUrlChange} disabled={!!isBusy}
-                className="mt-1 w-full border rounded-md p-2" />
+              <input id="url" type="url" placeholder="https://example.com/podcast.mp3" value={url} onChange={handleUrlChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
               {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
                 <p className="text-xs text-blue-600 mt-1">Using 2-min preview for quick results. Change below if needed.</p>
               )}
@@ -271,23 +301,16 @@ export default function Home() {
             {/* Cover */}
             <div>
               <label htmlFor="cover" className="block text-sm font-medium text-gray-700">Episode Cover (optional)</label>
-              <input id="cover" type="file" accept="image/*" onChange={handleCoverChange}
-                disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
-              {coverPreviewUrl && (
-                <div className="mt-2">
-                  <img src={coverPreviewUrl} alt="Cover preview" className="h-32 rounded border" />
-                </div>
-              )}
+              <input id="cover" type="file" accept="image/*" onChange={handleCoverChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
+              {coverPreviewUrl && <div className="mt-2"><img src={coverPreviewUrl} alt="Cover preview" className="h-32 rounded border" /></div>}
               <p className="text-xs text-gray-500 mt-1">Image stays on your device, only embedded into downloaded Markdown.</p>
             </div>
 
             {/* Preview minutes */}
             <div>
               <label htmlFor="preview" className="block text-sm font-medium text-gray-700">Quick preview (minutes)</label>
-              <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes}
-                onChange={handlePreviewChange} disabled={!!isBusy}
-                className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 2" />
-              <p className="text-xs text-gray-500 mt-1">Process only the first N minutes for faster results.</p>
+              <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes} onChange={handlePreviewChange} disabled={!!isBusy} className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 3" />
+              {isFree && <p className="text-xs text-orange-600 mt-1">Free plan: max 3-min preview per job.</p>}
             </div>
 
             {/* Feature selection */}
@@ -299,14 +322,20 @@ export default function Home() {
                   ["show_notes", "Show Notes"],
                   ["timestamps", "Timestamps"],
                   ["social_snippets", "Social snippets"],
-                  ["seo", "SEO"],
-                  ["newsletter", "Newsletter"],
                 ] as const).map(([k, label]) => (
                   <label key={k} className={`flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 cursor-pointer ${features[k] ? "border-blue-400" : "border-slate-200"}`}>
                     <input type="checkbox" checked={features[k]} onChange={() => toggleFeature(k)} />
                     <span>{label}</span>
                   </label>
                 ))}
+                <label className={`${isFree ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50`}>
+                  <input type="checkbox" checked={features.seo && !isFree} onChange={() => !isFree && toggleFeature("seo")} disabled={isFree} />
+                  <span>SEO</span>
+                </label>
+                <label className={`${isFree ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50`}>
+                  <input type="checkbox" checked={features.newsletter && !isFree} onChange={() => !isFree && toggleFeature("newsletter")} disabled={isFree} />
+                  <span>Newsletter</span>
+                </label>
               </div>
             </div>
 
@@ -314,19 +343,13 @@ export default function Home() {
             {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
             {/* Submit */}
-            <button
-              onClick={handleSubmit}
-              disabled={!!isBusy}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+            <button onClick={handleSubmit} disabled={!!isBusy} className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
               {isBusy ? "Processing…" : "Generate"}
             </button>
 
             {/* Live stage */}
             {(jobStatus && (jobStatus.status === "pending" || jobStatus.status === "processing")) && (
-              <div className="text-sm text-blue-700">
-                {jobStatus.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}
-              </div>
+              <div className="text-sm text-blue-700">{jobStatus.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}</div>
             )}
             {jobStatus && jobStatus.status === "failed" && (
               <div className="text-sm text-red-600">Job failed: {jobStatus.error || "Unknown error"}</div>
@@ -437,62 +460,6 @@ export default function Home() {
           )}
         </section>
       </main>
-
-      {/* Slide-over: Cost Estimator */}
-      <SlideOver open={estOpen} onClose={() => setEstOpen(false)} title="Estimate Cost (approx)">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Duration (minutes)">
-              <input type="number" min={1} step={1} value={estMinutes}
-                onChange={(e) => setEstMinutes(e.target.value === '' ? '' : Number(e.target.value))}
-                className="border rounded p-2 w-full" />
-            </Field>
-            <Field label="Include transcription" hint="">
-              <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={estIncludeTrans} onChange={(e) => setEstIncludeTrans(e.target.checked)} />
-                <span className="text-sm">Yes</span>
-              </label>
-            </Field>
-            <Field label="Total input tokens">
-              <input type="number" min={0} value={estInputTok} onChange={(e) => setEstInputTok(Number(e.target.value))}
-                className="border rounded p-2 w-full" />
-            </Field>
-            <Field label="Total output tokens">
-              <input type="number" min={0} value={estOutputTok} onChange={(e) => setEstOutputTok(Number(e.target.value))}
-                className="border rounded p-2 w-full" />
-            </Field>
-          </div>
-          <div className="flex justify-end">
-            <button
-              className="px-3 py-2 rounded-md bg-slate-900 text-white hover:bg-slate-800"
-              onClick={async () => {
-                try {
-                  if (!estMinutes || estMinutes <= 0) return;
-                  const res = await axios.post(`${API_BASE_URL}/estimate`, {
-                    duration_minutes: estMinutes,
-                    total_input_tokens: estInputTok,
-                    total_output_tokens: estOutputTok,
-                    include_transcription: estIncludeTrans
-                  });
-                  setEstimate(res.data);
-                } catch (e:any) {
-                  setEstimate(null);
-                  setErrorMessage(e?.response?.data?.detail || e.message);
-                }
-              }}
-            >
-              Estimate
-            </button>
-          </div>
-          {estimate && (
-            <div className="rounded-md bg-slate-50 border p-3 text-sm text-slate-800">
-              <div>Transcription: ${estimate.transcription_usd.toFixed(4)}</div>
-              <div>LLM: ${estimate.llm_usd.toFixed(4)}</div>
-              <div className="font-semibold">Total: ${estimate.total_usd.toFixed(4)}</div>
-            </div>
-          )}
-        </div>
-      </SlideOver>
     </div>
   );
 }
@@ -507,30 +474,5 @@ function Card({ title, children, action }: { title: string; children: React.Reac
       </div>
       <div className="p-4">{children}</div>
     </div>
-  );
-}
-function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
-  return (
-    <label className="block">
-      <div className="text-xs font-medium text-slate-700">{label}</div>
-      <div className="mt-1">{children}</div>
-      {hint && <div className="text-[11px] text-slate-500 mt-1">{hint}</div>}
-    </label>
-  );
-}
-function SlideOver({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  return (
-    <>
-      <div className={`fixed inset-0 bg-black/30 transition-opacity ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} onClick={onClose} />
-      <aside className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white shadow-xl border-l transition-transform ${open ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="h-full flex flex-col">
-          <div className="px-4 py-3 border-b flex items-center justify-between">
-            <h3 className="text-lg font-semibold">{title}</h3>
-            <button className="px-2 py-1 rounded border hover:bg-slate-50" onClick={onClose}>Close</button>
-          </div>
-          <div className="p-4 overflow-y-auto">{children}</div>
-        </div>
-      </aside>
-    </>
   );
 }
