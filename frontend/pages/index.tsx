@@ -74,9 +74,7 @@ const STAGE_PROGRESS: Record<string, number> = {
 
 // ---------- Main ----------
 export default function Home() {
-  const { data: session, update } = useSession();
-
-  // Canonical membership (from server)
+  const { data: session, status, update } = useSession();
   const [me, setMe] = useState<Me | null>(null);
   const plan = (me?.plan as any) || ((session?.user as any)?.plan ?? "FREE");
   const active = (me?.subscriptionStatus === "active") || ((session?.user as any)?.subscriptionStatus === "active");
@@ -121,27 +119,27 @@ export default function Home() {
   // --- Fetch canonical membership ---
   useEffect(() => {
     let cancel = false;
-    let tries = 0;
 
     async function fetchMe() {
-      try {
-        const r = await fetch("/api/me");
-        const j = await r.json();
-        if (!cancel) setMe(j.user);
-        // if we just returned from success, poll a few times until active flips
-        if (j.user && j.user.subscriptionStatus !== "active" && tries < 10 && window.location.search.includes("upgraded=1")) {
-          tries++;
-          setTimeout(fetchMe, 1500);
-        }
-      } catch {}
+      const r = await fetch("/api/me", { cache: "no-store" });
+      const j = await r.json();
+      if (!cancel) setMe(j.user);
     }
 
-    fetchMe();
-    // optional: refresh JWT payload once when page opens (catches webhook updates)
-    (async () => { try { await update(); } catch {} })();
+    if (status === "authenticated") {
+      fetchMe();
+    } else if (status === "unauthenticated") {
+      setMe(null);
+    }
 
     return () => { cancel = true; };
-  }, [update]);
+  }, [status]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      setMe(null);
+    }
+  }, [status]);
 
   // Handlers
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -209,6 +207,15 @@ export default function Home() {
     }
   }
 
+  async function handleSignOut() {
+    // clear local UI state that might show you as signed in
+    setMe(null);
+    setJobId(null);
+    setJobStatus(null);
+    // let NextAuth do a full cookie-clearing signout + redirect
+    await signOut({ callbackUrl: "/" });
+  }
+
   // Polling
   useEffect(() => {
     if (!jobId) return;
@@ -239,11 +246,20 @@ export default function Home() {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">AI-Powered Podcast Show Notes Generator</h1>
           <div className="flex gap-2">
             {!session ? (
-              <button onClick={() => signIn()} className="px-3 py-1.5 rounded-md border">Sign in</button>
+              // If you have your own credentials page, send users there
+              <button
+                onClick={() => (window.location.href = "/login")}
+                className="px-3 py-1.5 rounded-md border"
+              >
+                Sign in
+              </button>
             ) : (
               <>
                 {!active && (
-                  <a href="/pricing" className="px-3 py-1.5 rounded-md bg-[#9CEE69] text-slate-900 font-semibold shadow hover:brightness-95">
+                  <a
+                    href="/pricing"
+                    className="px-3 py-1.5 rounded-md bg-[#9CEE69] text-slate-900 font-semibold shadow hover:brightness-95"
+                  >
                     Upgrade
                   </a>
                 )}
@@ -260,7 +276,9 @@ export default function Home() {
                     Manage Billing
                   </button>
                 )}
-                <button onClick={() => signOut()} className="px-3 py-1.5 rounded-md border">Sign out</button>
+                <button onClick={handleSignOut} className="px-3 py-1.5 rounded-md border">
+                  Sign out
+                </button>
               </>
             )}
           </div>

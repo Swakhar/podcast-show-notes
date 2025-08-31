@@ -4,6 +4,8 @@ import { authOptions } from "./auth/[...nextauth]";
 import { prisma } from "../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // never cache this (prevents “stuck signed-in” feel on reloads)
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user?.email) return res.status(200).json({ user: null });
 
