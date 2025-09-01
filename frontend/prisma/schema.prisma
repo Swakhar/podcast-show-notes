@@ -14,18 +14,22 @@ model User {
   emailVerified        DateTime?
   image                String?
 
-  // Billing / plan
+  // Billing
   stripeCustomerId     String?  @unique
+  subscriptionId       String?  @unique      // <— NEW
   plan                 Plan     @default(FREE)
   priceId              String?
   subscriptionStatus   String?
+
   monthlyMinutesLimit  Int      @default(30)
   monthlyMinutesUsed   Int      @default(0)
   monthlyResetAt       DateTime @default(now())
-  password             String?   // hashed
+
+  password             String?
 
   accounts             Account[]
   sessions             Session[]
+
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }

@@ -8,13 +8,12 @@ from core.yt_utils import (
     download_audio_from_youtube,
     download_to_tempfile,
     fetch_youtube_captions,
+    get_youtube_duration_seconds,
 )
-from core.audio_utils import trim_audio
+from core.audio_utils import trim_audio, get_audio_duration_seconds
 from jobs import JOBS, set_stage, process_audio_job, process_text_job
 from models.schemas import EstimateRequest
-import os
-
-# If you want to expose the model name in /estimate endpoint
+import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
 
 router = APIRouter()
@@ -26,8 +25,6 @@ async def create_job_from_upload(
     preview_minutes: Optional[int] = Form(None),
     features: Optional[str] = Form(None)
 ):
-    import tempfile, shutil
-
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "stage": "queued", "features": list(feature_set)}
@@ -43,13 +40,22 @@ async def create_job_from_upload(
         await file.close()
 
     local_path = tmp.name
+    billed_minutes = 0
+
     if preview_minutes and preview_minutes > 0:
         set_stage(job_id, "preparing preview")
         local_path = trim_audio(local_path, preview_minutes * 60)
+        billed_minutes = int(preview_minutes)
+    else:
+        # full file → compute real duration
+        dur_sec = get_audio_duration_seconds(local_path)
+        billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2  # fallback 2
+
+    JOBS[job_id]["billed_minutes"] = billed_minutes
 
     set_stage(job_id, "transcribing")
     background.add_task(process_audio_job, job_id, local_path, feature_set)
-    return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"]}
+    return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.post("/jobs/url")
 async def create_job_from_url(
@@ -62,6 +68,7 @@ async def create_job_from_url(
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "features": list(feature_set)}
     set_stage(job_id, "inspecting URL")
+    billed_minutes = 0
 
     if is_youtube_or_streaming_site(url):
         set_stage(job_id, "fetching captions")
@@ -70,28 +77,60 @@ async def create_job_from_url(
             transcript_text = fetch_youtube_captions(url)
         except Exception:
             transcript_text = None
+
         if transcript_text:
+            # If only captions used: bill preview if provided, else bill by video length (metadata) if available, else fallback 2
+            if preview_minutes and preview_minutes > 0:
+                billed_minutes = int(preview_minutes)
+            else:
+                dur_sec = get_youtube_duration_seconds(url)
+                billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+            JOBS[job_id]["billed_minutes"] = billed_minutes
             background.add_task(process_text_job, job_id, transcript_text, feature_set)
-            return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage")}
+            return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
+
+        # fallback: download audio
+        local_path = download_audio_from_youtube(url, preview_minutes)
+        if not local_path:
+            raise HTTPException(status_code=400, detail="Could not fetch audio from YouTube URL.")
+
+        if preview_minutes and preview_minutes > 0:
+            billed_minutes = int(preview_minutes)
         else:
-            local_path = download_audio_from_youtube(url, preview_minutes)
-            if not local_path:
-                raise HTTPException(status_code=400, detail="Could not fetch audio from YouTube URL.")
+            dur_sec = get_audio_duration_seconds(local_path)
+            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
     else:
         try:
             local_path = await download_to_tempfile(url)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Download failed: {e}") from e
 
+        if preview_minutes and preview_minutes > 0:
+            set_stage(job_id, "preparing preview")
+            from core.audio_utils import trim_audio as _trim
+            local_path = _trim(local_path, preview_minutes * 60)
+            billed_minutes = int(preview_minutes)
+        else:
+            dur_sec = get_audio_duration_seconds(local_path)
+            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+    JOBS[job_id]["billed_minutes"] = billed_minutes
+    set_stage(job_id, "transcribing")
     background.add_task(process_audio_job, job_id, local_path, feature_set)
-    return {"id": job_id, "status": "pending"}
+    return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.get("/jobs/{job_id}")
 def get_job(job_id: str):
     job = JOBS.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Not found")
-    return {"id": job_id, **job}
+    # include billed_minutes if we set it earlier
+    resp = {"id": job_id, **job}
+    if "billed_minutes" in job:
+        resp["billed_minutes"] = job["billed_minutes"]
+    return resp
 
 @router.post("/estimate")
 def estimate_cost(body: EstimateRequest):

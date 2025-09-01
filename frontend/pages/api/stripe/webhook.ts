@@ -5,29 +5,45 @@ import { prisma } from "../../../lib/prisma";
 export const config = { api: { bodyParser: false } };
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 
-function buffer(req: any) {
+// Map your Stripe price IDs to app plans
+const PRICE_IDS = {
+  STARTER: process.env.STRIPE_PRICE_STARTER, // e.g. price_123
+  PRO:     process.env.STRIPE_PRICE_PRO,
+  AGENCY:  process.env.STRIPE_PRICE_AGENCY,
+};
+
+// Minutes per month per plan
+const PLAN_LIMITS: Record<PlanName, number> = {
+  FREE:    30,
+  STARTER: 300,
+  PRO:     1200,
+  AGENCY:  99999,
+};
+
+type PlanName = "FREE" | "STARTER" | "PRO" | "AGENCY";
+
+function planFromPriceId(priceId?: string): PlanName {
+  if (!priceId) return "FREE";
+  if (PRICE_IDS.STARTER && priceId === PRICE_IDS.STARTER) return "STARTER";
+  if (PRICE_IDS.PRO     && priceId === PRICE_IDS.PRO)     return "PRO";
+  if (PRICE_IDS.AGENCY  && priceId === PRICE_IDS.AGENCY)  return "AGENCY";
+  return "FREE";
+}
+
+function rawBody(req: any) {
   return new Promise<Buffer>((resolve, reject) => {
-    const chunks: any[] = [];
-    req.on("data", (c: any) => chunks.push(c));
+    const chunks: Buffer[] = [];
+    req.on("data", (c: Buffer) => chunks.push(c));
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
-}
-
-function planForPrice(priceId?: string) {
-  switch (priceId) {
-    case process.env.STRIPE_PRICE_STARTER: return { plan: "STARTER", limit: 300 /* minutes */ };
-    case process.env.STRIPE_PRICE_PRO:     return { plan: "PRO",     limit: 1200 };
-    case process.env.STRIPE_PRICE_AGENCY:  return { plan: "AGENCY",  limit: 99999 };
-    default:                               return { plan: "FREE",    limit: 30 };
-  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
 
   const sig = req.headers["stripe-signature"] as string;
-  const buf = await buffer(req);
+  const buf = await rawBody(req);
 
   let event: Stripe.Event;
   try {
@@ -37,62 +53,96 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    if (event.type === "checkout.session.completed") {
-      const s = event.data.object as Stripe.Checkout.Session;
-      const line = s.line_items?.data?.[0]; // requires expand in webhook settings OR handle later via subscription event
-      // safer: fetch the subscription to get price id
-      const subId = s.subscription as string | undefined;
-      let priceId: string | undefined;
-      if (subId) {
-        const sub = await stripe.subscriptions.retrieve(subId);
-        priceId = sub.items.data[0].price.id;
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const s = event.data.object as Stripe.Checkout.Session;
+        const customerId = s.customer as string | undefined;
+        const subscriptionId = s.subscription as string | undefined;
+
+        let priceId: string | undefined;
+        let status: string | undefined;
+
+        if (subscriptionId) {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId, { expand: ["items.data.price"] });
+          priceId = sub.items.data[0]?.price?.id;
+          status = sub.status;
+        }
+
+        if (customerId) {
+          const plan = planFromPriceId(priceId);
+          const limit = PLAN_LIMITS[plan];
+
+          await prisma.user.updateMany({
+            where: { stripeCustomerId: customerId },
+            data: {
+              plan,
+              priceId: priceId || null,
+              subscriptionStatus: status || "active",
+              subscriptionId: subscriptionId || null,
+              monthlyMinutesLimit: limit,
+              monthlyMinutesUsed: 0,
+              monthlyResetAt: new Date(),
+            },
+          });
+        }
+        break;
       }
-      const refId = (s.client_reference_id || "") as string;
-      const { plan, limit } = planForPrice(priceId);
 
-      // link by customer or client_reference_id
-      let user = await prisma.user.findFirst({
-        where: { OR: [{ id: refId }, { stripeCustomerId: s.customer as string | undefined }, { email: s.customer_email || undefined }] }
-      });
-      if (user) {
-        await prisma.user.update({
-          where: { id: user.id },
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
+        const priceId = sub.items.data[0]?.price?.id;
+        const status = sub.status; // "active" | "trialing" | "past_due" | "canceled" | "unpaid" | ...
+
+        const plan = planFromPriceId(priceId);
+        const isActive = status === "active" || status === "trialing";
+        const limit = isActive ? PLAN_LIMITS[plan] : PLAN_LIMITS.FREE;
+
+        await prisma.user.updateMany({
+          where: { stripeCustomerId: customerId },
           data: {
-            plan: plan as any,
-            priceId: priceId,
-            subscriptionStatus: "active",
-            monthlyMinutesLimit: limit,
-            // reset usage on upgrade
-            monthlyMinutesUsed: 0,
-            monthlyResetAt: new Date(),
-          }
-        });
-      }
-    }
-
-    if (event.type.startsWith("customer.subscription.")) {
-      const sub = event.data.object as Stripe.Subscription;
-      const priceId = sub.items.data[0].price.id;
-      const custId = sub.customer as string;
-      const { plan, limit } = planForPrice(priceId);
-      const status = sub.status;
-
-      const user = await prisma.user.findFirst({ where: { stripeCustomerId: custId } });
-      if (user) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            plan: (status === "active" || status === "trialing") ? (plan as any) : "FREE",
-            priceId: (status === "active" || status === "trialing") ? priceId : null,
+            plan: isActive ? plan as PlanName : "FREE",
+            priceId: isActive ? (priceId || null) : null,
             subscriptionStatus: status,
-            monthlyMinutesLimit: (status === "active" || status === "trialing") ? limit : 30,
-            // do not reset used here unless you want to on every update
-          }
+            subscriptionId: sub.id,
+            monthlyMinutesLimit: limit,
+          },
         });
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
+
+        await prisma.user.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: {
+            plan: "FREE",
+            priceId: null,
+            subscriptionStatus: sub.status, // usually "canceled"
+            subscriptionId: sub.id,
+            monthlyMinutesLimit: PLAN_LIMITS.FREE,
+          },
+        });
+        break;
+      }
+
+      case "customer.subscription.paused": {
+        const sub = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
+        await prisma.user.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: {
+            subscriptionStatus: sub.status, // "paused"
+          },
+        });
+        break;
       }
     }
   } catch (e) {
-    console.error(e);
+    console.error("[webhook] handler failed:", e);
     return res.status(500).send("Webhook handler failed");
   }
 

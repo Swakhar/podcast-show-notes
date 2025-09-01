@@ -67,3 +67,23 @@ def segment_audio(input_path: str, segment_seconds: int = 600) -> List[str]:
         return files if files else [input_path]
     except subprocess.CalledProcessError:
         return [input_path]
+
+def get_audio_duration_seconds(path: str) -> float:
+    """
+    Returns duration in seconds using ffprobe (ffmpeg). Works for most formats.
+    """
+    try:
+        out = subprocess.check_output([
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            path
+        ], stderr=subprocess.STDOUT).decode().strip()
+        return float(out)
+    except Exception:
+        # Optional pydub fallback (requires ffmpeg + pydub)
+        try:
+            from pydub import AudioSegment
+            return len(AudioSegment.from_file(path)) / 1000.0
+        except Exception:
+            return 0.0

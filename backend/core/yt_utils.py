@@ -93,6 +93,20 @@ def fetch_youtube_captions(url: str, lang_pref=("en", "en-US")) -> Optional[str]
         return vtt_to_text(vtt)
     return None
 
+def get_youtube_duration_seconds(url: str) -> int:
+    """
+    Return duration seconds via yt-dlp metadata (no download).
+    """
+    try:
+        import yt_dlp
+        ydl_opts = {"quiet": True, "skip_download": True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            dur = info.get("duration")  # seconds
+            return int(dur) if dur else 0
+    except Exception:
+        return 0
+
 def retry(fn, attempts=3, base_delay=1.0, max_delay=6.0):
     import time, random
     last_exc = None

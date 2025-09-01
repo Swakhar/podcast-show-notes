@@ -1,50 +1,63 @@
-// pages/api/jobs/upload.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
+import { prisma } from "../../../lib/prisma";
+import formidable from "formidable";
 import FormData from "form-data";
 import fs from "fs";
-import formidable from "formidable";
 
-export const config = {
-  api: { bodyParser: false }, // we parse multipart ourselves
-};
+export const config = { api: { bodyParser: false } };
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const FREE_PREVIEW_LIMIT_MIN = 3; // free tier per-job preview cap
+const FREE_PREVIEW_CAP = 3;
+
+function monthNeedsReset(last: Date) {
+  const next = new Date(last);
+  next.setMonth(next.getMonth() + 1);
+  return Date.now() > next.getTime();
+}
 
 function parseForm(req: NextApiRequest) {
-  const form = formidable({ multiples: false, keepExtensions: true });
+  const f = formidable({ multiples: false, keepExtensions: true });
   return new Promise<{ fields: formidable.Fields; files: formidable.Files }>((resolve, reject) => {
-    form.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })));
+    f.parse(req, (err, fields, files) => (err ? reject(err) : resolve({ fields, files })));
   });
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  // OPTIONAL: require sign-in. If you want “guest” uploads while launching, comment this block
   const session = await getServerSession(req, res, authOptions);
-  // if (!session?.user?.email) return res.status(401).json({ error: "Sign in required" });
+  if (!session?.user?.email) return res.status(401).json({ error: "Sign in required" });
+
+  let user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  if (!user) return res.status(401).json({ error: "User not found" });
+  if (monthNeedsReset(user.monthlyResetAt)) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { monthlyMinutesUsed: 0, monthlyResetAt: new Date() },
+    });
+  }
 
   try {
     const { fields, files } = await parseForm(req);
-    const preview = Number(fields.preview_minutes || 0) || 0;
-    const features = String(fields.features || "summary,show_notes,timestamps,social_snippets,seo,newsletter");
+    const isFree = user.plan === "FREE";
 
-    // Simple free-tier guard (client does UI guard too). Replace with DB checks when ready.
-    const isFree = false; // TODO: read from session/DB; true if plan === "FREE"
-    const previewMinutes = isFree ? Math.min(preview || 2, FREE_PREVIEW_LIMIT_MIN) : preview || undefined;
+    const features = String(fields.features || "");
+    if (isFree && /\b(seo|newsletter)\b/i.test(features)) {
+      return res.status(402).json({ error: "Feature requires upgrade." });
+    }
+
+    const reqPreview = Number(fields.preview_minutes || 0) || 0;
+    const effectivePreview = reqPreview ? (isFree ? Math.min(reqPreview, FREE_PREVIEW_CAP) : reqPreview) : 0;
 
     const f = files.file;
-    if (!f || (Array.isArray(f) && f.length === 0)) {
-      return res.status(400).json({ error: "Missing file" });
-    }
+    if (!f) return res.status(400).json({ error: "Missing file" });
     const fileObj = Array.isArray(f) ? f[0] : f;
 
     const fd = new FormData();
     fd.append("file", fs.createReadStream(fileObj.filepath), fileObj.originalFilename || "audio.bin");
-    if (previewMinutes) fd.append("preview_minutes", String(previewMinutes));
+    if (effectivePreview) fd.append("preview_minutes", String(effectivePreview));
     if (features) fd.append("features", features);
 
     const r = await fetch(`${BACKEND}/jobs/upload`, {
@@ -52,9 +65,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       body: fd as any,
       headers: fd.getHeaders(),
     });
+    const data = await r.json().catch(() => ({} as any));
 
-    const data = await r.json();
-    return res.status(r.status).json(data);
+    if (!r.ok) {
+      return res.status(r.status).json({ error: data?.detail || data?.error || "Backend error" });
+    }
+    if (!data?.id) {
+      return res.status(502).json({ error: "Backend returned no job id." });
+    }
+
+    let billed = Number(data?.billed_minutes || 0);
+    if (!billed || billed < 0) billed = effectivePreview || 2;
+
+    if (user.monthlyMinutesUsed + billed > user.monthlyMinutesLimit) {
+      return res.status(402).json({ error: "Quota exceeded. Please upgrade." });
+    }
+
+    return res.status(200).json({
+      id: data.id,
+      status: data.status || "pending",
+      stage: data.stage,
+      billed_minutes: billed,
+    });
   } catch (e: any) {
     console.error("[proxy upload] error:", e);
     return res.status(500).json({ error: e.message || "Upload proxy failed" });

@@ -1,5 +1,5 @@
-import { useState, useEffect, FormEvent, ChangeEvent } from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useState, useEffect, ChangeEvent } from "react";
+import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 
 // ---------- Download helpers ----------
@@ -43,6 +43,7 @@ interface JobStatus {
   stage?: string;
   error?: string;
   result?: JobResult;
+  billed_minutes?: number;
 }
 interface Me {
   plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
@@ -74,16 +75,22 @@ const STAGE_PROGRESS: Record<string, number> = {
 
 // ---------- Main ----------
 export default function Home() {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const [me, setMe] = useState<Me | null>(null);
   const plan = (me?.plan as any) || ((session?.user as any)?.plan ?? "FREE");
   const active = (me?.subscriptionStatus === "active") || ((session?.user as any)?.subscriptionStatus === "active");
   const isFree = plan === "FREE";
+  const planLabel =
+    me?.plan === "AGENCY" ? "Agency" :
+    me?.plan === "PRO"    ? "Pro"    :
+    me?.plan === "STARTER"? "Starter": "Free";
 
   // Inputs
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [previewMinutes, setPreviewMinutes] = useState<number | "">("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usageBooked, setUsageBooked] = useState<{ [jobId: string]: boolean }>({});
 
   // Feature selection
   const [features, setFeatures] = useState({
@@ -105,7 +112,7 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
 
-  // Estimator slide-over
+  // Estimator (unchanged from your version)...
   const [estOpen, setEstOpen] = useState(false);
   const [estMinutes, setEstMinutes] = useState<number | "">("");
   const [estInputTok, setEstInputTok] = useState<number>(3000);
@@ -113,8 +120,14 @@ export default function Home() {
   const [estIncludeTrans, setEstIncludeTrans] = useState<boolean>(true);
   const [estimate, setEstimate] = useState<{ transcription_usd: number; llm_usd: number; total_usd: number } | null>(null);
 
-  const isBusy = jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed";
-  const progress = Math.max(0, Math.min(100, jobStatus?.stage ? STAGE_PROGRESS[jobStatus.stage] ?? (jobStatus.status === "processing" ? 50 : 0) : 0));
+  const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
+  const progress = (() => {
+    if (isSubmitting) return 12; // immediate visual feedback
+    if (!jobStatus) return 0;
+    const byStage = jobStatus.stage ? STAGE_PROGRESS[jobStatus.stage] : undefined;
+    if (typeof byStage === "number") return byStage;
+    return jobStatus.status === "processing" ? 50 : 0;
+  })();
 
   // --- Fetch canonical membership ---
   useEffect(() => {
@@ -133,12 +146,6 @@ export default function Home() {
     }
 
     return () => { cancel = true; };
-  }, [status]);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      setMe(null);
-    }
   }, [status]);
 
   // Handlers
@@ -167,70 +174,132 @@ export default function Home() {
     setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  async function handleSubmit(e: FormEvent) {
+  async function submitUrlJob(url: string, previewMinutes: number | "" , selectedFeatures: string[]) {
+    const res = await fetch("/api/jobs/url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url,
+        preview_minutes: previewMinutes || null,
+        features: selectedFeatures.join(","),
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || `URL job failed (${res.status})`);
+    if (!data?.id) throw new Error("Backend did not return a job id.");
+    return data as JobStatus;
+  }
+
+  async function submitUploadJob(file: File, previewMinutes: number | "", selectedFeatures: string[]) {
+    const form = new FormData();
+    form.append("file", file);
+    if (previewMinutes) form.append("preview_minutes", String(previewMinutes));
+    form.append("features", selectedFeatures.join(","));
+
+    const res = await fetch("/api/jobs/upload", { method: "POST", body: form });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error || `Upload job failed (${res.status})`);
+    if (!data?.id) throw new Error("Backend did not return a job id.");
+    return data as JobStatus;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrorMessage(null);
-    setJobStatus(null);
+    setJobStatus({ id: "pending", status: "pending", stage: "submitting…", result: {} });
     setJobId(null);
-
-    if (!file && !url) return setErrorMessage("Please upload an audio file or provide a podcast URL.");
-    if (file && url) return setErrorMessage("Choose either a file OR a URL, not both.");
+    setIsSubmitting(true);
 
     try {
-      const selected = Object.entries(features)
-        .filter(([_, v]) => v)
-        .map(([k]) => k);
+      const selected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
 
-      let response;
+      let data: JobStatus;
       if (file) {
-        const form = new FormData();
-        form.append("file", file);
-        if (previewMinutes) form.append("preview_minutes", String(previewMinutes));
-        form.append("features", selected.join(","));
-        // If you added the Next.js proxy, send to /api/jobs/upload instead:
-        response = await axios.post(`${API_BASE_URL}/jobs/upload`, form, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        data = await submitUploadJob(file, previewMinutes, selected);
+      } else if (url) {
+        data = await submitUrlJob(url, previewMinutes, selected);
       } else {
-        const form = new FormData();
-        form.append("url", url);
-        if (previewMinutes) form.append("preview_minutes", String(previewMinutes));
-        form.append("features", selected.join(","));
-        // If you added the Next.js proxy, send to /api/jobs/url instead:
-        response = await axios.post(`${API_BASE_URL}/jobs/url`, form);
+        throw new Error("Please upload a file or enter a URL.");
       }
-      setJobId(response.data.id);
-      setJobStatus(response.data);
-    } catch (error: any) {
-      const message = error.response?.data?.detail || error.message || "Failed to submit job";
-      setErrorMessage(message);
+
+      setJobId(data.id);
+      setJobStatus({
+        id: data.id,
+        status: data.status || "pending",
+        stage: data.stage,
+        billed_minutes: data.billed_minutes,
+        result: {},
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to create job");
+      setIsSubmitting(false);
+      setJobStatus(null);
     }
   }
 
   async function handleSignOut() {
-    // clear local UI state that might show you as signed in
     setMe(null);
     setJobId(null);
     setJobStatus(null);
-    // let NextAuth do a full cookie-clearing signout + redirect
     await signOut({ callbackUrl: "/" });
   }
 
-  // Polling
+  // Polling (progressive + usage booking with rollback)
   useEffect(() => {
     if (!jobId) return;
+    let firstResponse = true;
+
     const interval = setInterval(async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/jobs/${jobId}`);
-        setJobStatus(res.data);
-        if (res.data.status === "complete" || res.data.status === "failed") clearInterval(interval);
+        const r = await axios.get<JobStatus>(`${API_BASE_URL}/jobs/${jobId}`);
+        const d = r.data;
+        setJobStatus(d);
+
+        if (firstResponse) {
+          firstResponse = false;
+          setIsSubmitting(false);
+        }
+
+        // Book usage when it actually starts
+        const started = d.status === "processing" || d.stage === "transcribing" || d.stage === "fetching captions";
+        if (started && !usageBooked[jobId] && typeof d.billed_minutes === "number") {
+          try {
+            await fetch("/api/usage/adjust", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ minutes: d.billed_minutes, op: "inc" }),
+            });
+            setUsageBooked((u) => ({ ...u, [jobId]: true }));
+            // Refresh me() minutes
+            const m = await fetch("/api/me", { cache: "no-store" }).then(x => x.json()).catch(() => null);
+            if (m?.user) setMe(m.user);
+          } catch {}
+        }
+
+        // If it fails after starting → rollback
+        if (d.status === "failed" && usageBooked[jobId] && typeof d.billed_minutes === "number") {
+          try {
+            await fetch("/api/usage/adjust", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ minutes: d.billed_minutes, op: "dec" }),
+            });
+            const m = await fetch("/api/me", { cache: "no-store" }).then(x => x.json()).catch(() => null);
+            if (m?.user) setMe(m.user);
+          } catch {}
+        }
+
+        if (d.status === "complete" || d.status === "failed") clearInterval(interval);
       } catch (err: any) {
         clearInterval(interval);
+        setIsSubmitting(false);
         setErrorMessage(err.message);
       }
-    }, 1500);
+    }, 1200);
+
     return () => clearInterval(interval);
-  }, [jobId]);
+  }, [jobId, usageBooked]);
 
   useEffect(() => {
     return () => {
@@ -244,13 +313,20 @@ export default function Home() {
       <header className="sticky top-0 z-30 backdrop-blur bg-white/70 border-b">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">AI-Powered Podcast Show Notes Generator</h1>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {me && (
+              <>
+                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border">
+                  Current plan: {planLabel}
+                </span>
+                <span className="px-2 py-1 rounded-full text-xs bg-slate-50 text-slate-600 border">
+                  {me.monthlyMinutesUsed}/{me.monthlyMinutesLimit} min
+                </span>
+              </>
+            )}
+
             {!session ? (
-              // If you have your own credentials page, send users there
-              <button
-                onClick={() => (window.location.href = "/login")}
-                className="px-3 py-1.5 rounded-md border"
-              >
+              <button onClick={() => (window.location.href = "/login")} className="px-3 py-1.5 rounded-md border">
                 Sign in
               </button>
             ) : (
@@ -283,7 +359,7 @@ export default function Home() {
             )}
           </div>
         </div>
-        {(jobStatus && (jobStatus.status === "pending" || jobStatus.status === "processing")) && (
+        {(isBusy) && (
           <div className="h-1 w-full bg-slate-200">
             <div className="h-1 bg-blue-600 transition-all" style={{ width: `${Math.max(1, progress)}%` }} />
           </div>
@@ -302,7 +378,7 @@ export default function Home() {
             {/* File */}
             <div>
               <label htmlFor="file" className="block text-sm font-medium text-gray-700">Audio file</label>
-              <input id="file" type="file" accept="audio/*" onChange={handleFileChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
+              <input id="file" type="file" accept="audio/*" onChange={handleFileChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
             </div>
 
             <div className="text-center text-gray-400">or</div>
@@ -310,7 +386,7 @@ export default function Home() {
             {/* URL */}
             <div>
               <label htmlFor="url" className="block text-sm font-medium text-gray-700">Podcast URL</label>
-              <input id="url" type="url" placeholder="https://example.com/podcast.mp3" value={url} onChange={handleUrlChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
+              <input id="url" type="url" placeholder="https://example.com/podcast.mp3" value={url} onChange={handleUrlChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
               {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
                 <p className="text-xs text-blue-600 mt-1">Using 2-min preview for quick results. Change below if needed.</p>
               )}
@@ -319,7 +395,7 @@ export default function Home() {
             {/* Cover */}
             <div>
               <label htmlFor="cover" className="block text-sm font-medium text-gray-700">Episode Cover (optional)</label>
-              <input id="cover" type="file" accept="image/*" onChange={handleCoverChange} disabled={!!isBusy} className="mt-1 w-full border rounded-md p-2" />
+              <input id="cover" type="file" accept="image/*" onChange={handleCoverChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
               {coverPreviewUrl && <div className="mt-2"><img src={coverPreviewUrl} alt="Cover preview" className="h-32 rounded border" /></div>}
               <p className="text-xs text-gray-500 mt-1">Image stays on your device, only embedded into downloaded Markdown.</p>
             </div>
@@ -327,7 +403,7 @@ export default function Home() {
             {/* Preview minutes */}
             <div>
               <label htmlFor="preview" className="block text-sm font-medium text-gray-700">Quick preview (minutes)</label>
-              <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes} onChange={handlePreviewChange} disabled={!!isBusy} className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 3" />
+              <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes} onChange={handlePreviewChange} disabled={isBusy} className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 3" />
               {isFree && <p className="text-xs text-orange-600 mt-1">Free plan: max 3-min preview per job.</p>}
             </div>
 
@@ -342,7 +418,7 @@ export default function Home() {
                   ["social_snippets", "Social snippets"],
                 ] as const).map(([k, label]) => (
                   <label key={k} className={`flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 cursor-pointer ${features[k] ? "border-blue-400" : "border-slate-200"}`}>
-                    <input type="checkbox" checked={features[k]} onChange={() => toggleFeature(k)} />
+                    <input type="checkbox" checked={features[k]} onChange={() => toggleFeature(k as any)} />
                     <span>{label}</span>
                   </label>
                 ))}
@@ -361,13 +437,13 @@ export default function Home() {
             {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
             {/* Submit */}
-            <button onClick={handleSubmit} disabled={!!isBusy} className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
-              {isBusy ? "Processing…" : "Generate"}
+            <button onClick={handleSubmit} disabled={isBusy} className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+              {isSubmitting ? "Starting…" : isBusy ? "Processing…" : "Generate"}
             </button>
 
             {/* Live stage */}
-            {(jobStatus && (jobStatus.status === "pending" || jobStatus.status === "processing")) && (
-              <div className="text-sm text-blue-700">{jobStatus.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}</div>
+            {(isBusy) && (
+              <div className="text-sm text-blue-700">{jobStatus?.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}</div>
             )}
             {jobStatus && jobStatus.status === "failed" && (
               <div className="text-sm text-red-600">Job failed: {jobStatus.error || "Unknown error"}</div>
@@ -377,7 +453,7 @@ export default function Home() {
 
         {/* Right column: Results */}
         <section className="lg:col-span-2 space-y-8">
-          {jobStatus && jobStatus.status === "complete" && jobStatus.result ? (
+          {jobStatus?.result ? (
             <>
               {jobStatus.result.summary && features.summary && (
                 <Card title="Summary">
@@ -473,7 +549,7 @@ export default function Home() {
             </>
           ) : (
             <div className="rounded-2xl border bg-white shadow-sm p-6 text-gray-500">
-              Your results will appear here once processing completes.
+              Your results will appear here once processing starts.
             </div>
           )}
         </section>
