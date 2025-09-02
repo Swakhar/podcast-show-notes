@@ -1,0 +1,26 @@
+<svg width="720" height="140" viewBox="0 0 720 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CastLumen">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9CEE69"/>
+      <stop offset="1" stop-color="#83E14E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon (same geometry as favicon), scaled for header -->
+  <g transform="translate(0,0) scale(0.22)">
+    <rect width="512" height="512" rx="96" fill="url(#g)"/>
+    <polygon points="320,256 180,200 180,312" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="256" cy="256" r="120" fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round" stroke-dasharray="530 160"/>
+    <circle cx="356" cy="200" r="8" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="64" font-weight="800">
+    <text x="140" y="68" fill="#0F172A" letter-spacing="0.5">Cast</text>
+    <text x="310" y="68" fill="#0F172A" letter-spacing="0.5">Lu</text>
+    <text x="390" y="68" fill="url(#g)" letter-spacing="0.5">men</text>
+  </g>
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="14" font-weight="600" fill="#475569">
+    <text x="140" y="102">AI-Powered Podcast Show Notes, Timestamps and SEO</text>
+  </g>
+</svg>

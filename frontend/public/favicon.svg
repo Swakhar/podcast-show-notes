@@ -1,0 +1,12 @@
+<!-- You can reuse the icon as the SVG favicon -->
+<svg width="64" height="64" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9CEE69"/>
+      <stop offset="1" stop-color="#83E14E"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#g)"/>
+  <polygon points="320,256 180,200 180,312" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-dasharray="530 160"/>
+</svg>

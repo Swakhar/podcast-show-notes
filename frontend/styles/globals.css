@@ -2,7 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --cl-green: #9CEE69;
+  --cl-dark: #0F172A;
+}
+
 /* Global styles */
 body {
   @apply bg-gray-50 text-gray-900;
 }
+
+/* fade-up */
+[data-reveal] { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+.reveal-in { opacity: 1 !important; transform: translateY(0) !important; }
+
+@keyframes bumper-pop { 0%{transform:scale(.9);opacity:0} 60%{transform:scale(1);opacity:1} 100%{transform:scale(1);opacity:1} }
+@keyframes bumper-fade { 0%{opacity:1} 75%{opacity:1} 100%{opacity:0} }
+@keyframes bumper-sheen { 0%{transform:translateX(-140%) skewX(-6deg)} 100%{transform:translateX(140%) skewX(-6deg)} }
+
+.animate-bumper-pop { animation: bumper-pop .7s cubic-bezier(.2,.7,.2,1) forwards; }
+.animate-bumper-fade { animation: bumper-fade 1.6s ease forwards; }
+.animate-bumper-sheen { animation: bumper-sheen 1.2s ease .2s forwards; }
