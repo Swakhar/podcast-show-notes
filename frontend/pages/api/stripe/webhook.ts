@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { prisma } from "../../../lib/prisma";
+import { sendMail } from "../../../lib/smtp";
 
 export const config = { api: { bodyParser: false } };
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
@@ -58,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const s = event.data.object as Stripe.Checkout.Session;
         const customerId = s.customer as string | undefined;
         const subscriptionId = s.subscription as string | undefined;
+        const email = s.customer_details?.email;
 
         let priceId: string | undefined;
         let status: string | undefined;
@@ -84,6 +86,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               monthlyResetAt: new Date(),
             },
           });
+        }
+
+        if (email) {
+          await sendMail(
+            email,
+            "Welcome to CastLumen — your subscription is active 🎉",
+            `
+            <div style="font-family:Inter,system-ui,Arial">
+              <h2>Thanks for upgrading!</h2>
+              <p>Your CastLumen plan is now active. You can start generating show notes, timestamps, SEO & snippets right away.</p>
+              <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com"}/generate"
+                    style="display:inline-block;padding:10px 16px;background:#9CEE69;color:#0F172A;border-radius:8px;text-decoration:none;font-weight:600">
+                Open CastLumen
+              </a></p>
+              <p style="margin-top:16px">Manage billing anytime from your profile.</p>
+              <p>— Team CastLumen</p>
+            </div>
+            `
+          );
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as any;
+        const email = invoice.customer_email || invoice.account_customer_email;
+        if (email) {
+          await sendMail(
+            email,
+            "Payment received ✔ — CastLumen",
+            `<div style="font-family:Inter,system-ui,Arial">
+              <p>We’ve received your payment of <strong>${(invoice.amount_paid/100).toFixed(2)} ${invoice.currency?.toUpperCase()}</strong>.</p>
+              <p>Thanks for being with us!</p>
+            </div>`
+          );
         }
         break;
       }

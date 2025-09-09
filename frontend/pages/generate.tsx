@@ -4,6 +4,8 @@ import axios from "axios";
 import Head from "next/head";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import Skeleton from "../components/Skeleton";
+import { StageTimeline } from "../components/StageTimeline";
 
 /* ---------- Small helpers (same as your current page) ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -274,7 +276,7 @@ export default function Generate() {
         )}
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 grid lg:grid-cols-3 gap-8">
+      <main className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-3 gap-10">
         {/* Left column: Inputs */}
         <section className="lg:col-span-1">
           <div className="rounded-2xl border bg-white shadow-sm p-4 space-y-4">
@@ -347,9 +349,12 @@ export default function Generate() {
 
             {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
-            <button onClick={handleSubmit} disabled={isBusy} className="w-full px-4 py-2 bg-[#9CEE69] text-slate-900 rounded-md font-semibold hover:brightness-95 disabled:opacity-50">
-              {isSubmitting ? "Starting…" : isBusy ? "Processing…" : "Generate"}
-            </button>
+            <div className="sticky bottom-4 bg-white border-t pt-3">
+              <button onClick={handleSubmit} disabled={isBusy} className="w-full px-4 py-2 bg-[#9CEE69] text-slate-900 rounded-md font-semibold hover:brightness-95 disabled:opacity-50">
+                {isSubmitting ? "Starting…" : isBusy ? "Processing…" : "Generate"}
+              </button>
+              <p className="text-[11px] text-slate-500 mt-2 text-center">You’ll see results appear as they’re ready.</p>
+            </div>
 
             {(isBusy) && (
               <div className="text-sm text-blue-700">{jobStatus?.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}</div>
@@ -363,10 +368,15 @@ export default function Generate() {
         {/* Right column: Results */}
         <section className="lg:col-span-2 space-y-8">
           {!jobStatus?.result ? (
-            <div className="rounded-2xl border bg-white shadow-sm p-8 text-gray-500 grid place-items-center">
-              <div className="text-center">
-                <div className="text-5xl mb-2">🎧</div>
-                <p>Your results will appear here once processing starts.</p>
+            <div className="rounded-2xl border bg-white shadow-sm p-6 space-y-4">
+              <StageTimeline stage={jobStatus?.stage} />
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-3/4" />
+              <div className="grid md:grid-cols-2 gap-4 pt-2">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
               </div>
             </div>
           ) : (
@@ -476,7 +486,7 @@ export default function Generate() {
 function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="rounded-2xl border bg-white shadow-sm overflow-hidden transition hover:shadow-md">
-      <div className="px-4 py-3 border-b flex items-center justify-between">
+      <div className="px-5 py-4 border-b flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
         {action}
       </div>

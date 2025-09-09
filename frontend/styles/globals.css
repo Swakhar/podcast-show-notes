@@ -7,6 +7,8 @@
   --cl-dark: #0F172A;
 }
 
+html { font-size: 17px; }
+
 /* Global styles */
 body {
   @apply bg-gray-50 text-gray-900;
