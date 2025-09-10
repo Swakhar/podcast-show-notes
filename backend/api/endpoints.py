@@ -23,7 +23,8 @@ async def create_job_from_upload(
     background: BackgroundTasks,
     file: UploadFile = File(...),
     preview_minutes: Optional[int] = Form(None),
-    features: Optional[str] = Form(None)
+    features: Optional[str] = Form(None),
+    language: Optional[str] = Form("auto"),
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
@@ -54,7 +55,7 @@ async def create_job_from_upload(
     JOBS[job_id]["billed_minutes"] = billed_minutes
 
     set_stage(job_id, "transcribing")
-    background.add_task(process_audio_job, job_id, local_path, feature_set)
+    background.add_task(process_audio_job, job_id, local_path, feature_set, language)
     return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.post("/jobs/url")
@@ -62,7 +63,8 @@ async def create_job_from_url(
     background: BackgroundTasks,
     url: str = Form(...),
     preview_minutes: Optional[int] = Form(None),
-    features: Optional[str] = Form(None)
+    features: Optional[str] = Form(None),
+    language: Optional[str] = Form("auto"),
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
@@ -87,7 +89,7 @@ async def create_job_from_url(
                 billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
 
             JOBS[job_id]["billed_minutes"] = billed_minutes
-            background.add_task(process_text_job, job_id, transcript_text, feature_set)
+            background.add_task(process_text_job, job_id, transcript_text, feature_set, language)
             return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
 
         # fallback: download audio
@@ -118,7 +120,7 @@ async def create_job_from_url(
 
     JOBS[job_id]["billed_minutes"] = billed_minutes
     set_stage(job_id, "transcribing")
-    background.add_task(process_audio_job, job_id, local_path, feature_set)
+    background.add_task(process_audio_job, job_id, local_path, feature_set, language)
     return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.get("/jobs/{job_id}")

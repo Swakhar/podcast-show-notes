@@ -36,6 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const isFree = user.plan === "FREE";
   const effectivePreview = reqPreview ? (isFree ? Math.min(reqPreview, FREE_PREVIEW_CAP) : reqPreview) : 0;
+  // Optional language (auto | en | de)
+  const language = String(req.body?.language || "auto");
 
   // Enforce feature gates for FREE
   if (isFree && /\b(seo|newsletter)\b/i.test(features)) {
@@ -47,6 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   form.set("url", url);
   if (effectivePreview) form.set("preview_minutes", String(effectivePreview));
   if (features) form.set("features", features);
+  if (language) form.set("language", language);
 
   const r = await fetch(`${BACKEND}/jobs/url`, { method: "POST", body: form });
   const data = await r.json().catch(() => ({} as any));

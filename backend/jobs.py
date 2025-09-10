@@ -1,5 +1,6 @@
 import os
 from typing import Dict, Set
+from unittest import result
 
 from core.openai_utils import transcribe
 from core.business import (
@@ -27,7 +28,7 @@ def _ensure_result(job_id: str) -> Dict:
         job["result"] = {}
     return job["result"]
 
-def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str]) -> None:
+def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], language: str = "auto") -> None:
     """
     Shared pipeline for processing transcript. Writes partial results
     to JOBS[job_id]['result'] after each step so the frontend can render
@@ -44,30 +45,30 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str]) ->
 
         if "summary" in feature_set:
             set_stage(job_id, "generating summary")
-            res["summary"] = generate_summary(transcript)
+            res["summary"] = generate_summary(transcript, language=language)
 
         if "show_notes" in feature_set:
             set_stage(job_id, "generating show notes")
-            res["show_notes"] = generate_show_notes(transcript, res.get("summary", ""))
+            res["show_notes"] = generate_show_notes(transcript, res.get("summary", ""), language=language)
 
         if "timestamps" in feature_set:
             set_stage(job_id, "generating timestamps")
-            res["timestamps"] = generate_timestamps(transcript)
+            res["timestamps"] = generate_timestamps(transcript, language=language)
 
         if "social_snippets" in feature_set:
             set_stage(job_id, "generating social snippets")
             res["social_snippets"] = generate_social_snippets(
-                res.get("summary", ""), res.get("show_notes", ""), transcript
+                res.get("summary", ""), res.get("show_notes", ""), transcript, language=language
             )
 
         if "seo" in feature_set:
             set_stage(job_id, "generating SEO")
-            res["seo"] = generate_seo(transcript, res.get("summary", ""))
+            res["seo"] = generate_seo(transcript, res.get("summary", ""), language=language)
 
         if "newsletter" in feature_set:
             set_stage(job_id, "generating newsletter")
             res["newsletter"] = generate_newsletter(
-                transcript, res.get("summary", ""), res.get("show_notes", "")
+                transcript, res.get("summary", ""), res.get("show_notes", ""), language=language
             )
 
         set_stage(job_id, "finished")
@@ -77,7 +78,7 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str]) ->
         JOBS[job_id]["error"] = str(e)
         set_stage(job_id, "failed")
 
-def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str]) -> None:
+def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str], language: str = "auto") -> None:
     """Pipeline for audio input: transcribe, then process transcript."""
     try:
         JOBS[job_id]["status"] = "processing"
@@ -85,7 +86,7 @@ def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str]) -> No
         transcript = transcribe(audio_path)
         _ensure_result(job_id)["transcript"] = transcript
 
-        process_job_pipeline(job_id, transcript, feature_set)
+        process_job_pipeline(job_id, transcript, feature_set, language=language)
     except Exception as e:
         JOBS[job_id]["status"] = "failed"
         JOBS[job_id]["error"] = str(e)
@@ -96,12 +97,12 @@ def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str]) -> No
         except Exception:
             pass
 
-def process_text_job(job_id: str, transcript: str, feature_set: Set[str]) -> None:
+def process_text_job(job_id: str, transcript: str, feature_set: Set[str], language: str = "auto") -> None:
     """Pipeline for text input: process transcript."""
     try:
         JOBS[job_id]["status"] = "processing"
         _ensure_result(job_id)["transcript"] = transcript
-        process_job_pipeline(job_id, transcript, feature_set)
+        process_job_pipeline(job_id, transcript, feature_set, language=language)
     except Exception as e:
         JOBS[job_id]["status"] = "failed"
         JOBS[job_id]["error"] = str(e)

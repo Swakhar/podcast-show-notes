@@ -113,6 +113,7 @@ export default function Generate() {
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
+  const [language, setLanguage] = useState<"auto"|"en"|"de">("auto");
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -159,25 +160,26 @@ export default function Generate() {
   };
   const toggleFeature = (key: keyof typeof features) => setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  async function submitUrlJob(url: string, pm: number | "" , selected: string[]) {
+  async function submitUrlJob(url: string, pm: number | "" , selected: string[], language: string) {
     const res = await fetch("/api/jobs/url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, preview_minutes: pm || null, features: selected.join(",") }),
+      body: JSON.stringify({ url, preview_minutes: pm || null, features: selected.join(","), language }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || `URL job failed (${res.status})`);
     if (!data?.id) throw new Error("Backend did not return a job id.");
     return data as JobStatus;
   }
-  async function submitUploadJob(file: File, pm: number | "", selected: string[]) {
+  async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string) {
     const form = new FormData();
     form.append("file", file);
     if (pm) form.append("preview_minutes", String(pm));
     form.append("features", selected.join(","));
-    const res = await fetch("/api/jobs/upload", { method: "POST", body: form });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Upload job failed (${res.status})`);
+    form.append("language", language);
+    const res = await axios.post("/api/jobs/upload", form);
+    const data = res.data;
+    if (!res.status) throw new Error(data?.error || `Upload job failed (${res.status})`);
     if (!data?.id) throw new Error("Backend did not return a job id.");
     return data as JobStatus;
   }
@@ -191,8 +193,8 @@ export default function Generate() {
     try {
       const selected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
       let data: JobStatus;
-      if (file) data = await submitUploadJob(file, previewMinutes, selected);
-      else if (url) data = await submitUrlJob(url, previewMinutes, selected);
+      if (file) data = await submitUploadJob(file, previewMinutes, selected, language);
+      else if (url) data = await submitUrlJob(url, previewMinutes, selected, language);
       else throw new Error("Please upload a file or enter a URL.");
       setJobId(data.id);
       setJobStatus({ id: data.id, status: data.status || "pending", stage: data.stage, billed_minutes: data.billed_minutes, result: {} });
@@ -201,11 +203,6 @@ export default function Generate() {
       setIsSubmitting(false);
       setJobStatus(null);
     }
-  }
-
-  async function handleSignOut() {
-    setMe(null); setJobId(null); setJobStatus(null);
-    await signOut({ callbackUrl: "/" });
   }
 
   // polling + usage booking/rollback
@@ -319,6 +316,21 @@ export default function Generate() {
               <label htmlFor="preview" className="block text-sm font-medium text-gray-700">Quick preview (minutes)</label>
               <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes} onChange={handlePreviewChange} disabled={isBusy} className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 3" />
               {isFree && <p className="text-xs text-orange-600 mt-1">Free plan: max 3-min preview per job.</p>}
+            </div>
+
+            {/* Output language */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Output language</label>
+              <select
+                className="mt-1 border rounded-md p-2"
+                value={language}
+                onChange={(e)=>setLanguage(e.target.value as any)}
+                disabled={isBusy}
+              >
+                <option value="auto">Auto (source language)</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+              </select>
             </div>
 
             {/* Feature selection */}
