@@ -1,10 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import LogoBumper from "../components/LogoBumper";
 import SiteFooter from "../components/SiteFooter";
 import CookieConsent from "../components/CookieConsent";
+
+type Me = {
+  plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
+  subscriptionStatus: string | null;
+  monthlyMinutesLimit: number;
+  monthlyMinutesUsed: number;
+};
+const planText = (p?: string) => (p === "AGENCY" ? "Agency" : p === "PRO" ? "Pro" : p === "STARTER" ? "Starter" : "Free");
 
 function useReveal() {
   useEffect(() => {
@@ -24,6 +32,20 @@ function useReveal() {
 
 export default function Landing() {
   useReveal();
+  const [me, setMe] = useState<Me | null>(null);
+  const active = me?.subscriptionStatus === "active";
+  const current = me?.plan; // "FREE"|"STARTER"|"PRO"|"AGENCY"
+  const cards = [
+    { key: "STARTER", name: "Starter", price: "€19/mo", bullets: ["5 hrs / month", "Summaries", "Notes", "Snippets"], priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER },
+    { key: "PRO",     name: "Pro",     price: "€49/mo", bullets: ["20 hrs / month", "All features", "SEO", "Newsletter"], priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO },
+    { key: "AGENCY",  name: "Agency",  price: "€99/mo", bullets: ["Unlimited*", "Teams", "White-label export"],           priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY },
+  ] as const;
+  useEffect(() => {
+    (async () => {
+      try { const r = await fetch("/api/me", { cache: "no-store" }); const j = await r.json(); setMe(j?.user ?? null); }
+      catch { setMe(null); }
+    })();
+  }, []);
 
   return (
     <>
@@ -63,13 +85,37 @@ export default function Landing() {
               <p className="mt-4 text-lg text-slate-600">
                 Upload audio or paste a URL. Get clean show notes, timestamps, summaries, SEO and social snippets—ready to publish.
               </p>
-              <div className="mt-6 flex gap-3">
-                <Link href="/generate" className="px-5 py-3 rounded-lg bg-[#9CEE69] text-slate-900 font-semibold">
-                  Try the demo
-                </Link>
-                <a href="#demo" className="px-5 py-3 rounded-lg border">Watch demo</a>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {active ? (
+                  <>
+                    <Link href="/generate" className="px-5 py-3 rounded-lg bg-[#9CEE69] text-slate-900 font-semibold">
+                      Open generator
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+                        const { url, error } = await r.json();
+                        if (error) return alert(error);
+                        window.location.href = url;
+                      }}
+                      className="px-5 py-3 rounded-lg border"
+                    >
+                      Manage billing
+                    </button>
+                    <span className="text-sm text-slate-600">
+                      Current plan: <strong>{planText(me?.plan)}</strong> · {me?.monthlyMinutesUsed}/{me?.monthlyMinutesLimit} min
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/generate" className="px-5 py-3 rounded-lg bg-[#9CEE69] text-slate-900 font-semibold">
+                      Try the demo
+                    </Link>
+                    <a href="#pricing" className="px-5 py-3 rounded-lg border">Watch demo</a>
+                    <p className="w-full text-sm text-slate-500">Free plan available • No card required</p>
+                  </>
+                )}
               </div>
-              <p className="mt-3 text-sm text-slate-500">Free plan available • No card required</p>
             </div>
             {/* Screenshot placeholder */}
             <div className="rounded-2xl border shadow-sm bg-white p-3">
@@ -182,22 +228,55 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto px-4">
             <h2 className="text-2xl font-bold">Simple pricing</h2>
             <div className="mt-8 grid md:grid-cols-3 gap-6">
-              {[
-                { name: "Starter", price: "€19/mo", bullets: ["5 hrs / month", "Summaries", "Notes", "Snippets"], cta: "/pricing" },
-                { name: "Pro", price: "€49/mo", bullets: ["20 hrs / month", "All features", "SEO", "Newsletter"], cta: "/pricing" },
-                { name: "Agency", price: "€99/mo", bullets: ["Unlimited*", "Teams", "White-label export"], cta: "/pricing" },
-              ].map((p) => (
-                <div key={p.name} className="rounded-2xl border p-6 hover:shadow-sm">
-                  <div className="text-lg font-semibold">{p.name}</div>
-                  <div className="text-3xl font-extrabold mt-1">{p.price}</div>
-                  <ul className="mt-3 space-y-1 text-sm text-slate-600">
-                    {p.bullets.map(b => <li key={b}>• {b}</li>)}
-                  </ul>
-                  <Link href={p.cta} className="mt-5 inline-block px-4 py-2 rounded-md bg-[#9CEE69] text-slate-900 font-semibold">
-                    Start
-                  </Link>
-                </div>
-              ))}
+              {cards.map((p) => {
+                const isCurrent = active && current === p.key;
+                return (
+                  <div key={p.key} className="rounded-2xl border p-6 hover:shadow-sm">
+                    <div className="text-lg font-semibold">{p.name}</div>
+                    <div className="text-3xl font-extrabold mt-1">{p.price}</div>
+                    <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                      {p.bullets.map((b) => <li key={b}>• {b}</li>)}
+                    </ul>
+
+                    <div className="mt-5">
+                      {isCurrent ? (
+                        <button disabled className="w-full px-4 py-2 rounded-md bg-slate-100 text-slate-500 border">
+                          Current plan
+                        </button>
+                      ) : active ? (
+                        <button
+                          onClick={async () => {
+                            const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+                            const { url, error } = await r.json();
+                            if (error) return alert(error);
+                            window.location.href = url; // change plan in portal
+                          }}
+                          className="w-full px-4 py-2 rounded-md bg-[#9CEE69] text-slate-900 font-semibold hover:brightness-95"
+                        >
+                          Change plan
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            if (!p.priceId) return alert("Missing priceId");
+                            const r = await fetch("/api/stripe/create-checkout-session", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ priceId: p.priceId }),
+                            });
+                            const { url, error } = await r.json();
+                            if (error) return alert(error);
+                            window.location.href = url;
+                          }}
+                          className="w-full px-4 py-2 rounded-md bg-[#9CEE69] text-slate-900 font-semibold hover:brightness-95"
+                        >
+                          Start
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             <p className="text-xs text-slate-500 mt-2">*Fair-use policy applies.</p>
           </div>

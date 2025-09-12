@@ -1,11 +1,13 @@
 import { useState, useEffect, ChangeEvent } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import axios from "axios";
 import Head from "next/head";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
+// import TemplatesDrawer from "../components/TemplatesDrawer";
 import { StageTimeline } from "../components/StageTimeline";
+import { toYouTubeChapters } from "../lib/chapters";
 
 /* ---------- Small helpers (same as your current page) ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -57,6 +59,13 @@ interface Me {
   monthlyMinutesUsed: number;
   stripeCustomerId: string | null;
 }
+interface Template {
+  id: string;
+  name: string;
+  kind: string;
+  system: string;
+  user: string;
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const STAGE_PROGRESS: Record<string, number> = {
@@ -104,6 +113,10 @@ export default function Generate() {
     newsletter: true,
   });
 
+  // Templates
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
+
   // Cover image (frontend only)
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
@@ -136,6 +149,22 @@ export default function Generate() {
     return () => { cancel = true; };
   }, [status]);
 
+  // fetch templates
+  useEffect(() => {
+    let cancel = false;
+    async function fetchTemplates() {
+      try {
+        const r = await fetch("/api/templates");
+        const j = await r.json();
+        if (!cancel && j.list) setTemplates(j.list);
+      } catch (e) {
+        console.error("Failed to fetch templates:", e);
+      }
+    }
+    if (status === "authenticated") fetchTemplates();
+    return () => { cancel = true; };
+  }, [status]);
+
   // handlers
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] || null;
@@ -159,24 +188,59 @@ export default function Generate() {
     setCoverPreviewUrl(f ? URL.createObjectURL(f) : null);
   };
   const toggleFeature = (key: keyof typeof features) => setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleTemplate = (templateId: string) => {
+    setSelectedTemplateIds(prev => 
+      prev.includes(templateId) 
+        ? prev.filter(id => id !== templateId)
+        : [...prev, templateId]
+    );
+  };
 
-  async function submitUrlJob(url: string, pm: number | "" , selected: string[], language: string) {
+  async function submitUrlJob(url: string, pm: number | "" , selected: string[], language: string, templateIds: string[]) {
+    // Cache templates if any selected
+    if (templateIds.length) {
+      const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
+      await fetch(`${API_BASE_URL}/templates/cache`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedTemplates),
+      });
+    }
+
     const res = await fetch("/api/jobs/url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, preview_minutes: pm || null, features: selected.join(","), language }),
+      body: JSON.stringify({ 
+        url, 
+        preview_minutes: pm || null, 
+        features: selected.join(","), 
+        language,
+        template_ids: templateIds.join(",")
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.error || `URL job failed (${res.status})`);
     if (!data?.id) throw new Error("Backend did not return a job id.");
     return data as JobStatus;
   }
-  async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string) {
+
+  async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string, templateIds: string[]) {
+    // Cache templates if any selected
+    if (templateIds.length) {
+      const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
+      await fetch(`${API_BASE_URL}/templates/cache`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selectedTemplates),
+      });
+    }
+
     const form = new FormData();
     form.append("file", file);
     if (pm) form.append("preview_minutes", String(pm));
     form.append("features", selected.join(","));
     form.append("language", language);
+    form.append("template_ids", templateIds.join(","));
     const res = await axios.post("/api/jobs/upload", form);
     const data = res.data;
     if (!res.status) throw new Error(data?.error || `Upload job failed (${res.status})`);
@@ -193,8 +257,8 @@ export default function Generate() {
     try {
       const selected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
       let data: JobStatus;
-      if (file) data = await submitUploadJob(file, previewMinutes, selected, language);
-      else if (url) data = await submitUrlJob(url, previewMinutes, selected, language);
+      if (file) data = await submitUploadJob(file, previewMinutes, selected, language, selectedTemplateIds);
+      else if (url) data = await submitUrlJob(url, previewMinutes, selected, language, selectedTemplateIds);
       else throw new Error("Please upload a file or enter a URL.");
       setJobId(data.id);
       setJobStatus({ id: data.id, status: data.status || "pending", stage: data.stage, billed_minutes: data.billed_minutes, result: {} });
@@ -253,10 +317,18 @@ export default function Generate() {
 
   useEffect(() => () => { if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); }, [coverPreviewUrl]);
 
+  // Group templates by kind for easier selection
+  const templatesByKind = templates.reduce((acc, template) => {
+    if (!acc[template.kind]) acc[template.kind] = [];
+    acc[template.kind].push(template);
+    return acc;
+  }, {} as Record<string, Template[]>);
+
   return (
     <>
-      <Head><title>Generate – AI Podcast Show Notes</title></Head>
+      <Head><title>Generate – AI Podcast Show Notes - CastLumen</title></Head>
       <SiteHeader />
+      {/* <TemplatesDrawer onSelect={(ids) => setSelectedTemplateIds(ids)} /> */}
 
       {/* Subtle hero strip */}
       <div className="bg-gradient-to-b from-white to-slate-50 border-b">
@@ -359,13 +431,37 @@ export default function Generate() {
               </div>
             </div>
 
+            {/* Template selection */}
+            {templates.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">Custom Templates</p>
+                <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
+                  {Object.entries(templatesByKind).map(([kind, kindTemplates]) => (
+                    <div key={kind}>
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{kind}</p>
+                      {kindTemplates.map((template) => (
+                        <label key={template.id} className={`flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 cursor-pointer transition ${selectedTemplateIds.includes(template.id) ? "border-green-400 bg-green-50" : "border-slate-200"}`}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedTemplateIds.includes(template.id)} 
+                            onChange={() => toggleTemplate(template.id)} 
+                          />
+                          <span>{template.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
             <div className="sticky bottom-4 bg-white border-t pt-3">
               <button onClick={handleSubmit} disabled={isBusy} className="w-full px-4 py-2 bg-[#9CEE69] text-slate-900 rounded-md font-semibold hover:brightness-95 disabled:opacity-50">
                 {isSubmitting ? "Starting…" : isBusy ? "Processing…" : "Generate"}
               </button>
-              <p className="text-[11px] text-slate-500 mt-2 text-center">You’ll see results appear as they’re ready.</p>
+              <p className="text-[11px] text-slate-500 mt-2 text-center">You'll see results appear as they're ready.</p>
             </div>
 
             {(isBusy) && (
@@ -420,7 +516,18 @@ export default function Generate() {
               )}
 
               {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
-                <Card title="Timestamps">
+                <Card title="Timestamps" action={
+                  <button
+                    className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
+                    onClick={() => {
+                      const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
+                      navigator.clipboard.writeText(txt);
+                      alert("YouTube chapters copied!");
+                    }}
+                  >
+                     Copy YouTube chapters
+                  </button>
+                }>
                   <ul className="list-disc ml-6 space-y-1 text-gray-700">
                     {jobStatus.result.timestamps.map((t, i) => <li key={i}>{t}</li>)}
                   </ul>
@@ -464,6 +571,23 @@ export default function Generate() {
                       }}
                     >
                       Download .md
+                    </button>
+                    <button
+                      className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
+                      onClick={async () => {
+                        const title = jobStatus.result?.seo?.title || "Episode notes";
+                        const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
+                        const r = await fetch("/api/wp/publish", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ title, markdown: md, status: "draft" }),
+                        });
+                        const j = await r.json();
+                        if (!r.ok) return alert(j.error || "Failed");
+                        window.open(j.link, "_blank");
+                      }}
+                    >
+                      Publish to WordPress (draft)
                     </button>
                   </div>
                 }>

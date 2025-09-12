@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Body, HTTPException
 from typing import Optional
 
 from core.features import parse_features
@@ -11,7 +11,7 @@ from core.yt_utils import (
     get_youtube_duration_seconds,
 )
 from core.audio_utils import trim_audio, get_audio_duration_seconds
-from jobs import JOBS, set_stage, process_audio_job, process_text_job
+from jobs import JOBS, TEMPLATES_CACHE, set_stage, process_audio_job, process_text_job
 from models.schemas import EstimateRequest
 import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
@@ -25,10 +25,12 @@ async def create_job_from_upload(
     preview_minutes: Optional[int] = Form(None),
     features: Optional[str] = Form(None),
     language: Optional[str] = Form("auto"),
+    template_ids: Optional[str] = Form(None),
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "stage": "queued", "features": list(feature_set)}
+    JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
 
     suffix = os.path.splitext(file.filename or "")[1] or ".bin"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
@@ -65,10 +67,12 @@ async def create_job_from_url(
     preview_minutes: Optional[int] = Form(None),
     features: Optional[str] = Form(None),
     language: Optional[str] = Form("auto"),
+    template_ids: Optional[str] = Form(None),
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "features": list(feature_set)}
+    JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
     set_stage(job_id, "inspecting URL")
     billed_minutes = 0
 
@@ -133,6 +137,18 @@ def get_job(job_id: str):
     if "billed_minutes" in job:
         resp["billed_minutes"] = job["billed_minutes"]
     return resp
+
+@router.post("/templates/cache")
+def put_templates_cache(items: list[dict] = Body(...)):
+    # items: [{id, kind, system, user}]
+    for it in items:
+        if it.get("id"):
+            TEMPLATES_CACHE[it["id"]] = {
+                "kind": it.get("kind",""),
+                "system": it.get("system",""),
+                "user": it.get("user",""),
+            }
+    return {"ok": True, "count": len(items)}
 
 @router.post("/estimate")
 def estimate_cost(body: EstimateRequest):

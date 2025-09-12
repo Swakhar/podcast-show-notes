@@ -13,11 +13,23 @@ from core.business import (
 )
 
 JOBS: Dict[str, Dict] = {}
+TEMPLATES_CACHE: Dict[str, Dict[str,str]] = {}
 
 def set_stage(job_id: str, stage: str) -> None:
     job = JOBS.get(job_id)
     if job is not None:
         job["stage"] = stage
+
+
+def _pull_templates(job_id: str):
+    ids = JOBS[job_id].get("templates") or []
+    presets = [TEMPLATES_CACHE.get(tid) for tid in ids if tid in TEMPLATES_CACHE]
+    # keep newest per kind
+    by_kind = {}
+    for p in presets:
+        if not p: continue
+        by_kind[p["kind"]] = p
+    return by_kind
 
 def _ensure_result(job_id: str) -> Dict:
     """Ensure JOBS[job_id]['result'] exists and return it."""
@@ -41,15 +53,18 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], la
 
         res = _ensure_result(job_id)
         res["transcript"] = transcript
+        presets = _pull_templates(job_id)
         JOBS[job_id]["status"] = "processing"
 
         if "summary" in feature_set:
             set_stage(job_id, "generating summary")
-            res["summary"] = generate_summary(transcript, language=language)
+            preset = presets.get("summary")
+            res["summary"] = generate_summary(transcript, language=language, preset=preset)
 
         if "show_notes" in feature_set:
             set_stage(job_id, "generating show notes")
-            res["show_notes"] = generate_show_notes(transcript, res.get("summary", ""), language=language)
+            preset = presets.get("show_notes")
+            res["show_notes"] = generate_show_notes(transcript, res.get("summary", ""), language=language, preset=preset)
 
         if "timestamps" in feature_set:
             set_stage(job_id, "generating timestamps")
@@ -63,12 +78,14 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], la
 
         if "seo" in feature_set:
             set_stage(job_id, "generating SEO")
-            res["seo"] = generate_seo(transcript, res.get("summary", ""), language=language)
+            preset = presets.get("seo")
+            res["seo"] = generate_seo(transcript, res.get("summary", ""), language=language, preset=preset)
 
         if "newsletter" in feature_set:
             set_stage(job_id, "generating newsletter")
+            preset = presets.get("newsletter")
             res["newsletter"] = generate_newsletter(
-                transcript, res.get("summary", ""), res.get("show_notes", ""), language=language
+                transcript, res.get("summary", ""), res.get("show_notes", ""), language=language, preset=preset
             )
 
         set_stage(job_id, "finished")

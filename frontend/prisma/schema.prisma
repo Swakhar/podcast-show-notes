@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlite"             // keep sqlite for local dev
-  url      = env("DATABASE_URL")  // e.g., file:./dev.db
+  url      = env("NEXT_DATABASE_URL")  // e.g., file:./dev.db
 }
 
 generator client {
@@ -16,7 +16,7 @@ model User {
 
   // Billing
   stripeCustomerId     String?  @unique
-  subscriptionId       String?  @unique      // <— NEW
+  subscriptionId       String?  @unique
   plan                 Plan     @default(FREE)
   priceId              String?
   subscriptionStatus   String?
@@ -32,6 +32,12 @@ model User {
 
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+
+  ownedTeams           Team[]        @relation("UserOwnedTeams")
+  memberships          Membership[]
+  rssFeeds             RssFeed[]
+  templates            Template[]
+  wordpressCreds       WordpressCred?
 }
 
 model Account {
@@ -78,3 +84,77 @@ enum Plan {
   PRO
   AGENCY
 }
+
+enum Role {
+  MANAGER
+  EDITOR
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation("UserOwnedTeams", fields: [ownerId], references: [id])
+  members   Membership[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      Role     @default(EDITOR)
+  team      Team     @relation(fields: [teamId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  teamId    String
+  email     String
+  role      Role     @default(EDITOR)
+  token     String   @unique
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model RssFeed {
+  id            String   @id @default(cuid())
+  userId        String
+  url           String
+  title         String?
+  lastCheckedAt DateTime?
+  lastItemGuid  String?
+  active        Boolean  @default(true)
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Template {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  kind      String
+  system    String
+  user      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation(fields: [userId], references: [id])
+}
+
+model WordpressCred {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  siteUrl   String
+  username  String
+  appPass   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+

@@ -38,29 +38,32 @@ def _wrap_user(task: str, transcript: str, language: str) -> str:
     rule = _lang_rule(language)
     return f"{rule}\n\n{task}\n\nTranscript:\n{transcript}\n\n{rule}"
 
+def _merge_prompts(base_system: str, base_user: str, preset: dict|None):
+    if not preset: return base_system, base_user
+    sys = (preset.get("system") or "").strip()
+    usr = (preset.get("user") or "").strip()
+    return (f"{sys}\n\n{base_system}".strip() if sys else base_system,
+            f"{usr}\n\n{base_user}".strip() if usr else base_user)
+
 # ---------- Generators ----------
-def generate_summary(transcript: str, language: str = "auto") -> str:
+def generate_summary(transcript: str, language: str = "auto", preset: dict|None = None) -> str:
     # short path
     if len(transcript) <= 3500:
         system = "You are an expert podcast note-taker. Be concise, factual, and structured."
-        user = _wrap_user(
-            "Summarize the episode in 3–5 bullet points. Avoid fluff; include concrete takeaways.",
-            transcript,
-            language,
-        )
-        return call_openai_chat(system, user)
+        user =  "Summarize the episode in 3–5 bullet points. Avoid fluff; include concrete takeaways."
+        system, user = _merge_prompts(system, user, preset)
+        wrap_user = _wrap_user(user, transcript, language)
+        return call_openai_chat(system, wrap_user)
 
     # long path (map-reduce)
     parts = chunk_text(transcript, 3500, 300)
     partial_summaries = []
     for i, part in enumerate(parts, 1):
         system = "You are an expert podcast note-taker. Be concise, factual, and structured."
-        user = _wrap_user(
-            f"Summarize part {i} of the episode in 3–5 bullet points. Avoid fluff; include concrete takeaways.",
-            part,
-            language,
-        )
-        partial_summaries.append(call_openai_chat(system, user))
+        user =  f"Summarize part {i} of the episode in 3–5 bullet points. Avoid fluff; include concrete takeaways."
+        system, user = _merge_prompts(system, user, preset)
+        wrap_user = _wrap_user(user, part, language)
+        partial_summaries.append(call_openai_chat(system, wrap_user))
 
     system_final = "You are an expert podcast note-taker. Produce a final, non-redundant summary."
     user_final = _wrap_user(
@@ -71,13 +74,14 @@ def generate_summary(transcript: str, language: str = "auto") -> str:
     )
     return call_openai_chat(system_final, user_final)
 
-def generate_show_notes(transcript: str, summary: str, language: str = "auto") -> str:
+def generate_show_notes(transcript: str, summary: str, language: str = "auto", preset: dict|None = None) -> str:
     system = "You create clear, scannable podcast show notes."
     task = (
         "Using the summary and transcript, produce concise show notes with bullets. "
         "Include: key topics, guest(s) if any, and an optional links section."
         "\n\nSummary:\n" + summary
     )
+    system, task = _merge_prompts(system, task, preset)
     user = _wrap_user(task, transcript, language)
     return call_openai_chat(system, user)
 
@@ -105,13 +109,14 @@ def generate_social_snippets(summary: str, show_notes: str, transcript: str, lan
         "Schnelle Highlights aus der neuesten Folge.",
     ]
 
-def generate_seo(transcript: str, summary: str, language: str = "auto") -> Dict[str, str]:
+def generate_seo(transcript: str, summary: str, language: str = "auto", preset: dict|None = None) -> Dict[str, str]:
     system = "You are an SEO expert for podcasts."
     task = (
         "Given the transcript and summary, generate a concise SEO title on one line "
         "and a comma-separated list of keywords on the following line(s)."
         f"\n\nSummary:\n{summary}"
     )
+    system, task = _merge_prompts(system, task, preset)
     text = call_openai_chat(system, _wrap_user(task, transcript, language))
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     return {
@@ -119,7 +124,7 @@ def generate_seo(transcript: str, summary: str, language: str = "auto") -> Dict[
         "keywords": ", ".join(lines[1:]) if len(lines) > 1 else ""
     }
 
-def generate_newsletter(transcript: str, summary: str, show_notes: str, language: str = "auto") -> dict:
+def generate_newsletter(transcript: str, summary: str, show_notes: str, language: str = "auto", preset: dict|None = None) -> dict:
     system = "You are a copywriter who turns podcast episodes into concise newsletters."
     task = (
         "Create a short newsletter/email draft from this episode.\n"
@@ -130,6 +135,7 @@ def generate_newsletter(transcript: str, summary: str, show_notes: str, language
         "- Output the body in clean Markdown.\n\n"
         f"Summary:\n{summary}\n\nShow Notes:\n{show_notes}"
     )
+    system, task = _merge_prompts(system, task, preset)
     text = call_openai_chat(system, _wrap_user(task, transcript[:4000], language))
     lines = [ln for ln in text.splitlines() if ln.strip()]
     subject = ""
