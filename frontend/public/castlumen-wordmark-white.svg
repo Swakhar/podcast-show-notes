@@ -1,0 +1,30 @@
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon -->
+  <g>
+    <!-- Microphone body -->
+    <rect x="4" y="8" width="8" height="16" rx="4" fill="white"/>
+    <!-- Microphone stand -->
+    <rect x="7" y="24" width="2" height="8" fill="white"/>
+    <!-- Base -->
+    <rect x="4" y="30" width="8" height="2" rx="1" fill="white"/>
+    <!-- Sound waves -->
+    <path d="M16 12C17.1046 12 18 12.8954 18 14V18C18 19.1046 17.1046 20 16 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <path d="M20 10C22.2091 10 24 11.7909 24 14V18C24 20.2091 22.2091 22 20 22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <!-- AI accent -->
+    <circle cx="10" cy="6" r="2" fill="#9CEE69"/>
+    <circle cx="6" cy="6" r="1" fill="#9CEE69" opacity="0.7"/>
+    <circle cx="14" cy="6" r="1" fill="#9CEE69" opacity="0.7"/>
+  </g>
+  
+  <!-- Text -->
+  <g>
+    <!-- CAST -->
+    <text x="36" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" fill="white">Cast</text>
+    
+    <!-- LUMEN with accent -->
+    <text x="78" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" fill="#9CEE69">Lumen</text>
+    
+    <!-- Tagline -->
+    <text x="36" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="500" fill="rgba(255,255,255,0.6)" letter-spacing="0.5px">AI PODCAST SHOW NOTES</text>
+  </g>
+</svg>

@@ -2,14 +2,15 @@ import { useState, useEffect, ChangeEvent } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import Head from "next/head";
+import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
-// import TemplatesDrawer from "../components/TemplatesDrawer";
+import TemplatesDrawer from "../components/TemplatesDrawer";
 import { StageTimeline } from "../components/StageTimeline";
 import { toYouTubeChapters } from "../lib/chapters";
 
-/* ---------- Small helpers (same as your current page) ---------- */
+/* ---------- Small helpers ---------- */
 function downloadTextAsFile(filename: string, text: string) {
   const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -85,6 +86,15 @@ const STAGE_PROGRESS: Record<string, number> = {
   finished: 100,
 };
 
+const SUPPORTED_FORMATS = [
+  { ext: "mp3", icon: "🎵" },
+  { ext: "wav", icon: "🔊" },
+  { ext: "m4a", icon: "📱" },
+  { ext: "mp4", icon: "📹" },
+  { ext: "youtube", icon: "📺" },
+  { ext: "spotify", icon: "🎧" }
+];
+
 export default function Generate() {
   const { data: session, status } = useSession();
   const [me, setMe] = useState<Me | null>(null);
@@ -102,6 +112,7 @@ export default function Generate() {
   const [previewMinutes, setPreviewMinutes] = useState<number | "">("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageBooked, setUsageBooked] = useState<{ [jobId: string]: boolean }>({});
+  const [dragActive, setDragActive] = useState(false);
 
   // Feature selection
   const [features, setFeatures] = useState({
@@ -127,6 +138,7 @@ export default function Generate() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [language, setLanguage] = useState<"auto"|"en"|"de">("auto");
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -136,6 +148,34 @@ export default function Generate() {
     if (typeof byStage === "number") return byStage;
     return jobStatus.status === "processing" ? 50 : 0;
   })();
+
+  const usagePercent = me ? Math.round((me.monthlyMinutesUsed / me.monthlyMinutesLimit) * 100) : 0;
+  const isNearLimit = usagePercent > 80;
+
+  // Drag and drop handlers
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile.type.startsWith('audio/') || droppedFile.type.startsWith('video/')) {
+        setFile(droppedFile);
+        setUrl("");
+      }
+    }
+  };
 
   // membership
   useEffect(() => {
@@ -188,13 +228,6 @@ export default function Generate() {
     setCoverPreviewUrl(f ? URL.createObjectURL(f) : null);
   };
   const toggleFeature = (key: keyof typeof features) => setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
-  const toggleTemplate = (templateId: string) => {
-    setSelectedTemplateIds(prev => 
-      prev.includes(templateId) 
-        ? prev.filter(id => id !== templateId)
-        : [...prev, templateId]
-    );
-  };
 
   async function submitUrlJob(url: string, pm: number | "" , selected: string[], language: string, templateIds: string[]) {
     // Cache templates if any selected
@@ -317,300 +350,740 @@ export default function Generate() {
 
   useEffect(() => () => { if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); }, [coverPreviewUrl]);
 
-  // Group templates by kind for easier selection
-  const templatesByKind = templates.reduce((acc, template) => {
-    if (!acc[template.kind]) acc[template.kind] = [];
-    acc[template.kind].push(template);
-    return acc;
-  }, {} as Record<string, Template[]>);
+  const selectedFeatureCount = Object.values(features).filter(Boolean).length;
 
   return (
     <>
-      <Head><title>Generate – AI Podcast Show Notes - CastLumen</title></Head>
+      <Head>
+        <title>AI Content Generator – Professional Podcast Production | CastLumen</title>
+        <meta name="description" content="Transform your podcast into professional content. Generate show notes, timestamps, SEO content, and social media snippets with enterprise-grade AI." />
+      </Head>
       <SiteHeader />
-      {/* <TemplatesDrawer onSelect={(ids) => setSelectedTemplateIds(ids)} /> */}
 
-      {/* Subtle hero strip */}
-      <div className="bg-gradient-to-b from-white to-slate-50 border-b">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Generate <span className="text-[#9CEE69]">Show Notes</span>, Timestamps & SEO
-          </h1>
-          <p className="text-slate-600 mt-2">Paste a link or upload audio. Choose what to generate. Get results progressively.</p>
+      {/* Enhanced Hero Section */}
+      <div className="bg-gradient-to-br from-white via-blue-50/30 to-green-50/30 border-b border-gray-200/60">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              AI-Powered Content Generation
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Transform Audio into <span className="text-[#9CEE69]">Professional Content</span>
+            </h1>
+            <p className="text-xl text-gray-600 mt-6 max-w-2xl mx-auto leading-relaxed">
+              Upload your podcast or paste a URL. Our AI generates show notes, timestamps, SEO content, and social snippets – all optimized for maximum engagement.
+            </p>
+            
+            {/* Quick Stats */}
+            <div className="flex flex-wrap justify-center items-center gap-8 mt-8 text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">95% faster workflow</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Enterprise-grade AI</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Multi-format output</span>
+              </div>
+            </div>
+          </div>
         </div>
-        {(isBusy) && (
-          <div className="h-1 w-full bg-slate-200">
-            <div className="h-1 bg-blue-600 transition-all" style={{ width: `${Math.max(1, progress)}%` }} />
+        
+        {/* Enhanced Progress Bar */}
+        {isBusy && (
+          <div className="h-2 w-full bg-gray-200 relative overflow-hidden">
+            <div 
+              className="h-2 bg-gradient-to-r from-[#9CEE69] to-green-400 transition-all duration-500 ease-out relative"
+              style={{ width: `${Math.max(1, progress)}%` }}
+            >
+              <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+            </div>
           </div>
         )}
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-3 gap-10">
-        {/* Left column: Inputs */}
-        <section className="lg:col-span-1">
-          <div className="rounded-2xl border bg-white shadow-sm p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Upload an audio file or paste a podcast URL.</p>
-              {me && (
-                <span className="px-2 py-1 rounded-full text-xs bg-slate-50 text-slate-600 border">
-                  {me.monthlyMinutesUsed}/{me.monthlyMinutesLimit} min
-                </span>
-              )}
-            </div>
-
-            {/* File */}
-            <div>
-              <label htmlFor="file" className="block text-sm font-medium text-gray-700">Audio file</label>
-              <input id="file" type="file" accept="audio/*" onChange={handleFileChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
-            </div>
-
-            <div className="text-center text-gray-400">or</div>
-
-            {/* URL */}
-            <div>
-              <label htmlFor="url" className="block text-sm font-medium text-gray-700">Podcast URL</label>
-              <input id="url" type="url" placeholder="https://example.com/podcast.mp3" value={url} onChange={handleUrlChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
-              {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
-                <p className="text-xs text-blue-600 mt-1">Using 2-min preview for quick results. Change below if needed.</p>
-              )}
-            </div>
-
-            {/* Cover */}
-            <div>
-              <label htmlFor="cover" className="block text-sm font-medium text-gray-700">Episode Cover (optional)</label>
-              <input id="cover" type="file" accept="image/*" onChange={handleCoverChange} disabled={isBusy} className="mt-1 w-full border rounded-md p-2" />
-              {coverPreviewUrl && <div className="mt-2"><img src={coverPreviewUrl} alt="Cover preview" className="h-32 rounded border" /></div>}
-              <p className="text-xs text-gray-500 mt-1">Image stays on your device, only embedded into downloaded Markdown.</p>
-            </div>
-
-            {/* Preview minutes */}
-            <div>
-              <label htmlFor="preview" className="block text-sm font-medium text-gray-700">Quick preview (minutes)</label>
-              <input id="preview" type="number" min={1} max={30} step={1} value={previewMinutes} onChange={handlePreviewChange} disabled={isBusy} className="mt-1 w-40 border rounded-md p-2" placeholder="e.g. 3" />
-              {isFree && <p className="text-xs text-orange-600 mt-1">Free plan: max 3-min preview per job.</p>}
-            </div>
-
-            {/* Output language */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Output language</label>
-              <select
-                className="mt-1 border rounded-md p-2"
-                value={language}
-                onChange={(e)=>setLanguage(e.target.value as any)}
-                disabled={isBusy}
-              >
-                <option value="auto">Auto (source language)</option>
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-              </select>
-            </div>
-
-            {/* Feature selection */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Generate</p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {([
-                  ["summary", "Summary"],
-                  ["show_notes", "Show Notes"],
-                  ["timestamps", "Timestamps"],
-                  ["social_snippets", "Social snippets"],
-                ] as const).map(([k, label]) => (
-                  <label key={k} className={`flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 cursor-pointer transition ${features[k] ? "border-blue-400 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]" : "border-slate-200"}`}>
-                    <input type="checkbox" checked={features[k]} onChange={() => toggleFeature(k)} />
-                    <span>{label}</span>
-                  </label>
-                ))}
-                <label className={`${isFree ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 transition`}>
-                  <input type="checkbox" checked={features.seo && !isFree} onChange={() => !isFree && toggleFeature("seo")} disabled={isFree} />
-                  <span>SEO</span>
-                </label>
-                <label className={`${isFree ? "opacity-60 cursor-not-allowed" : "cursor-pointer"} flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 transition`}>
-                  <input type="checkbox" checked={features.newsletter && !isFree} onChange={() => !isFree && toggleFeature("newsletter")} disabled={isFree} />
-                  <span>Newsletter</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Template selection */}
-            {templates.length > 0 && (
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Custom Templates</p>
-                <div className="space-y-2 text-sm max-h-40 overflow-y-auto">
-                  {Object.entries(templatesByKind).map(([kind, kindTemplates]) => (
-                    <div key={kind}>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{kind}</p>
-                      {kindTemplates.map((template) => (
-                        <label key={template.id} className={`flex items-center gap-2 p-2 rounded-md border hover:bg-slate-50 cursor-pointer transition ${selectedTemplateIds.includes(template.id) ? "border-green-400 bg-green-50" : "border-slate-200"}`}>
-                          <input 
-                            type="checkbox" 
-                            checked={selectedTemplateIds.includes(template.id)} 
-                            onChange={() => toggleTemplate(template.id)} 
-                          />
-                          <span>{template.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ))}
+      <main className="max-w-7xl mx-auto px-4 py-10">
+        {/* Professional Status Bar */}
+        {me && (
+          <div className="bg-white border border-gray-200 rounded-xl p-4 mb-8 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${active ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}></div>
+                  <span className="font-semibold text-gray-900">{planLabel} Plan</span>
+                </div>
+                <div className="text-gray-600">
+                  <span className="font-medium">{me.monthlyMinutesUsed}</span>
+                  <span className="mx-1">/</span>
+                  <span>{me.monthlyMinutesLimit === 999999 ? '∞' : me.monthlyMinutesLimit}</span>
+                  <span className="ml-1 text-sm">minutes used</span>
                 </div>
               </div>
-            )}
-
-            {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
-
-            <div className="sticky bottom-4 bg-white border-t pt-3">
-              <button onClick={handleSubmit} disabled={isBusy} className="w-full px-4 py-2 bg-[#9CEE69] text-slate-900 rounded-md font-semibold hover:brightness-95 disabled:opacity-50">
-                {isSubmitting ? "Starting…" : isBusy ? "Processing…" : "Generate"}
-              </button>
-              <p className="text-[11px] text-slate-500 mt-2 text-center">You'll see results appear as they're ready.</p>
-            </div>
-
-            {(isBusy) && (
-              <div className="text-sm text-blue-700">{jobStatus?.stage ? `Working: ${jobStatus.stage}…` : "Processing…"}</div>
-            )}
-            {jobStatus && jobStatus.status === "failed" && (
-              <div className="text-sm text-red-600">Job failed: {jobStatus.error || "Unknown error"}</div>
-            )}
-          </div>
-        </section>
-
-        {/* Right column: Results */}
-        <section className="lg:col-span-2 space-y-8">
-          {!jobStatus?.result ? (
-            <div className="rounded-2xl border bg-white shadow-sm p-6 space-y-4">
-              <StageTimeline stage={jobStatus?.stage} />
-              <Skeleton className="h-6 w-56" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
-              <Skeleton className="h-4 w-3/4" />
-              <div className="grid md:grid-cols-2 gap-4 pt-2">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
+              
+              <div className="flex items-center gap-3">
+                {/* Usage Progress */}
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        isNearLimit ? 'bg-red-500' : usagePercent > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(100, usagePercent)}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-gray-500">{usagePercent}%</span>
+                </div>
+                
+                {!active && (
+                  <Link 
+                    href="/#pricing" 
+                    className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-lg font-medium hover:shadow-md transition-all text-sm"
+                  >
+                    Upgrade Plan
+                  </Link>
+                )}
               </div>
             </div>
-          ) : (
-            <>
-              {jobStatus.result.summary && features.summary && (
-                <Card title="Summary">
-                  <p className="text-gray-700 whitespace-pre-line">{jobStatus.result.summary}</p>
-                </Card>
-              )}
+          </div>
+        )}
 
-              {jobStatus.result.show_notes && features.show_notes && (
-                <Card title="Show Notes" action={
-                  <button
-                    className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
-                    onClick={() => {
-                      const title = jobStatus.result?.seo?.title;
-                      const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
-                      const base = title ? safeSlug(title) : "show-notes";
-                      downloadTextAsFile(`${base}.md`, md);
-                    }}
+        <div className="grid lg:grid-cols-5 gap-10">
+          {/* Enhanced Left Sidebar */}
+          <section className="lg:col-span-2 space-y-6">
+            {/* Input Section */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Content Input</h2>
+                <p className="text-sm text-gray-600">Upload audio or provide a URL to get started</p>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Enhanced File Upload */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Audio File Upload</label>
+                  <div
+                    className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                      dragActive 
+                        ? 'border-[#9CEE69] bg-green-50' 
+                        : file 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
                   >
-                    Download .md
-                  </button>
-                }>
-                  <ul className="list-disc ml-6 space-y-1 text-gray-700">
-                    {jobStatus.result.show_notes.split(/\r?\n/).filter(Boolean).map((line, i) => <li key={i}>{line}</li>)}
-                  </ul>
-                </Card>
-              )}
-
-              {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
-                <Card title="Timestamps" action={
-                  <button
-                    className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
-                    onClick={() => {
-                      const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
-                      navigator.clipboard.writeText(txt);
-                      alert("YouTube chapters copied!");
-                    }}
-                  >
-                     Copy YouTube chapters
-                  </button>
-                }>
-                  <ul className="list-disc ml-6 space-y-1 text-gray-700">
-                    {jobStatus.result.timestamps.map((t, i) => <li key={i}>{t}</li>)}
-                  </ul>
-                </Card>
-              )}
-
-              {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
-                <Card title="Social Snippets">
-                  <ul className="list-disc ml-6 space-y-1 text-gray-700">
-                    {jobStatus.result.social_snippets.map((s, i) => <li key={i}>{s}</li>)}
-                  </ul>
-                </Card>
-              )}
-
-              {jobStatus.result.seo && features.seo && (
-                <Card title="SEO">
-                  <p className="text-gray-700"><strong>Title:</strong> {jobStatus.result.seo.title}</p>
-                  <p className="text-gray-700"><strong>Keywords:</strong> {jobStatus.result.seo.keywords}</p>
-                </Card>
-              )}
-
-              {jobStatus.result.newsletter && features.newsletter && (
-                <Card title="Newsletter Draft" action={
-                  <div className="flex gap-2">
-                    <button
-                      className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
-                      onClick={() => {
-                        const n = jobStatus.result!.newsletter!;
-                        navigator.clipboard.writeText(`# ${n.subject}\n\n${n.body_markdown}`);
-                      }}
-                    >
-                      Copy Markdown
-                    </button>
-                    <button
-                      className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
-                      onClick={() => {
-                        const n = jobStatus.result!.newsletter!;
-                        const md = mkNewsletterMarkdown(n.subject, n.body_markdown, coverPreviewUrl);
-                        const base = n.subject ? safeSlug(n.subject) : "newsletter";
-                        downloadTextAsFile(`${base}.md`, md);
-                      }}
-                    >
-                      Download .md
-                    </button>
-                    <button
-                      className="px-3 py-1 text-sm bg-slate-100 rounded hover:bg-slate-200"
-                      onClick={async () => {
-                        const title = jobStatus.result?.seo?.title || "Episode notes";
-                        const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
-                        const r = await fetch("/api/wp/publish", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ title, markdown: md, status: "draft" }),
-                        });
-                        const j = await r.json();
-                        if (!r.ok) return alert(j.error || "Failed");
-                        window.open(j.link, "_blank");
-                      }}
-                    >
-                      Publish to WordPress (draft)
-                    </button>
+                    {file ? (
+                      <div className="space-y-3">
+                        <div className="text-3xl">📁</div>
+                        <div>
+                          <p className="font-medium text-gray-900">{file.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {(file.size / (1024 * 1024)).toFixed(1)} MB
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setFile(null)}
+                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        >
+                          Remove file
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="text-3xl">☁️</div>
+                        <div>
+                          <p className="font-medium text-gray-900">Drop your audio file here</p>
+                          <p className="text-sm text-gray-500">or click to browse</p>
+                        </div>
+                        <input
+                          type="file"
+                          accept="audio/*,video/*"
+                          onChange={handleFileChange}
+                          disabled={isBusy}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
+                    )}
                   </div>
-                }>
-                  <p className="text-gray-700 mb-2"><strong>Subject:</strong> {jobStatus.result.newsletter.subject}</p>
-                  <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border border-gray-200">{jobStatus.result.newsletter.body_markdown}</pre>
-                </Card>
-              )}
+                  
+                  {/* Supported Formats */}
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">Supported formats:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {SUPPORTED_FORMATS.map((format) => (
+                        <span 
+                          key={format.ext}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                        >
+                          <span>{format.icon}</span>
+                          <span className="uppercase">{format.ext}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-              {jobStatus.result.transcript && (
-                <Card title="Transcript">
-                  <button className="text-blue-600 underline text-sm mb-2" onClick={() => setShowTranscript(!showTranscript)}>
-                    {showTranscript ? "Hide transcript" : "Show transcript"}
-                  </button>
-                  {showTranscript && (
-                    <pre className="whitespace-pre-wrap bg-gray-50 p-4 rounded border border-gray-200 max-h-96 overflow-auto">
-                      {jobStatus.result.transcript}
-                    </pre>
+                <div className="text-center text-gray-400 font-medium">OR</div>
+
+                {/* Enhanced URL Input */}
+                <div>
+                  <label htmlFor="url" className="block text-sm font-semibold text-gray-700 mb-3">
+                    Podcast URL
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="url"
+                      type="url"
+                      placeholder="https://example.com/podcast.mp3 or YouTube URL"
+                      value={url}
+                      onChange={handleUrlChange}
+                      disabled={isBusy}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69] transition-colors"
+                    />
+                    {url && (
+                      <button
+                        onClick={() => setUrl("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">YouTube detected:</span> Using 2-minute preview for faster results
+                      </p>
+                    </div>
                   )}
-                </Card>
-              )}
-            </>
-          )}
-        </section>
+                </div>
+
+                {/* Enhanced Cover Upload */}
+                <div>
+                  <label htmlFor="cover" className="block text-sm font-semibold text-gray-700 mb-3">
+                    Episode Cover <span className="text-gray-500 font-normal">(optional)</span>
+                  </label>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        disabled={isBusy}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Added to downloaded files only (not uploaded to server)
+                      </p>
+                    </div>
+                    {coverPreviewUrl && (
+                      <div className="relative group">
+                        <img
+                          src={coverPreviewUrl}
+                          alt="Cover preview"
+                          className="w-16 h-16 rounded-lg border border-gray-200 object-cover"
+                        />
+                        <button
+                          onClick={() => {
+                            setCoverImage(null);
+                            if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+                            setCoverPreviewUrl(null);
+                          }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Configuration Section */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Configuration</h2>
+                <p className="text-sm text-gray-600">Customize your content generation</p>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Preview Duration */}
+                <div>
+                  <label htmlFor="preview" className="block text-sm font-semibold text-gray-700 mb-3">
+                    Processing Duration
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="preview"
+                      type="number"
+                      min={1}
+                      max={isFree ? 3 : 60}
+                      step={1}
+                      value={previewMinutes}
+                      onChange={handlePreviewChange}
+                      disabled={isBusy}
+                      className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                      placeholder="Full"
+                    />
+                    <span className="text-sm text-gray-600">minutes</span>
+                    {!previewMinutes && (
+                      <span className="text-sm text-green-600 font-medium">Process entire file</span>
+                    )}
+                  </div>
+                  {isFree && (
+                    <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-sm text-orange-800">
+                        <span className="font-medium">Free plan:</span> Maximum 3 minutes per job
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Language Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Output Language</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as any)}
+                    disabled={isBusy}
+                  >
+                    <option value="auto">🌐 Auto-detect source language</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="de">🇩🇪 Deutsch (German)</option>
+                  </select>
+                </div>
+
+                {/* Feature Selection */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-700">Content to Generate</label>
+                    <span className="text-xs text-gray-500">
+                      {selectedFeatureCount} of {Object.keys(features).length} selected
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    {[
+                      { key: "summary", label: "Summary", desc: "Key points and overview", icon: "📋", free: true },
+                      { key: "show_notes", label: "Show Notes", desc: "Detailed episode notes", icon: "📝", free: true },
+                      { key: "timestamps", label: "Timestamps", desc: "Chapter markers & timing", icon: "⏰", free: true },
+                      { key: "social_snippets", label: "Social Snippets", desc: "Ready-to-post content", icon: "📱", free: true },
+                      { key: "seo", label: "SEO Content", desc: "Titles & meta descriptions", icon: "🔍", free: false },
+                      { key: "newsletter", label: "Newsletter", desc: "Email-ready content", icon: "📧", free: false },
+                    ].map(({ key, label, desc, icon, free }) => {
+                      const disabled = !free && isFree;
+                      const featureKey = key as keyof typeof features;
+                      return (
+                        <label
+                          key={key}
+                          className={`relative flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                            disabled
+                              ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50'
+                              : features[featureKey]
+                              ? 'border-[#9CEE69] bg-green-50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={features[featureKey] && (free || !isFree)}
+                            onChange={() => !disabled && toggleFeature(featureKey)}
+                            disabled={disabled}
+                            className="mt-1 w-4 h-4 text-[#9CEE69] border-gray-300 rounded focus:ring-[#9CEE69]"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{icon}</span>
+                              <span className="font-medium text-gray-900">{label}</span>
+                              {!free && (
+                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                  Pro
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{desc}</p>
+                          </div>
+                          {features[featureKey] && !disabled && (
+                            <svg className="w-5 h-5 text-[#9CEE69] mt-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Template Selection */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Custom Templates
+                    {selectedTemplateIds.length > 0 && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        ({selectedTemplateIds.length} selected)
+                      </span>
+                    )}
+                  </label>
+                  <TemplatesDrawer 
+                    onSelect={setSelectedTemplateIds} 
+                    selectedIds={selectedTemplateIds}
+                  />
+                  {selectedTemplateIds.length > 0 && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">{selectedTemplateIds.length}</span> custom template
+                        {selectedTemplateIds.length !== 1 ? 's' : ''} will be applied to enhance your content
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Error Display */}
+                {errorMessage && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-medium text-red-800">Generation Failed</p>
+                        <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Enhanced Submit Button */}
+                <div className="pt-4">
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isBusy || (!file && !url)}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all duration-200"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Starting Generation...
+                      </span>
+                    ) : isBusy ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Processing... {progress}%
+                      </span>
+                    ) : (
+                      "🚀 Generate Content"
+                    )}
+                  </button>
+                  
+                  <p className="text-xs text-gray-500 mt-3 text-center">
+                    Results appear progressively as they're generated
+                  </p>
+                </div>
+
+                {/* Processing Status */}
+                {isBusy && jobStatus?.stage && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <div>
+                        <p className="text-sm font-medium text-blue-900">
+                          {jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1)}...
+                        </p>
+                        <div className="w-48 h-1.5 bg-blue-200 rounded-full mt-2 overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Enhanced Results Section */}
+          <section className="lg:col-span-3 space-y-6">
+            {!jobStatus?.result ? (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-[#9CEE69] to-green-400 rounded-full flex items-center justify-center mx-auto">
+                    <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  
+                  {isBusy ? (
+                    <>
+                      <StageTimeline stage={jobStatus?.stage} />
+                      <div className="space-y-4 max-w-md mx-auto">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                        <Skeleton className="h-4 w-4/6" />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-900">Ready to Generate Content</h3>
+                      <p className="text-gray-600 max-w-md mx-auto">
+                        Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                        <div className="p-4 bg-gray-50 rounded-lg text-center">
+                          <div className="text-2xl mb-2">⚡</div>
+                          <p className="text-sm font-medium text-gray-700">Lightning Fast</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg text-center">
+                          <div className="text-2xl mb-2">🎯</div>
+                          <p className="text-sm font-medium text-gray-700">Highly Accurate</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Results Header */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Generated Content</h2>
+                      <p className="text-gray-600 mt-1">Your AI-generated podcast content is ready</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-green-700">Complete</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Results Grid */}
+                {jobStatus.result.summary && features.summary && (
+                  <ProCard 
+                    title="Summary" 
+                    icon="📋" 
+                    expanded={expandedCard === 'summary'}
+                    onToggle={() => setExpandedCard(expandedCard === 'summary' ? null : 'summary')}
+                  >
+                    <p className="text-gray-700 whitespace-pre-line leading-relaxed">{jobStatus.result.summary}</p>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.show_notes && features.show_notes && (
+                  <ProCard 
+                    title="Show Notes" 
+                    icon="📝"
+                    expanded={expandedCard === 'show_notes'}
+                    onToggle={() => setExpandedCard(expandedCard === 'show_notes' ? null : 'show_notes')}
+                    actions={[
+                      {
+                        label: "Download Markdown",
+                        icon: "📥",
+                        onClick: () => {
+                          const title = jobStatus.result?.seo?.title;
+                          const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
+                          const base = title ? safeSlug(title) : "show-notes";
+                          downloadTextAsFile(`${base}.md`, md);
+                        }
+                      }
+                    ]}
+                  >
+                    <div className="prose prose-sm max-w-none">
+                      <ul className="list-disc ml-6 space-y-2 text-gray-700">
+                        {jobStatus.result.show_notes.split(/\r?\n/).filter(Boolean).map((line, i) => (
+                          <li key={i} className="leading-relaxed">{line}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
+                  <ProCard 
+                    title="Timestamps" 
+                    icon="⏰"
+                    expanded={expandedCard === 'timestamps'}
+                    onToggle={() => setExpandedCard(expandedCard === 'timestamps' ? null : 'timestamps')}
+                    actions={[
+                      {
+                        label: "Copy YouTube Chapters",
+                        icon: "📺",
+                        onClick: () => {
+                          const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
+                          navigator.clipboard.writeText(txt);
+                          alert("YouTube chapters copied to clipboard!");
+                        }
+                      }
+                    ]}
+                  >
+                    <ul className="space-y-2">
+                      {jobStatus.result.timestamps.map((t, i) => (
+                        <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-blue-600 font-mono text-sm mt-0.5">{i + 1}</span>
+                          <span className="text-gray-700 leading-relaxed">{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
+                  <ProCard 
+                    title="Social Snippets" 
+                    icon="📱"
+                    expanded={expandedCard === 'social_snippets'}
+                    onToggle={() => setExpandedCard(expandedCard === 'social_snippets' ? null : 'social_snippets')}
+                  >
+                    <div className="grid gap-4">
+                      {jobStatus.result.social_snippets.map((snippet, i) => (
+                        <div key={i} className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                          <div className="flex items-start justify-between">
+                            <p className="text-gray-700 leading-relaxed flex-1">{snippet}</p>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(snippet)}
+                              className="ml-3 p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-lg transition-colors"
+                              title="Copy to clipboard"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.seo && features.seo && (
+                  <ProCard 
+                    title="SEO Content" 
+                    icon="🔍"
+                    expanded={expandedCard === 'seo'}
+                    onToggle={() => setExpandedCard(expandedCard === 'seo' ? null : 'seo')}
+                  >
+                    <div className="space-y-4">
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <label className="block text-sm font-semibold text-green-800 mb-2">SEO Title</label>
+                        <p className="text-gray-700 font-medium">{jobStatus.result.seo.title}</p>
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                        <label className="block text-sm font-semibold text-blue-800 mb-2">Keywords</label>
+                        <div className="flex flex-wrap gap-2">
+                          {jobStatus.result.seo.keywords.split(',').map((keyword, i) => (
+                            <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                              {keyword.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.newsletter && features.newsletter && (
+                  <ProCard 
+                    title="Newsletter Draft" 
+                    icon="📧"
+                    expanded={expandedCard === 'newsletter'}
+                    onToggle={() => setExpandedCard(expandedCard === 'newsletter' ? null : 'newsletter')}
+                    actions={[
+                      {
+                        label: "Copy Markdown",
+                        icon: "📋",
+                        onClick: () => {
+                          const n = jobStatus.result!.newsletter!;
+                          navigator.clipboard.writeText(`# ${n.subject}\n\n${n.body_markdown}`);
+                        }
+                      },
+                      {
+                        label: "Download File",
+                        icon: "📥",
+                        onClick: () => {
+                          const n = jobStatus.result!.newsletter!;
+                          const md = mkNewsletterMarkdown(n.subject, n.body_markdown, coverPreviewUrl);
+                          const base = n.subject ? safeSlug(n.subject) : "newsletter";
+                          downloadTextAsFile(`${base}.md`, md);
+                        }
+                      },
+                      {
+                        label: "Publish to WordPress",
+                        icon: "🌐",
+                        onClick: async () => {
+                          const title = jobStatus.result?.seo?.title || "Episode notes";
+                          const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
+                          try {
+                            const r = await fetch("/api/wp/publish", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ title, markdown: md, status: "draft" }),
+                            });
+                            const j = await r.json();
+                            if (!r.ok) throw new Error(j.error || "Failed to publish");
+                            window.open(j.link, "_blank");
+                          } catch (error: any) {
+                            alert(`Publishing failed: ${error.message}`);
+                          }
+                        }
+                      }
+                    ]}
+                  >
+                    <div className="space-y-4">
+                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <label className="block text-sm font-semibold text-purple-800 mb-2">Subject Line</label>
+                        <p className="text-gray-700 font-medium">{jobStatus.result.newsletter.subject}</p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Email Content</label>
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+                          {jobStatus.result.newsletter.body_markdown}
+                        </pre>
+                      </div>
+                    </div>
+                  </ProCard>
+                )}
+
+                {jobStatus.result.transcript && (
+                  <ProCard 
+                    title="Full Transcript" 
+                    icon="📄"
+                    expanded={showTranscript}
+                    onToggle={() => setShowTranscript(!showTranscript)}
+                  >
+                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                      <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+                        {jobStatus.result.transcript}
+                      </pre>
+                    </div>
+                  </ProCard>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
       </main>
 
       <SiteFooter />
@@ -618,15 +1091,68 @@ export default function Generate() {
   );
 }
 
-/* ---------- Small UI components ---------- */
-function Card({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
+/* ---------- Enhanced UI Components ---------- */
+interface ProCardProps {
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+  expanded?: boolean;
+  onToggle?: () => void;
+  actions?: Array<{
+    label: string;
+    icon: string;
+    onClick: () => void;
+  }>;
+}
+
+function ProCard({ title, icon, children, expanded = true, onToggle, actions }: ProCardProps) {
   return (
-    <div className="rounded-2xl border bg-white shadow-sm overflow-hidden transition hover:shadow-md">
-      <div className="px-5 py-4 border-b flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        {action}
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-blue-50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{icon}</span>
+            <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            {actions && (
+              <div className="flex gap-2">
+                {actions.map((action, i) => (
+                  <button
+                    key={i}
+                    onClick={action.onClick}
+                    className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm font-medium"
+                    title={action.label}
+                  >
+                    <span>{action.icon}</span>
+                    <span className="hidden sm:inline">{action.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {onToggle && (
+              <button
+                onClick={onToggle}
+                className="p-2 hover:bg-white rounded-lg transition-colors"
+              >
+                <svg 
+                  className={`w-5 h-5 text-gray-500 transition-transform ${expanded ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="p-4">{children}</div>
+      {expanded && (
+        <div className="p-6">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
