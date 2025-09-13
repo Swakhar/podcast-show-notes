@@ -5,6 +5,7 @@ import SiteHeader from "../components/SiteHeader";
 import LogoBumper from "../components/LogoBumper";
 import SiteFooter from "../components/SiteFooter";
 import CookieConsent from "../components/CookieConsent";
+import { loadStripe } from "@stripe/stripe-js";
 
 type Me = {
   plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
@@ -41,6 +42,7 @@ export default function Landing() {
   const active = me?.subscriptionStatus === "active";
   const current = me?.plan;
 
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
   const cards = [
     { 
       key: "STARTER", 
@@ -48,7 +50,7 @@ export default function Landing() {
       price: "€19", 
       period: "per month",
       bullets: ["5 hours / month", "Show notes & summaries", "Social snippets", "Basic templates", "Email support"], 
-      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER || "",
       popular: false
     },
     { 
@@ -57,7 +59,7 @@ export default function Landing() {
       price: "€49", 
       period: "per month",
       bullets: ["20 hours / month", "All content types", "Advanced SEO optimization", "Custom templates", "WordPress integration", "Priority support"], 
-      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || "",
       popular: true
     },
     { 
@@ -66,7 +68,7 @@ export default function Landing() {
       price: "€99", 
       period: "per month",
       bullets: ["Unlimited processing*", "Team collaboration", "White-label exports", "API access", "Custom integrations", "Dedicated support"], 
-      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY,
+      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY || "",
       popular: false
     },
   ] as const;
@@ -162,6 +164,31 @@ export default function Landing() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleCheckout = async (priceId: string) => {
+    try {
+      if (!priceId) {
+        alert("Price ID not configured. Please contact support.");
+        return;
+      }
+
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      
+      const { sessionId, error } = await res.json();
+      if (error) throw new Error(error);
+
+      if (sessionId) {
+        const stripe = await stripePromise;
+        await stripe?.redirectToCheckout({ sessionId });
+      }
+    } catch (e:any) {
+      alert(e.message || "Checkout failed");
+    }
+  };
 
   const handleNewsletterSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -575,38 +602,25 @@ export default function Landing() {
                         </button>
                       ) : active ? (
                         <button
-                          onClick={async () => {
-                            const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
-                            const { url, error } = await r.json();
-                            if (error) return alert(error);
-                            window.location.href = url;
-                          }}
+                          onClick={() => handleCheckout(plan.priceId)}
+                          disabled={!plan.priceId}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
                               ? "bg-[#9CEE69] text-gray-900 hover:bg-green-400 hover:scale-105"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          }`}
+                          } ${!plan.priceId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           Switch to {plan.name}
                         </button>
                       ) : (
                         <button
-                          onClick={async () => {
-                            if (!plan.priceId) return alert("Missing priceId");
-                            const r = await fetch("/api/stripe/create-checkout-session", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ priceId: plan.priceId }),
-                            });
-                            const { url, error } = await r.json();
-                            if (error) return alert(error);
-                            window.location.href = url;
-                          }}
+                          onClick={() => handleCheckout(plan.priceId)}
+                          disabled={!plan.priceId}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
                               ? "bg-[#9CEE69] text-gray-900 hover:bg-green-400 hover:scale-105"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          }`}
+                          } ${!plan.priceId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           Start {plan.name} Plan
                         </button>

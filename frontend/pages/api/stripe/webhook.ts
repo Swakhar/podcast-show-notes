@@ -1,14 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { prisma } from "../../../lib/prisma";
-import { sendMail } from "../../../lib/smtp";
+import { emailService } from "../../../lib/emails/sender";
 
 export const config = { api: { bodyParser: false } };
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 
 // Map your Stripe price IDs to app plans
 const PRICE_IDS = {
-  STARTER: process.env.STRIPE_PRICE_STARTER, // e.g. price_123
+  STARTER: process.env.STRIPE_PRICE_STARTER,
   PRO:     process.env.STRIPE_PRICE_PRO,
   AGENCY:  process.env.STRIPE_PRICE_AGENCY,
 };
@@ -88,23 +88,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
 
+        // Send welcome email using the new service
         if (email) {
-          await sendMail(
-            email,
-            "Welcome to CastLumen — your subscription is active 🎉",
-            `
-            <div style="font-family:Inter,system-ui,Arial">
-              <h2>Thanks for upgrading!</h2>
-              <p>Your CastLumen plan is now active. You can start generating show notes, timestamps, SEO & snippets right away.</p>
-              <p><a href="${process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com"}/generate"
-                    style="display:inline-block;padding:10px 16px;background:#9CEE69;color:#0F172A;border-radius:8px;text-decoration:none;font-weight:600">
-                Open CastLumen
-              </a></p>
-              <p style="margin-top:16px">Manage billing anytime from your profile.</p>
-              <p>— Team CastLumen</p>
-            </div>
-            `
-          );
+          try {
+            await emailService.sendWelcomeSubscription(email);
+          } catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+            // Don't fail the webhook for email errors
+          }
         }
         break;
       }
@@ -112,15 +103,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as any;
         const email = invoice.customer_email || invoice.account_customer_email;
+        
         if (email) {
-          await sendMail(
-            email,
-            "Payment received ✔ — CastLumen",
-            `<div style="font-family:Inter,system-ui,Arial">
-              <p>We’ve received your payment of <strong>${(invoice.amount_paid/100).toFixed(2)} ${invoice.currency?.toUpperCase()}</strong>.</p>
-              <p>Thanks for being with us!</p>
-            </div>`
-          );
+          try {
+            const amount = (invoice.amount_paid / 100).toFixed(2);
+            const currency = invoice.currency || "usd";
+            await emailService.sendPaymentReceived(email, amount, currency);
+          } catch (emailError) {
+            console.error("Failed to send payment confirmation email:", emailError);
+          }
         }
         break;
       }
@@ -130,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
         const priceId = sub.items.data[0]?.price?.id;
-        const status = sub.status; // "active" | "trialing" | "past_due" | "canceled" | "unpaid" | ...
+        const status = sub.status;
 
         const plan = planFromPriceId(priceId);
         const isActive = status === "active" || status === "trialing";
@@ -158,7 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: {
             plan: "FREE",
             priceId: null,
-            subscriptionStatus: sub.status, // usually "canceled"
+            subscriptionStatus: sub.status,
             subscriptionId: sub.id,
             monthlyMinutesLimit: PLAN_LIMITS.FREE,
           },
@@ -172,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await prisma.user.updateMany({
           where: { stripeCustomerId: customerId },
           data: {
-            subscriptionStatus: sub.status, // "paused"
+            subscriptionStatus: sub.status,
           },
         });
         break;

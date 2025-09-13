@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { emailService } from "../../../lib/emails/sender";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -21,6 +22,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Get the current user's plan
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true, name: true }
+    });
+
+    // Restrict Teams functionality to Agency plan only
+    if (currentUser?.plan !== "AGENCY") {
+      return res.status(403).json({ 
+        error: "Teams functionality is only available for Agency plan users. Please upgrade to access this feature.",
+        requiresPlan: "AGENCY"
+      });
+    }
+
     // Verify the user owns the team
     const team = await prisma.team.findFirst({
       where: { 
@@ -59,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         teamId,
         userId: inviteUser.id,
-        role: "EDITOR", // Default role
+        role: "EDITOR",
       },
       include: {
         user: {
@@ -71,9 +86,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    // Send invitation email using the centralized service
+    const inviterName = currentUser?.name || "A CastLumen user";
+    const teamUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com"}/teams/${teamId}`;
+    
+    try {
+      await emailService.sendTeamInvitation(
+        inviteUser.email,
+        inviterName,
+        team.name,
+        teamUrl,
+        session.user.email
+      );
+    } catch (emailError) {
+      console.error("Failed to send invitation email:", emailError);
+      // Don't fail the entire request if email fails
+    }
+
     return res.status(200).json({ 
-      message: "User invited successfully",
-      membership 
+      message: "User invited successfully and email notification sent",
+      membership,
+      emailSent: true
     });
   } catch (error) {
     console.error("Error inviting team member:", error);

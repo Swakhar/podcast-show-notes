@@ -1,6 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { prisma } from "../../lib/prisma";
+import { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
+import { prisma } from "../../lib/prisma";
+import { emailService } from "../../lib/emails/sender";
 
 // --- tiny in-memory rate limiter (per IP) ---
 const windowMs = 60_000;         // 1 minute
@@ -44,7 +45,43 @@ async function verifyRecaptcha(token?: string, remoteip?: string) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { name, email, password, confirmPassword, captchaToken } = req.body;
+
+  // Validation
+  if (!name || !email || !password || !confirmPassword) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "Passwords don't match" });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters" });
+  }
+
+  // Verify reCAPTCHA if enabled
+  if (process.env.GOOGLE_RECAPTCHA_SECRET_KEY && captchaToken) {
+    try {
+      const response = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `secret=${process.env.GOOGLE_RECAPTCHA_SECRET_KEY}&response=${captchaToken}`
+      });
+      
+      const data = await response.json();
+      if (!data.success) {
+        return res.status(400).json({ error: "reCAPTCHA verification failed" });
+      }
+    } catch (error) {
+      console.error("reCAPTCHA verification error:", error);
+      return res.status(500).json({ error: "reCAPTCHA verification failed" });
+    }
+  }
 
   // rate limit
   const ip =
@@ -54,51 +91,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!rateLimit(ip)) return res.status(429).json({ error: "Too many attempts, try again later." });
 
   try {
-    let { name, email, password, confirmPassword, captchaToken } = req.body || {};
-
-    // normalize
-    name = (name || "").toString().trim();
-    email = (email || "").toString().trim().toLowerCase();
-    password = (password || "").toString();
-    confirmPassword = (confirmPassword || "").toString();
-
-    if (!name || !email || !password || !confirmPassword) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-    if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Passwords do not match" });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ error: "Password must be at least 8 characters." });
-    }
-
-    // captcha
-    const captchaOk = await verifyRecaptcha(captchaToken, ip);
-    if (!captchaOk) return res.status(400).json({ error: "Captcha verification failed" });
-
-    // unique email
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(409).json({ error: "Email is already registered." });
-
-    // hash & create
-    const hashed = await bcrypt.hash(password, 12);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashed,          // <-- requires `password String?` in Prisma schema
-        plan: "FREE",
-        subscriptionStatus: null,
-        monthlyMinutesLimit: 30,
-        monthlyMinutesUsed: 0,
-      },
-      select: { id: true, email: true, name: true, plan: true },
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() }
     });
 
-    return res.status(200).json({ ok: true, user });
-  } catch (e: any) {
-    console.error("[register] error:", e);
-    return res.status(500).json({ error: "Registration failed" });
+    if (existingUser) {
+      return res.status(400).json({ error: "User with this email already exists" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        password: hashedPassword,
+        plan: "FREE",
+        monthlyMinutesLimit: 30,
+        monthlyMinutesUsed: 0,
+        monthlyResetAt: new Date(),
+      },
+    });
+
+    // Send welcome email
+    try {
+      await emailService.sendWelcomeUser(user.email, user.name || "there");
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Don't fail registration if email fails
+    }
+
+    return res.status(201).json({ 
+      message: "Account created successfully",
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email 
+      } 
+    });
+
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res.status(500).json({ error: "Failed to create account" });
   }
 }

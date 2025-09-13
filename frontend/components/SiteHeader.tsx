@@ -50,7 +50,14 @@ export default function SiteHeader() {
     { href: "/#demo", label: "Demo", public: true, hideWhenAuth: true },
     { href: "/generate", label: "Generate", authOnly: true, icon: "⚡" },
     { href: "/templates", label: "Templates", authOnly: true, icon: "📝" },
-    { href: "/teams", label: "Teams", authOnly: true, icon: "👥" },
+    // Only show Teams link for Agency users
+    { 
+      href: "/teams", 
+      label: "Teams", 
+      authOnly: true, 
+      icon: "👥",
+      requiresPlan: "AGENCY" // Add this condition
+    },
     { href: "/settings", label: "Settings", authOnly: true, icon: "⚙️" },
   ];
 
@@ -58,6 +65,8 @@ export default function SiteHeader() {
     if (item.authOnly && !isAuthenticated) return false;
     if (item.hideWhenAuth && isAuthenticated) return false;
     if (!item.authOnly && !item.public) return false;
+    // Hide Teams link if user doesn't have Agency plan
+    if (item.requiresPlan === "AGENCY" && me?.plan !== "AGENCY") return false;
     return true;
   });
 

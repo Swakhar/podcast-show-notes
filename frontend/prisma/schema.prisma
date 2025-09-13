@@ -24,6 +24,8 @@ model User {
   monthlyMinutesLimit  Int      @default(30)
   monthlyMinutesUsed   Int      @default(0)
   monthlyResetAt       DateTime @default(now())
+  resetToken           String?   @unique
+  resetTokenExpiry     DateTime?
 
   password             String?
 
