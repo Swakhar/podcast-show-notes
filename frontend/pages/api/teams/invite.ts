@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
-import { emailService } from "../../../lib/emails/sender";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -17,52 +16,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = (session.user as any).id;
   const { teamId, email } = req.body;
 
-  if (!teamId || !email || typeof teamId !== "string" || typeof email !== "string") {
-    return res.status(400).json({ error: "Team ID and email are required" });
+  if (!teamId || typeof teamId !== "string") {
+    return res.status(400).json({ error: "Team ID is required" });
+  }
+
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Email is required" });
   }
 
   try {
-    // Get the current user's plan
-    const currentUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { plan: true, name: true }
-    });
-
-    // Restrict Teams functionality to Agency plan only
-    if (currentUser?.plan !== "AGENCY") {
-      return res.status(403).json({ 
-        error: "Teams functionality is only available for Agency plan users. Please upgrade to access this feature.",
-        requiresPlan: "AGENCY"
-      });
-    }
-
     // Verify the user owns the team
     const team = await prisma.team.findFirst({
       where: { 
         id: teamId,
         ownerId: userId 
       },
+      include: {
+        memberships: {
+          include: {
+            user: {
+              select: { email: true }
+            }
+          }
+        }
+      }
     });
 
     if (!team) {
-      return res.status(404).json({ error: "Team not found or you don't have permission to invite members" });
+      return res.status(404).json({ error: "Team not found or you don't have permission to manage it" });
     }
 
-    // Find the user to invite
-    const inviteUser = await prisma.user.findUnique({
-      where: { email: email.trim().toLowerCase() },
+    // Check if user exists
+    const invitedUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() },
+      select: { id: true, name: true, email: true }
     });
 
-    if (!inviteUser) {
-      return res.status(404).json({ error: "User with this email not found. They need to sign up first." });
+    if (!invitedUser) {
+      return res.status(404).json({ error: "User with this email not found. They need to create a CastLumen account first." });
+    }
+
+    // Check if user is trying to invite themselves
+    if (invitedUser.id === userId) {
+      return res.status(400).json({ error: "You cannot invite yourself to the team" });
     }
 
     // Check if user is already a member
     const existingMembership = await prisma.membership.findFirst({
       where: {
         teamId,
-        userId: inviteUser.id,
-      },
+        userId: invitedUser.id
+      }
     });
 
     if (existingMembership) {
@@ -73,41 +77,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const membership = await prisma.membership.create({
       data: {
         teamId,
-        userId: inviteUser.id,
-        role: "EDITOR",
+        userId: invitedUser.id,
+        role: "MEMBER"
       },
       include: {
         user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
+          select: { name: true, email: true }
+        }
+      }
     });
 
-    // Send invitation email using the centralized service
-    const inviterName = currentUser?.name || "A CastLumen user";
-    const teamUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com"}/teams/${teamId}`;
-    
-    try {
-      await emailService.sendTeamInvitation(
-        inviteUser.email,
-        inviterName,
-        team.name,
-        teamUrl,
-        session.user.email
-      );
-    } catch (emailError) {
-      console.error("Failed to send invitation email:", emailError);
-      // Don't fail the entire request if email fails
-    }
-
-    return res.status(200).json({ 
-      message: "User invited successfully and email notification sent",
-      membership,
-      emailSent: true
+    return res.status(201).json({
+      message: `${invitedUser.name || invitedUser.email} has been added to the team`,
+      membership
     });
+
   } catch (error) {
     console.error("Error inviting team member:", error);
     return res.status(500).json({ error: "Failed to invite team member" });

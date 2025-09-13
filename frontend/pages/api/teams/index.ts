@@ -1,38 +1,100 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
-import { requireAgencyPlan } from "../../../lib/teamMiddleware";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === "GET") {
-    const auth = await requireAgencyPlan(req, res);
-    if (auth.error) {
-      return res.status(auth.error.status).json(auth.error);
-    }
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.email) {
+    return res.status(401).json({ error: "Sign in required" });
+  }
 
+  const userId = (session.user as any).id;
+
+  if (req.method === "GET") {
     try {
-      const teams = await prisma.team.findMany({
-        where: {
-          OR: [
-            { ownerId: auth.user.id },
-            { 
-              memberships: {
-                some: { userId: auth.user.id }
-              }
-            }
-          ]
-        },
-        include: {
-          owner: { select: { name: true, email: true } },
-          memberships: {
-            include: {
-              user: { select: { name: true, email: true } }
-            }
-          },
-          _count: { select: { memberships: true } }
-        }
+      // Get user's current plan
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { plan: true, email: true }
       });
 
-      return res.status(200).json(teams);
+      console.log("Teams API - User:", { userId, plan: currentUser?.plan, email: currentUser?.email });
+
+      // Check if user has Agency plan OR is a team member
+      const hasAgencyPlan = currentUser?.plan === "AGENCY";
+      const membershipCount = await prisma.membership.count({
+        where: { userId }
+      });
+      const isTeamMember = membershipCount > 0;
+
+      console.log("Teams API - Access:", { hasAgencyPlan, isTeamMember, membershipCount });
+
+      if (!hasAgencyPlan && !isTeamMember) {
+        return res.status(403).json({ 
+          error: "Teams functionality requires an Agency plan subscription or team membership.",
+          requiresPlan: "AGENCY"
+        });
+      }
+
+      // Get teams where user is owner
+      const ownedTeams = await prisma.team.findMany({
+        where: { ownerId: userId },
+        include: {
+          owner: {
+            select: { name: true, email: true }
+          },
+          memberships: {
+            include: {
+              user: {
+                select: { name: true, email: true }
+              }
+            }
+          },
+          _count: {
+            select: { memberships: true }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      });
+
+      // Get teams where user is a member
+      const memberTeams = await prisma.team.findMany({
+        where: {
+          memberships: {
+            some: { userId }
+          }
+        },
+        include: {
+          owner: {
+            select: { name: true, email: true }
+          },
+          memberships: {
+            include: {
+              user: {
+                select: { name: true, email: true }
+              }
+            }
+          },
+          _count: {
+            select: { memberships: true }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      });
+
+      console.log("Teams API - Result:", { 
+        ownedTeams: ownedTeams.length, 
+        memberTeams: memberTeams.length,
+        canCreateTeams: hasAgencyPlan
+      });
+
+      return res.status(200).json({
+        ownedTeams,
+        memberTeams,
+        canCreateTeams: hasAgencyPlan // Only Agency users can create teams
+      });
+
     } catch (error) {
       console.error("Error fetching teams:", error);
       return res.status(500).json({ error: "Failed to fetch teams" });
@@ -40,11 +102,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === "POST") {
-    const auth = await requireAgencyPlan(req, res);
-    if (auth.error) {
-      return res.status(auth.error.status).json(auth.error);
-    }
-
     const { name, description } = req.body;
 
     if (!name || typeof name !== "string") {
@@ -52,19 +109,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
+      // Get user's current plan
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { plan: true }
+      });
+
+      // Only Agency plan users can create teams
+      if (currentUser?.plan !== "AGENCY") {
+        return res.status(403).json({ 
+          error: "Creating teams requires an Agency plan subscription. Please upgrade to create teams.",
+          requiresPlan: "AGENCY"
+        });
+      }
+
       const team = await prisma.team.create({
         data: {
           name: name.trim(),
           description: description?.trim() || null,
-          ownerId: auth.user.id,
+          ownerId: userId,
         },
         include: {
-          owner: { select: { name: true, email: true } },
-          _count: { select: { memberships: true } }
+          owner: {
+            select: { name: true, email: true }
+          },
+          _count: {
+            select: { memberships: true }
+          }
         }
       });
 
+      console.log("Team created:", team);
+
       return res.status(201).json(team);
+
     } catch (error) {
       console.error("Error creating team:", error);
       return res.status(500).json({ error: "Failed to create team" });

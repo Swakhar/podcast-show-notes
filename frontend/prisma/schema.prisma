@@ -36,7 +36,7 @@ model User {
   updatedAt            DateTime @updatedAt
 
   ownedTeams           Team[]        @relation("UserOwnedTeams")
-  memberships          Membership[]
+  memberships          Membership[]  @relation("UserMemberships")
   rssFeeds             RssFeed[]
   templates            Template[]
   wordpressCreds       WordpressCred?
@@ -93,23 +93,25 @@ enum Role {
 }
 
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  ownerId   String
-  owner     User     @relation("UserOwnedTeams", fields: [ownerId], references: [id])
-  members   Membership[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User         @relation("UserOwnedTeams", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships Membership[] @relation("TeamMemberships")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Membership {
   id        String   @id @default(cuid())
   teamId    String
   userId    String
-  role      Role     @default(EDITOR)
-  team      Team     @relation(fields: [teamId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  role      String   @default("EDITOR")
+  team      Team     @relation("TeamMemberships", fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserMemberships", fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([teamId, userId])
 }

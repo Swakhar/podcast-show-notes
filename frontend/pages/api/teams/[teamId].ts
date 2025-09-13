@@ -1,39 +1,62 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
-import { requireAgencyPlan } from "../../../lib/teamMiddleware";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.email) {
+    return res.status(401).json({ error: "Sign in required" });
+  }
+
+  const userId = (session.user as any).id;
   const { teamId } = req.query;
-
-  if (!teamId || typeof teamId !== "string") {
-    return res.status(400).json({ error: "Team ID is required" });
-  }
-
-  const auth = await requireAgencyPlan(req, res);
-  if (auth.error) {
-    return res.status(auth.error.status).json(auth.error);
-  }
 
   if (req.method === "GET") {
     try {
+      // Get user's current plan and team membership status
+      const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { plan: true }
+      });
+
+      const membershipCount = await prisma.membership.count({
+        where: { userId }
+      });
+
+      const hasAgencyPlan = currentUser?.plan === "AGENCY";
+      const isTeamMember = membershipCount > 0;
+
+      if (!hasAgencyPlan && !isTeamMember) {
+        return res.status(403).json({ 
+          error: "Teams functionality requires an Agency plan subscription or team membership."
+        });
+      }
+
+      // Get the team with members
       const team = await prisma.team.findFirst({
         where: {
-          id: teamId,
+          id: teamId as string,
           OR: [
-            { ownerId: auth.user.id },
+            { ownerId: userId }, // User is the owner
             { 
               memberships: {
-                some: { userId: auth.user.id }
+                some: { userId } // User is a member
               }
             }
           ]
         },
         include: {
-          owner: { select: { name: true, email: true } },
+          owner: {
+            select: { id: true, name: true, email: true }
+          },
           memberships: {
             include: {
-              user: { select: { name: true, email: true } }
-            }
+              user: {
+                select: { id: true, name: true, email: true }
+              }
+            },
+            orderBy: { createdAt: "asc" }
           }
         }
       });
@@ -42,74 +65,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: "Team not found or access denied" });
       }
 
-      return res.status(200).json(team);
+      return res.status(200).json({ team });
+
     } catch (error) {
       console.error("Error fetching team:", error);
       return res.status(500).json({ error: "Failed to fetch team" });
-    }
-  }
-
-  if (req.method === "PUT") {
-    const { name, description } = req.body;
-
-    try {
-      // Only team owner can update
-      const team = await prisma.team.findFirst({
-        where: { 
-          id: teamId,
-          ownerId: auth.user.id 
-        }
-      });
-
-      if (!team) {
-        return res.status(404).json({ error: "Team not found or you don't have permission to update it" });
-      }
-
-      const updatedTeam = await prisma.team.update({
-        where: { id: teamId },
-        data: {
-          name: name?.trim() || team.name,
-          description: description?.trim() || team.description,
-        },
-        include: {
-          owner: { select: { name: true, email: true } },
-          memberships: {
-            include: {
-              user: { select: { name: true, email: true } }
-            }
-          }
-        }
-      });
-
-      return res.status(200).json(updatedTeam);
-    } catch (error) {
-      console.error("Error updating team:", error);
-      return res.status(500).json({ error: "Failed to update team" });
-    }
-  }
-
-  if (req.method === "DELETE") {
-    try {
-      // Only team owner can delete
-      const team = await prisma.team.findFirst({
-        where: { 
-          id: teamId,
-          ownerId: auth.user.id 
-        }
-      });
-
-      if (!team) {
-        return res.status(404).json({ error: "Team not found or you don't have permission to delete it" });
-      }
-
-      await prisma.team.delete({
-        where: { id: teamId }
-      });
-
-      return res.status(200).json({ message: "Team deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting team:", error);
-      return res.status(500).json({ error: "Failed to delete team" });
     }
   }
 

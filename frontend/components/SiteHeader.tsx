@@ -2,27 +2,51 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import useSWR from "swr";
 import PlanBadge from "./PlanBadge";
 import { useToast } from "../contexts/ToastContext";
-import { c } from "framer-motion/dist/types.d-Cjd591yU";
+
+const fetcher = (url: string) => fetch(url).then((res) => {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+});
 
 type Me = {
   plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
   subscriptionStatus: string | null;
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
+  isTeamOwner?: boolean;
+  isTeamMember?: boolean;
+  ownedTeamsCount?: number;
+  memberTeamsCount?: number;
 };
 
 export default function SiteHeader() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [me, setMe] = useState<Me | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { showToast } = useToast();
 
+  // Use SWR to fetch user data
+  const { data: meData, error: meError } = useSWR(
+    status === "authenticated" ? "/api/me" : null,
+    fetcher,
+    { 
+      refreshInterval: 30000, // Refresh every 30 seconds
+      revalidateOnFocus: false 
+    }
+  );
+
+  const me = meData?.user as Me | null;
   const active = me?.subscriptionStatus === "active";
   const isAuthenticated = status === "authenticated";
+  
+  // Check if user is a team owner (has Agency plan and owns teams)
+  const isTeamOwner = me?.plan === "AGENCY" && !me?.isTeamMember;
+  // Check if user is only a team member (invited to teams but doesn't own subscription)
+  const isOnlyTeamMember = me?.isTeamMember && !me?.isTeamOwner;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -31,35 +55,19 @@ export default function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (isAuthenticated) {
-        try {
-          const r = await fetch("/api/me", { cache: "no-store" });
-          const j = await r.json();
-          setMe(j?.user ?? null);
-        } catch {
-          setMe(null);
-        }
-      } else {
-        setMe(null);
-      }
-    })();
-  }, [status, isAuthenticated]);
-
   const navigationItems = [
     { href: "/#features", label: "Features", public: true },
     { href: "/#pricing", label: "Pricing", public: true },
     { href: "/#demo", label: "Demo", public: true, hideWhenAuth: true },
     { href: "/generate", label: "Generate", authOnly: true, icon: "⚡" },
     { href: "/templates", label: "Templates", authOnly: true, icon: "📝" },
-    // Only show Teams link for Agency users
+    // Only show Teams link for Agency users or team members
     { 
       href: "/teams", 
       label: "Teams", 
       authOnly: true, 
       icon: "👥",
-      requiresPlan: "AGENCY" // Add this condition
+      showForTeams: true // Show for both owners and members
     },
     { href: "/settings", label: "Settings", authOnly: true, icon: "⚙️" },
   ];
@@ -68,8 +76,12 @@ export default function SiteHeader() {
     if (item.authOnly && !isAuthenticated) return false;
     if (item.hideWhenAuth && isAuthenticated) return false;
     if (!item.authOnly && !item.public) return false;
-    // Hide Teams link if user doesn't have Agency plan
-    if (item.requiresPlan === "AGENCY" && me?.plan !== "AGENCY") return false;
+    
+    // Show Teams link if user has Agency plan OR is a team member
+    if (item.showForTeams) {
+      return me?.plan === "AGENCY" || me?.isTeamMember;
+    }
+    
     return true;
   });
 
@@ -113,8 +125,8 @@ export default function SiteHeader() {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* User Info */}
-            {me && (
+            {/* User Info - Only show for team owners, not team members */}
+            {me && !isOnlyTeamMember && (
               <div className="flex items-center gap-2">
                 <PlanBadge plan={me.plan} />
                 <div className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border">
@@ -124,17 +136,31 @@ export default function SiteHeader() {
               </div>
             )}
 
+            {/* Team Member Status */}
+            {me && isOnlyTeamMember && (
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 border border-blue-200">
+                  Team Member
+                </span>
+              </div>
+            )}
+
             {/* Action Buttons */}
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
-                {active ? (
+                {/* Only show billing for team owners, not team members */}
+                {active && !isOnlyTeamMember ? (
                   <>
                     <button
                       onClick={async () => {
-                        const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
-                        const { url, error } = await r.json();
-                        if (error) return showToast(error, "error");
-                        window.location.href = url;
+                        try {
+                          const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+                          const { url, error } = await r.json();
+                          if (error) return showToast(error, "error");
+                          window.location.href = url;
+                        } catch (error) {
+                          showToast("Failed to open billing portal", "error");
+                        }
                       }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
@@ -213,8 +239,8 @@ export default function SiteHeader() {
               })}
             </div>
 
-            {/* Mobile User Info & Actions */}
-            {me && (
+            {/* Mobile User Info & Actions - Only for team owners */}
+            {me && !isOnlyTeamMember && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <PlanBadge plan={me.plan} />
@@ -225,16 +251,33 @@ export default function SiteHeader() {
               </div>
             )}
 
+            {/* Mobile Team Member Status */}
+            {me && isOnlyTeamMember && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 border border-blue-200">
+                    Team Member
+                  </span>
+                  <span className="text-xs text-gray-500">Billing managed by team owner</span>
+                </div>
+              </div>
+            )}
+
             <div className="mt-3 flex flex-col gap-2">
               {isAuthenticated ? (
                 <>
-                  {active && (
+                  {/* Only show billing for team owners */}
+                  {active && !isOnlyTeamMember && (
                     <button
                       onClick={async () => {
-                        const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
-                        const { url, error } = await r.json();
-                        if (error) return showToast(error, "error");
-                        window.location.href = url;
+                        try {
+                          const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
+                          const { url, error } = await r.json();
+                          if (error) return showToast(error, "error");
+                          window.location.href = url;
+                        } catch (error) {
+                          showToast("Failed to open billing portal", "error");
+                        }
                       }}
                       className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >

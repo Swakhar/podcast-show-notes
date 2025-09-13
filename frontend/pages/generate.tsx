@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import axios from "axios";
 import Head from "next/head";
 import Link from "next/link";
+import useSWR from "swr";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
@@ -60,6 +61,10 @@ interface Me {
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
   stripeCustomerId: string | null;
+  isTeamOwner?: boolean;
+  isTeamMember?: boolean;
+  ownedTeamsCount?: number;
+  memberTeamsCount?: number;
 }
 interface Template {
   id: string;
@@ -68,6 +73,11 @@ interface Template {
   system: string;
   user: string;
 }
+
+const fetcher = (url: string) => fetch(url).then((res) => {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+});
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const STAGE_PROGRESS: Record<string, number> = {
@@ -98,10 +108,24 @@ const SUPPORTED_FORMATS = [
 
 export default function Generate() {
   const { data: session, status } = useSession();
-  const [me, setMe] = useState<Me | null>(null);
-  const plan = (me?.plan as any) || ((session?.user as any)?.plan ?? "FREE");
-  const active = (me?.subscriptionStatus === "active") || ((session?.user as any)?.subscriptionStatus === "active");
-  const isFree = plan === "FREE";
+  const { showToast } = useToast();
+  
+  const { data: meData, error: meError } = useSWR(
+    status === "authenticated" ? "/api/me" : null,
+    fetcher,
+    { 
+      refreshInterval: 30000,
+      revalidateOnFocus: false 
+    }
+  );
+
+  const me = meData?.user as Me | null;
+  const hasAgencyAccess = me?.plan === "AGENCY" || me?.isTeamMember;
+  const isOnlyTeamMember = me?.isTeamMember && !me?.isTeamOwner;
+
+  const plan = me?.plan || "FREE";
+  const active = me?.subscriptionStatus === "active";
+  const isFree = plan === "FREE" && !hasAgencyAccess;
   const planLabel =
     me?.plan === "AGENCY" ? "Agency" :
     me?.plan === "PRO"    ? "Pro"    :
@@ -140,7 +164,6 @@ export default function Generate() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [language, setLanguage] = useState<"auto"|"en"|"de">("auto");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const { showToast } = useToast();
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -178,18 +201,6 @@ export default function Generate() {
       }
     }
   };
-
-  // membership
-  useEffect(() => {
-    let cancel = false;
-    async function fetchMe() {
-      const r = await fetch("/api/me", { cache: "no-store" });
-      const j = await r.json();
-      if (!cancel) setMe(j.user);
-    }
-    if (status === "authenticated") fetchMe(); else if (status === "unauthenticated") setMe(null);
-    return () => { cancel = true; };
-  }, [status]);
 
   // fetch templates
   useEffect(() => {
@@ -324,8 +335,13 @@ export default function Generate() {
               body: JSON.stringify({ minutes: d.billed_minutes, op: "inc" }),
             });
             setUsageBooked((u) => ({ ...u, [jobId]: true }));
-            const m = await fetch("/api/me", { cache: "no-store" }).then(x => x.json()).catch(() => null);
-            if (m?.user) setMe(m.user);
+            // Refresh user data after usage update
+            if (meData) {
+              const updatedData = await fetcher("/api/me");
+              if (updatedData?.user) {
+                // SWR will automatically update
+              }
+            }
           } catch {}
         }
         if (d.status === "failed" && usageBooked[jobId] && typeof d.billed_minutes === "number") {
@@ -335,8 +351,13 @@ export default function Generate() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ minutes: d.billed_minutes, op: "dec" }),
             });
-            const m = await fetch("/api/me", { cache: "no-store" }).then(x => x.json()).catch(() => null);
-            if (m?.user) setMe(m.user);
+            // Refresh user data after usage update
+            if (meData) {
+              const updatedData = await fetcher("/api/me");
+              if (updatedData?.user) {
+                // SWR will automatically update
+              }
+            }
           } catch {}
         }
 
@@ -348,7 +369,7 @@ export default function Generate() {
       }
     }, 1200);
     return () => clearInterval(t);
-  }, [jobId, usageBooked]);
+  }, [jobId, usageBooked, meData]);
 
   useEffect(() => () => { if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); }, [coverPreviewUrl]);
 
@@ -416,7 +437,7 @@ export default function Generate() {
 
       <main className="max-w-7xl mx-auto px-4 py-10">
         {/* Professional Status Bar */}
-        {me && (
+        {me && !isOnlyTeamMember && (
           <div className="bg-white border border-gray-200 rounded-xl p-4 mb-8 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -690,7 +711,7 @@ export default function Generate() {
                       { key: "seo", label: "SEO Content", desc: "Titles & meta descriptions", icon: "🔍", free: false },
                       { key: "newsletter", label: "Newsletter", desc: "Email-ready content", icon: "📧", free: false },
                     ].map(({ key, label, desc, icon, free }) => {
-                      const disabled = !free && isFree;
+                      const disabled = !free && isFree && !me?.isTeamMember;
                       const featureKey = key as keyof typeof features;
                       return (
                         <label
@@ -705,9 +726,9 @@ export default function Generate() {
                         >
                           <input
                             type="checkbox"
-                            checked={features[featureKey] && (free || !isFree)}
+                            checked={features[featureKey] && (free || !isFree || me?.isTeamMember)}
                             onChange={() => !disabled && toggleFeature(featureKey)}
-                            disabled={disabled}
+                            disabled={disabled || (isBusy)}
                             className="mt-1 w-4 h-4 text-[#9CEE69] border-gray-300 rounded focus:ring-[#9CEE69]"
                           />
                           <div className="flex-1 min-w-0">
@@ -717,6 +738,11 @@ export default function Generate() {
                               {!free && (
                                 <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
                                   Pro
+                                </span>
+                              )}
+                              {!free && me?.isTeamMember && (
+                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                                  Team Access
                                 </span>
                               )}
                             </div>

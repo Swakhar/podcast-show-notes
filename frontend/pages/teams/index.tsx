@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import useSWR from "swr";
-import { useToast } from "../../contexts/ToastContext";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
+import { useToast } from "../../contexts/ToastContext";
 
 const fetcher = (url: string) => fetch(url).then((res) => {
   if (!res.ok) {
@@ -18,6 +18,7 @@ const fetcher = (url: string) => fetch(url).then((res) => {
 export default function Teams() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { showToast } = useToast();
   const [showUnauthorized, setShowUnauthorized] = useState(false);
   
   const { data: me, error: meError } = useSWR(
@@ -33,8 +34,11 @@ export default function Teams() {
     }
   );
 
-  const { data: teams, mutate, error: teamsError } = useSWR(
-    me?.user?.plan === "AGENCY" ? "/api/teams" : null, 
+  // Check if user has access to teams (either Agency plan or is a team member)
+  const hasTeamAccess = me?.user?.plan === "AGENCY" || me?.user?.isTeamMember;
+  
+  const { data: teamsData, mutate, error: teamsError } = useSWR(
+    hasTeamAccess ? "/api/teams" : null, 
     fetcher,
     { 
       shouldRetryOnError: false,
@@ -50,7 +54,6 @@ export default function Teams() {
   const [teamName, setTeamName] = useState("");
   const [teamDescription, setTeamDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const { showToast } = useToast();
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -88,8 +91,8 @@ export default function Teams() {
     );
   }
 
-  // Show unauthorized access message
-  if (showUnauthorized || (me && me.user?.plan !== "AGENCY")) {
+  // Show unauthorized access message - only if user doesn't have Agency plan AND is not a team member
+  if (showUnauthorized || (me && !hasTeamAccess)) {
     return (
       <>
         <Head>
@@ -109,7 +112,7 @@ export default function Teams() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                <strong>Unauthorized Access:</strong> You don't have permission to access this feature.
+                <strong>Unauthorized Access:</strong> You need an Agency plan subscription to access teams.
               </p>
             </div>
           </div>
@@ -121,11 +124,11 @@ export default function Teams() {
               <div className="max-w-md mx-auto">
                 <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2zM12 9V7a4 4 0 118 0v2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Agency Plan Required</h3>
-                <p className="text-gray-600 mb-4">Teams functionality is only available for Agency plan users.</p>
+                <p className="text-gray-600 mb-4">Teams functionality is only available for Agency plan subscribers.</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link 
                     href="/#pricing" 
@@ -166,21 +169,38 @@ export default function Teams() {
       });
 
       if (response.ok) {
+        showToast("Team created successfully!", "success");
         setTeamName("");
         setTeamDescription("");
-        showToast("Team created successfully!", "success");
         setCreateModalOpen(false);
         mutate();
       } else {
         const error = await response.json();
-        showToast(error.error || "Failed to create team");
+        showToast(error.error || "Failed to create team", "error");
       }
     } catch (error) {
-      showToast("Something went wrong");
+      showToast("Something went wrong", "error");
     } finally {
       setLoading(false);
     }
   };
+
+  // Get teams data with fallbacks
+  const ownedTeams = teamsData?.ownedTeams || [];
+  const memberTeams = teamsData?.memberTeams || [];
+  
+  // Only Agency plan users can create teams (not team members)
+  const canCreateTeams = me?.user?.plan === "AGENCY" && !me?.user?.isTeamMember;
+
+  // Debug: Let's see what we're getting
+  console.log("Debug Teams Data:", {
+    me: me?.user,
+    teamsData,
+    hasTeamAccess,
+    canCreateTeams,
+    ownedTeams: ownedTeams.length,
+    memberTeams: memberTeams.length
+  });
 
   return (
     <>
@@ -198,64 +218,130 @@ export default function Teams() {
             <div className="text-center">
               <h1 className="text-4xl font-black mb-4">Team Collaboration</h1>
               <p className="text-xl text-blue-100">Work together to create amazing podcast content</p>
+              
+              {/* Debug info */}
+              <div className="mt-4 text-sm text-blue-200">
+                <p>Plan: {me?.user?.plan} | Can Create: {canCreateTeams ? 'Yes' : 'No'} | Access: {hasTeamAccess ? 'Yes' : 'No'}</p>
+                <p>Owned: {ownedTeams.length} | Member: {memberTeams.length}</p>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Create Team Button */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Your Teams</h2>
-              <p className="text-gray-600">Manage and collaborate with your team members</p>
+          {/* Loading state for teams data */}
+          {hasTeamAccess && !teamsData && !teamsError && (
+            <div className="text-center py-12">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading teams...</p>
             </div>
-            <button
-              onClick={() => setCreateModalOpen(true)}
-              className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg transition-all duration-200"
-            >
-              Create Team
-            </button>
-          </div>
+          )}
 
-          {/* Teams Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams?.map((team: any) => (
-              <div key={team.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">{team.name}</h3>
-                    {team.description && (
-                      <p className="text-gray-600 text-sm mt-1">{team.description}</p>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {team._count.memberships} member{team._count.memberships !== 1 ? 's' : ''}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">
-                      {team.owner.name?.charAt(0) || team.owner.email?.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{team.owner.name || team.owner.email}</p>
-                    <p className="text-xs text-gray-500">Owner</p>
-                  </div>
-                </div>
+          {/* Error state */}
+          {teamsError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800">Failed to load teams. Please try again.</p>
+              <button 
+                onClick={() => mutate()} 
+                className="mt-2 text-red-600 hover:text-red-800 font-medium"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
-                <Link
-                  href={`/teams/${team.id}`}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center block"
-                >
-                  View Team
-                </Link>
+          {/* Owned Teams Section */}
+          {ownedTeams.length > 0 && (
+            <div className="mb-12">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Your Teams</h2>
+                  <p className="text-gray-600">Teams that you own and manage</p>
+                </div>
               </div>
-            ))}
-          </div>
 
-          {teams?.length === 0 && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {ownedTeams.map((team: any) => (
+                  <div key={team.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative">
+                    <div className="absolute top-4 right-4">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                        Owner
+                      </span>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">{team.name}</h3>
+                      {team.description && (
+                        <p className="text-gray-600 text-sm mt-1">{team.description}</p>
+                      )}
+                    </div>
+                    
+                    <div className="text-sm text-gray-500 mb-4">
+                      {team._count?.memberships || 0} member{(team._count?.memberships || 0) !== 1 ? 's' : ''}
+                    </div>
+
+                    <Link
+                      href={`/teams/${team.id}`}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center block"
+                    >
+                      Manage Team
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Member Teams Section */}
+          {memberTeams.length > 0 && (
+            <div className="mb-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Teams You're In</h2>
+                <p className="text-gray-600">Teams where you're a member</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {memberTeams.map((team: any) => (
+                  <div key={team.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 relative">
+                    <div className="absolute top-4 right-4">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                        Member
+                      </span>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">{team.name}</h3>
+                      {team.description && (
+                        <p className="text-gray-600 text-sm mt-1">{team.description}</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold text-sm">
+                          {team.owner?.name?.charAt(0) || team.owner?.email?.charAt(0) || '?'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{team.owner?.name || team.owner?.email || 'Unknown'}</p>
+                        <p className="text-xs text-gray-500">Owner</p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/teams/${team.id}`}
+                      className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center block"
+                    >
+                      View Team
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No Teams State */}
+          {teamsData && ownedTeams.length === 0 && memberTeams.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,19 +349,26 @@ export default function Teams() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No teams yet</h3>
-              <p className="text-gray-600 mb-4">Create your first team to start collaborating</p>
-              <button
-                onClick={() => setCreateModalOpen(true)}
-                className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg transition-all duration-200"
-              >
-                Create Your First Team
-              </button>
+              <p className="text-gray-600 mb-4">
+                {canCreateTeams 
+                  ? "Create your first team to start collaborating" 
+                  : "You haven't been invited to any teams yet"
+                }
+              </p>
+              {canCreateTeams && (
+                <button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg transition-all duration-200"
+                >
+                  Create Your First Team
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Create Team Modal */}
-        {createModalOpen && (
+        {/* Create Team Modal - Only show if user can create teams */}
+        {createModalOpen && canCreateTeams && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl max-w-md w-full p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Create New Team</h3>
