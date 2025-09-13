@@ -6,6 +6,7 @@ import LogoBumper from "../components/LogoBumper";
 import SiteFooter from "../components/SiteFooter";
 import CookieConsent from "../components/CookieConsent";
 import { loadStripe } from "@stripe/stripe-js";
+import { useToast } from "../contexts/ToastContext";
 
 type Me = {
   plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
@@ -34,6 +35,7 @@ function useReveal() {
 
 export default function Landing() {
   useReveal();
+  const { showToast } = useToast();
   const [me, setMe] = useState<Me | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [email, setEmail] = useState("");
@@ -168,7 +170,7 @@ export default function Landing() {
   const handleCheckout = async (priceId: string) => {
     try {
       if (!priceId) {
-        alert("Price ID not configured. Please contact support.");
+        showToast("Price ID not configured. Please contact support.", "error");
         return;
       }
 
@@ -179,14 +181,18 @@ export default function Landing() {
       });
       
       const { sessionId, error } = await res.json();
-      if (error) throw new Error(error);
+
+      if (error) {
+        showToast(error, "error");
+        return;
+      }
 
       if (sessionId) {
         const stripe = await stripePromise;
         await stripe?.redirectToCheckout({ sessionId });
       }
-    } catch (e:any) {
-      alert(e.message || "Checkout failed");
+    } catch (e: any) {
+      showToast("Something went wrong. Please try again.", "error");
     }
   };
 
@@ -198,10 +204,10 @@ export default function Landing() {
     try {
       // Add your newsletter signup API call here
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      alert("Thanks for subscribing! Check your email for updates.");
+      showToast("Thanks for subscribing! Check your email for updates.", "success");
       setEmail("");
     } catch (error) {
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setNewsletterLoading(false);
     }
@@ -311,7 +317,7 @@ export default function Landing() {
                         onClick={async () => {
                           const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
                           const { url, error } = await r.json();
-                          if (error) return alert(error);
+                          if (error) return showToast(error, "error");
                           window.location.href = url;
                         }}
                         className="px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-colors"

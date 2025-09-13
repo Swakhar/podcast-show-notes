@@ -4,6 +4,8 @@ import Head from "next/head";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { useToast } from "../contexts/ToastContext";
+import { s } from "framer-motion/dist/types.d-Cjd591yU";
 
 interface WordPressCred {
   siteUrl: string;
@@ -31,6 +33,7 @@ export default function SettingsPage() {
   const [rssLoading, setRssLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [testingConnection, setTestingConnection] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -77,14 +80,14 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        alert("WordPress credentials saved successfully!");
+        showToast("WordPress credentials saved successfully!", "success");
         setAppPass(""); // Clear password after save
       } else {
-        alert(data.error || "Failed to save WordPress credentials");
+        showToast(data.error || "Failed to save WordPress credentials", "error");
       }
     } catch (error) {
       console.error("Error saving WordPress credentials:", error);
-      alert("Failed to save WordPress credentials");
+      showToast("Failed to save WordPress credentials", "error");
     } finally {
       setLoading(false);
     }
@@ -92,7 +95,7 @@ export default function SettingsPage() {
 
   async function handleTestConnection() {
     if (!siteUrl || !username) {
-      alert("Please fill in Site URL and Username first");
+      showToast("Please fill in Site URL and Username first", "error");
       return;
     }
 
@@ -106,12 +109,12 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        alert("Connection successful! ✅");
+        showToast("Connection successful! ✅", "success");
       } else {
-        alert(`Connection failed: ${data.error || "Unknown error"}`);
+        showToast(`Connection failed: ${data.error || "Unknown error"}`, "error");
       }
     } catch (error) {
-      alert("Connection test failed");
+      showToast("Connection test failed", "error");
     } finally {
       setTestingConnection(false);
     }
@@ -131,15 +134,15 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        alert("RSS feed added successfully!");
+        showToast("RSS feed added successfully!", "success");
         setRssUrl("");
         await loadData(); // Refresh the list
       } else {
-        alert(data.error || "Failed to add RSS feed");
+        showToast(data.error || "Failed to add RSS feed", "error");
       }
     } catch (error) {
       console.error("Error adding RSS feed:", error);
-      alert("Failed to add RSS feed");
+      showToast("Failed to add RSS feed", "error");
     } finally {
       setRssLoading(false);
     }
@@ -156,15 +159,15 @@ export default function SettingsPage() {
       });
       
       if (res.ok) {
-        alert("RSS feed removed successfully!");
+        showToast("RSS feed removed successfully!", "success");
         await loadData(); // Refresh the list
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to remove RSS feed");
+        showToast(data.error || "Failed to remove RSS feed", "error");
       }
     } catch (error) {
       console.error("Error removing RSS feed:", error);
-      alert("Failed to remove RSS feed");
+      showToast("Failed to remove RSS feed", "error");
     }
   }
 
@@ -180,11 +183,11 @@ export default function SettingsPage() {
         await loadData(); // Refresh the list
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to update RSS feed");
+        showToast(data.error || "Failed to update RSS feed", "error");
       }
     } catch (error) {
       console.error("Error updating RSS feed:", error);
-      alert("Failed to update RSS feed");
+      showToast("Failed to update RSS feed", "error");
     }
   }
 

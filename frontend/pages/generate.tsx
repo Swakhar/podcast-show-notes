@@ -9,6 +9,7 @@ import Skeleton from "../components/Skeleton";
 import TemplatesDrawer from "../components/TemplatesDrawer";
 import { StageTimeline } from "../components/StageTimeline";
 import { toYouTubeChapters } from "../lib/chapters";
+import { useToast } from "../contexts/ToastContext";
 
 /* ---------- Small helpers ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -139,6 +140,7 @@ export default function Generate() {
   const [showTranscript, setShowTranscript] = useState(false);
   const [language, setLanguage] = useState<"auto"|"en"|"de">("auto");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -934,7 +936,7 @@ export default function Generate() {
                         onClick: () => {
                           const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
                           navigator.clipboard.writeText(txt);
-                          alert("YouTube chapters copied to clipboard!");
+                          showToast("YouTube chapters copied to clipboard!", "info", 3000);
                         }
                       }
                     ]}
@@ -1045,7 +1047,7 @@ export default function Generate() {
                             if (!r.ok) throw new Error(j.error || "Failed to publish");
                             window.open(j.link, "_blank");
                           } catch (error: any) {
-                            alert(`Publishing failed: ${error.message}`);
+                            showToast(`Publishing failed: ${error.message}`, "error", 5000);
                           }
                         }
                       }

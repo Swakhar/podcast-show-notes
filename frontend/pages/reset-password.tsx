@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
+import { useToast } from "../contexts/ToastContext";
 
 export default function ResetPassword() {
   const router = useRouter();
   const { token } = router.query;
+  const { showToast } = useToast();
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,7 +19,12 @@ export default function ResetPassword() {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      alert("Passwords don't match");
+      showToast("Passwords don't match", "error");
+      return;
+    }
+
+    if (password.length < 8) {
+      showToast("Password must be at least 8 characters", "error");
       return;
     }
 
@@ -31,13 +38,14 @@ export default function ResetPassword() {
       });
 
       if (response.ok) {
+        showToast("Password reset successfully!", "success");
         setSuccess(true);
       } else {
         const error = await response.json();
-        alert(error.error || "Something went wrong");
+        showToast(error.error || "Something went wrong", "error");
       }
     } catch (error) {
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setLoading(false);
     }

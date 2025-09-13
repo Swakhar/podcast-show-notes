@@ -5,6 +5,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
+import { useToast } from "../../contexts/ToastContext";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -17,6 +18,7 @@ export default function TeamDetail() {
   
   const [inviteEmail, setInviteEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   // Plan restriction check
   if (me?.plan !== "AGENCY") {
@@ -70,13 +72,13 @@ export default function TeamDetail() {
       if (response.ok) {
         setInviteEmail("");
         mutate(); // Refresh team data
-        alert("Invitation sent successfully!");
+        showToast("Invitation sent successfully!", "success");
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to send invitation");
+        showToast(error.error || "Failed to send invitation", "error");
       }
     } catch (error) {
-      alert("Something went wrong");
+      showToast("Something went wrong", "error");
     } finally {
       setLoading(false);
     }

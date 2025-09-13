@@ -1,9 +1,19 @@
 import type { AppProps } from "next/app";
 import { SessionProvider } from "next-auth/react";
+import { ToastProvider } from "../contexts/ToastContext";
+import ToastContainer from "../components/ToastContainer";
 import "../styles/globals.css";
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return <SessionProvider session={pageProps.session}><Component {...pageProps} /></SessionProvider>;
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}: AppProps) {
+  return (
+    <SessionProvider session={session}>
+      <ToastProvider>
+        <Component {...pageProps} />
+        <ToastContainer />
+      </ToastProvider>
+    </SessionProvider>
+  );
 }
-
-export default MyApp;

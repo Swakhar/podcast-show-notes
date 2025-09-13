@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import useSWR from "swr";
+import { useToast } from "../../contexts/ToastContext";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 
@@ -49,6 +50,7 @@ export default function Teams() {
   const [teamName, setTeamName] = useState("");
   const [teamDescription, setTeamDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -166,14 +168,15 @@ export default function Teams() {
       if (response.ok) {
         setTeamName("");
         setTeamDescription("");
+        showToast("Team created successfully!", "success");
         setCreateModalOpen(false);
         mutate();
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to create team");
+        showToast(error.error || "Failed to create team");
       }
     } catch (error) {
-      alert("Something went wrong");
+      showToast("Something went wrong");
     } finally {
       setLoading(false);
     }

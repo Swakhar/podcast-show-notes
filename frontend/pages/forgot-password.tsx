@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useToast } from "../contexts/ToastContext";
 
 export default function ForgotPassword() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -20,12 +22,13 @@ export default function ForgotPassword() {
 
       if (response.ok) {
         setSent(true);
+        showToast("Reset instructions sent to your email", "success");
       } else {
         const error = await response.json();
-        alert(error.error || "Something went wrong");
+        showToast(error.error || "Something went wrong", "error");
       }
     } catch (error) {
-      alert("Something went wrong. Please try again.");
+      showToast("Something went wrong. Please try again.", "error");
     } finally {
       setLoading(false);
     }

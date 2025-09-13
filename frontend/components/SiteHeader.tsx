@@ -3,6 +3,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import PlanBadge from "./PlanBadge";
+import { useToast } from "../contexts/ToastContext";
+import { c } from "framer-motion/dist/types.d-Cjd591yU";
 
 type Me = {
   plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
@@ -17,6 +19,7 @@ export default function SiteHeader() {
   const [me, setMe] = useState<Me | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { showToast } = useToast();
 
   const active = me?.subscriptionStatus === "active";
   const isAuthenticated = status === "authenticated";
@@ -130,7 +133,7 @@ export default function SiteHeader() {
                       onClick={async () => {
                         const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
                         const { url, error } = await r.json();
-                        if (error) return alert(error);
+                        if (error) return showToast(error, "error");
                         window.location.href = url;
                       }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -230,7 +233,7 @@ export default function SiteHeader() {
                       onClick={async () => {
                         const r = await fetch("/api/stripe/create-portal-session", { method: "POST" });
                         const { url, error } = await r.json();
-                        if (error) return alert(error);
+                        if (error) return showToast(error, "error");
                         window.location.href = url;
                       }}
                       className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

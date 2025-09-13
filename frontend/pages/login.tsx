@@ -3,10 +3,12 @@ import { signIn } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useToast } from "../contexts/ToastContext";
 
 const SITE_KEY = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
 
 export default function Login() {
+  const { showToast } = useToast();
   const [mode, setMode] = useState<"login"|"register">("login");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -19,7 +21,7 @@ export default function Login() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) {
-      alert("Passwords don't match");
+      showToast("Passwords don't match", "error");
       return;
     }
     
@@ -33,13 +35,13 @@ export default function Login() {
     
     if (!res.ok) {
       const errorData = await res.json();
-      alert(errorData.error || "Registration failed");
+      showToast(errorData.error || "Registration failed", "error");
       return;
     }
 
     const r = await signIn("credentials", { redirect: false, email, password });
     if (r?.error) {
-      alert(r.error);
+      showToast(r.error, "error");
       return;
     }
     window.location.href = "/";
@@ -52,7 +54,7 @@ export default function Login() {
     setLoading(false);
     
     if (res?.error) {
-      alert(res.error);
+      showToast(res.error, "error");
       return;
     }
     window.location.href = "/";

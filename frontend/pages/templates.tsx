@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { useToast } from "../contexts/ToastContext";
 
 interface Template {
   id: string;
@@ -26,6 +27,7 @@ export default function Templates() {
     system: "",
     user: "",
   });
+  const { showToast } = useToast();
 
   // Fetch templates
   useEffect(() => {
@@ -66,11 +68,11 @@ export default function Templates() {
         resetForm();
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to save template");
+        showToast(error.error || "Failed to save template", "error");
       }
     } catch (error) {
       console.error("Error saving template:", error);
-      alert("Failed to save template");
+      showToast("Failed to save template", "error");
     }
   };
 
@@ -98,11 +100,11 @@ export default function Templates() {
         await fetchTemplates();
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to delete template");
+        showToast(error.error || "Failed to delete template", "error");
       }
     } catch (error) {
       console.error("Error deleting template:", error);
-      alert("Failed to delete template");
+      showToast("Failed to delete template", "error");
     }
   };
 
