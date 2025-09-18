@@ -15,10 +15,13 @@ both the web and worker processes can share progress.
 import os
 import tempfile
 import shutil
+import asyncio
 from typing import Optional, Dict, Any, List
 
 from celery import Celery
 import httpx
+
+from core.email_utils import send_completion_email, send_error_email
 
 try:
     import openai
@@ -127,7 +130,7 @@ async def generate_social_snippets(summary: str) -> List[str]:
 
 
 @celery_app.task
-def process_podcast_task(job_id: str, file_data: Optional[bytes] = None, url: Optional[str] = None) -> Dict[str, Any]:
+def process_podcast_task(job_id: str, file_data: Optional[bytes] = None, url: Optional[str] = None, user_email: Optional[str] = None, source_type: str = "manual") -> Dict[str, Any]:
     """Celery task to process a podcast audio.  Accepts either raw file
     bytes or a URL.  Returns a dictionary containing the transcript,
     summary, show notes, timestamps and social snippets.  Any errors
@@ -136,8 +139,20 @@ def process_podcast_task(job_id: str, file_data: Optional[bytes] = None, url: Op
     In a real deployment you would persist results to a database or
     cache keyed by `job_id` so the web process can retrieve them.
     """
-    loop = asyncio.get_event_loop()
-    return loop.run_until_complete(_process_podcast(file_data, url))
+    try:
+        loop = asyncio.get_event_loop()
+        result = loop.run_until_complete(_process_podcast(file_data, url))
+        
+        # Send completion email if user_email provided
+        if user_email:
+            send_completion_email(user_email, result, source_type)
+            
+        return result
+    except Exception as e:
+        # Send error email if user_email provided
+        if user_email:
+            send_error_email(user_email, str(e), url or "")
+        raise
 
 
 async def _process_podcast(file_data: Optional[bytes], url: Optional[str]) -> Dict[str, Any]:

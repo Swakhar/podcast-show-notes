@@ -50,6 +50,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (effectivePreview) form.set("preview_minutes", String(effectivePreview));
   if (features) form.set("features", features);
   if (language) form.set("language", language);
+  form.set("user_email", session.user.email); // Add this line
+
+  // DEBUG: Add logging
+  console.log("DEBUG: Form data:", Object.fromEntries(form.entries()));
 
   const r = await fetch(`${BACKEND}/jobs/url`, { method: "POST", body: form });
   const data = await r.json().catch(() => ({} as any));

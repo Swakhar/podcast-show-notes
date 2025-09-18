@@ -40,6 +40,11 @@ model User {
   rssFeeds             RssFeed[]
   templates            Template[]
   wordpressCreds       WordpressCred?
+
+  // Email preferences
+  emailRssNewContent Boolean @default(true)
+  emailManualJobs    Boolean @default(true)
+  emailWeeklyDigest  Boolean @default(false)
 }
 
 model Account {

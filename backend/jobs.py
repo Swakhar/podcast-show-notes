@@ -90,14 +90,40 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], la
 
         set_stage(job_id, "finished")
         JOBS[job_id]["status"] = "complete"
+        
+        # Send completion email if user_email provided
+        user_email = JOBS[job_id].get("user_email")
+        source_type = JOBS[job_id].get("source_type", "manual")
+        if user_email:
+            try:
+                from core.email_utils import send_completion_email
+                send_completion_email(user_email, res, source_type, job_id)
+            except Exception as e:
+                print(f"Failed to send completion email: {e}")
+                
     except Exception as e:
         JOBS[job_id]["status"] = "failed"
         JOBS[job_id]["error"] = str(e)
         set_stage(job_id, "failed")
+        
+        # Send error email if user_email provided
+        user_email = JOBS[job_id].get("user_email")
+        if user_email:
+            try:
+                from core.email_utils import send_error_email
+                job_url = JOBS[job_id].get("url", "")
+                send_error_email(user_email, str(e), job_url)
+            except Exception as email_e:
+                print(f"Failed to send error email: {email_e}")
 
-def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str], language: str = "auto") -> None:
+def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str], language: str = "auto", user_email: str = None) -> None:
     """Pipeline for audio input: transcribe, then process transcript."""
     try:
+        # Store user_email in job for later use
+        if user_email:
+            JOBS[job_id]["user_email"] = user_email
+            JOBS[job_id]["source_type"] = "manual"  # or "rss" - you can pass this as parameter too
+            
         JOBS[job_id]["status"] = "processing"
         set_stage(job_id, "transcribing")
         transcript = transcribe(audio_path)
@@ -108,15 +134,28 @@ def process_audio_job(job_id: str, audio_path: str, feature_set: Set[str], langu
         JOBS[job_id]["status"] = "failed"
         JOBS[job_id]["error"] = str(e)
         set_stage(job_id, "failed")
+        
+        # Send error email if user_email provided
+        if user_email:
+            try:
+                from core.email_utils import send_error_email
+                send_error_email(user_email, str(e), audio_path)
+            except Exception as email_e:
+                print(f"Failed to send error email: {email_e}")
     finally:
         try:
             os.remove(audio_path)
         except Exception:
             pass
 
-def process_text_job(job_id: str, transcript: str, feature_set: Set[str], language: str = "auto") -> None:
+def process_text_job(job_id: str, transcript: str, feature_set: Set[str], language: str = "auto", user_email: str = None) -> None:
     """Pipeline for text input: process transcript."""
     try:
+        # Store user_email in job for later use
+        if user_email:
+            JOBS[job_id]["user_email"] = user_email
+            JOBS[job_id]["source_type"] = "manual"  # or "rss" - you can pass this as parameter too
+            
         JOBS[job_id]["status"] = "processing"
         _ensure_result(job_id)["transcript"] = transcript
         process_job_pipeline(job_id, transcript, feature_set, language=language)
@@ -124,3 +163,11 @@ def process_text_job(job_id: str, transcript: str, feature_set: Set[str], langua
         JOBS[job_id]["status"] = "failed"
         JOBS[job_id]["error"] = str(e)
         set_stage(job_id, "failed")
+        
+        # Send error email if user_email provided
+        if user_email:
+            try:
+                from core.email_utils import send_error_email
+                send_error_email(user_email, str(e), "")
+            except Exception as email_e:
+                print(f"Failed to send error email: {email_e}")

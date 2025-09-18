@@ -26,6 +26,7 @@ async def create_job_from_upload(
     features: Optional[str] = Form(None),
     language: Optional[str] = Form("auto"),
     template_ids: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None),  # Made optional
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
@@ -57,7 +58,8 @@ async def create_job_from_upload(
     JOBS[job_id]["billed_minutes"] = billed_minutes
 
     set_stage(job_id, "transcribing")
-    background.add_task(process_audio_job, job_id, local_path, feature_set, language)
+    # Fixed: Pass user_email as 5th parameter
+    background.add_task(process_audio_job, job_id, local_path, feature_set, language, user_email)
     return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.post("/jobs/url")
@@ -68,11 +70,13 @@ async def create_job_from_url(
     features: Optional[str] = Form(None),
     language: Optional[str] = Form("auto"),
     template_ids: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None),  # Made optional
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "features": list(feature_set)}
     JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
+    JOBS[job_id]["url"] = url  # Store URL for error emails
     set_stage(job_id, "inspecting URL")
     billed_minutes = 0
 
@@ -93,7 +97,8 @@ async def create_job_from_url(
                 billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
 
             JOBS[job_id]["billed_minutes"] = billed_minutes
-            background.add_task(process_text_job, job_id, transcript_text, feature_set, language)
+            # Fixed: Pass user_email as 5th parameter
+            background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
             return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
 
         # fallback: download audio
@@ -124,7 +129,8 @@ async def create_job_from_url(
 
     JOBS[job_id]["billed_minutes"] = billed_minutes
     set_stage(job_id, "transcribing")
-    background.add_task(process_audio_job, job_id, local_path, feature_set, language)
+    # Fixed: Pass user_email as 5th parameter
+    background.add_task(process_audio_job, job_id, local_path, feature_set, language, user_email)
     return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 
 @router.get("/jobs/{job_id}")
@@ -166,3 +172,29 @@ def estimate_cost(body: EstimateRequest):
             "model": CHAT_MODEL,
         },
     }
+
+@router.get("/jobs/user/{user_email}")
+async def get_user_jobs(user_email: str):
+    """Get jobs for a specific user"""
+    try:
+        # Filter jobs by user_email from JOBS dictionary
+        user_jobs = []
+        for job_id, job_data in JOBS.items():
+            if job_data.get("user_email") == user_email:
+                job_info = {
+                    "id": job_id,
+                    "status": job_data.get("status", "unknown"),
+                    "url": job_data.get("url", ""),
+                    "created_at": "2025-01-17T10:00:00Z",  # You might want to add timestamps to jobs
+                    "stage": job_data.get("stage", ""),
+                    "progress": 100 if job_data.get("status") == "complete" else 50 if job_data.get("status") == "processing" else 0
+                }
+                if job_data.get("status") == "complete":
+                    job_info["completed_at"] = "2025-01-17T10:05:00Z"
+                user_jobs.append(job_info)
+        
+        return {"jobs": user_jobs}
+        
+    except Exception as e:
+        print(f"Error fetching jobs for {user_email}: {e}")
+        return {"jobs": []}
