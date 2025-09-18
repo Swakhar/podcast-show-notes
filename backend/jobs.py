@@ -40,6 +40,49 @@ def _ensure_result(job_id: str) -> Dict:
         job["result"] = {}
     return job["result"]
 
+def create_user_notification(user_email: str, title: str, message: str, notification_type: str = "success", action_url: str = None, action_label: str = None):
+    """Create a notification for the user via frontend API"""
+    try:
+        import urllib.request
+        import urllib.parse
+        import json
+        from os import getenv
+        
+        frontend_url = getenv('FRONTEND_URL', 'http://localhost:3001')
+        
+        # Prepare the data
+        data = {
+            'userEmail': user_email,
+            'title': title,
+            'message': message,
+            'type': notification_type,
+            'actionUrl': action_url,
+            'actionLabel': action_label
+        }
+        
+        # Convert to JSON and encode
+        json_data = json.dumps(data).encode('utf-8')
+        
+        # Create the request
+        req = urllib.request.Request(
+            f"{frontend_url}/api/notifications",
+            data=json_data,
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        
+        # Make the request
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 200:
+                print(f"✅ Notification created for {user_email}: {title}")
+            else:
+                print(f"❌ Failed to create notification: HTTP {response.status}")
+                
+    except Exception as e:
+        print(f"❌ Error creating notification: {e}")
+        # Don't fail the main job if notification fails
+        pass
+
 def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], language: str = "auto") -> None:
     """
     Shared pipeline for processing transcript. Writes partial results
@@ -91,15 +134,27 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], la
         set_stage(job_id, "finished")
         JOBS[job_id]["status"] = "complete"
         
-        # Send completion email if user_email provided
         user_email = JOBS[job_id].get("user_email")
         source_type = JOBS[job_id].get("source_type", "manual")
+        
         if user_email:
             try:
+                # Send email notification
                 from core.email_utils import send_completion_email
                 send_completion_email(user_email, res, source_type, job_id)
+                
+                # Create in-app notification
+                create_user_notification(
+                    user_email=user_email,
+                    title="🎉 Content Ready!",
+                    message=f"Your {source_type} content has been generated successfully.",
+                    notification_type="success",
+                    action_url=f"/results/{job_id}",
+                    action_label="View Content"
+                )
+                
             except Exception as e:
-                print(f"Failed to send completion email: {e}")
+                print(f"❌ Failed to send notifications: {e}")
                 
     except Exception as e:
         JOBS[job_id]["status"] = "failed"
@@ -113,6 +168,16 @@ def process_job_pipeline(job_id: str, transcript: str, feature_set: Set[str], la
                 from core.email_utils import send_error_email
                 job_url = JOBS[job_id].get("url", "")
                 send_error_email(user_email, str(e), job_url)
+                
+                # Create error notification
+                create_user_notification(
+                    user_email=user_email,
+                    title="❌ Processing Failed",
+                    message="Something went wrong while processing your content.",
+                    notification_type="error",
+                    action_url="/generate",
+                    action_label="Try Again"
+                )
             except Exception as email_e:
                 print(f"Failed to send error email: {email_e}")
 

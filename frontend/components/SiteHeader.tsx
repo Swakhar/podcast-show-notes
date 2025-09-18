@@ -12,7 +12,7 @@ const fetcher = (url: string) => fetch(url).then((res) => {
 });
 
 type Me = {
-  plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
+  plan: "FREE" | "PRO" | "AGENCY";
   subscriptionStatus: string | null;
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
@@ -27,6 +27,7 @@ export default function SiteHeader() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
   const { showToast } = useToast();
 
   // Use SWR to fetch user data
@@ -67,10 +68,68 @@ export default function SiteHeader() {
       label: "Teams", 
       authOnly: true, 
       icon: "👥",
-      showForTeams: true // Show for both owners and members
+      showForTeams: true,
     },
-    { href: "/settings", label: "Settings", authOnly: true, icon: "⚙️" },
+    { href: "/settings", label: "Settings", authOnly: true, icon: "⚙️" }, // ADD THIS LINE
   ];
+
+  function SettingsDropdown() {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+        >
+          <span className="text-base">⚙️</span>
+          Settings
+          <svg 
+            className={`w-4 h-4 transition-transform ${settingsDropdownOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {settingsDropdownOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-10" 
+              onClick={() => setSettingsDropdownOpen(false)}
+            />
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+              <Link 
+                href="/settings"
+                className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-t-lg"
+                onClick={() => setSettingsDropdownOpen(false)}
+              >
+                <span className="text-base">👤</span>
+                Account Settings
+              </Link>
+              <Link 
+                href="/settings#rss"
+                className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                onClick={() => setSettingsDropdownOpen(false)}
+              >
+                <span className="text-base">📡</span>
+                RSS Feeds
+              </Link>
+              <Link 
+                href="/settings#wordpress"
+                className="flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-b-lg"
+                onClick={() => setSettingsDropdownOpen(false)}
+              >
+                <span className="text-base">🌐</span>
+                WordPress
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
 
   const visibleNavItems = navigationItems.filter(item => {
     if (item.authOnly && !isAuthenticated) return false;
@@ -104,23 +163,28 @@ export default function SiteHeader() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            {visibleNavItems.map((item) => {
-              const isActive = router.pathname === item.href.split('#')[0];
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {item.icon && <span className="text-base">{item.icon}</span>}
-                  {item.label}
-                </Link>
-              );
-            })}
+            {visibleNavItems
+              .filter(item => item.label !== "Settings") // Filter out regular settings
+              .map((item) => {
+                const isActive = router.pathname === item.href.split('#')[0];
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {item.icon && <span className="text-base">{item.icon}</span>}
+                    {item.label}
+                  </Link>
+                );
+              })}
+            
+            {/* Add Settings Dropdown for authenticated users */}
+            {isAuthenticated && <SettingsDropdown />}
           </nav>
 
           {/* Desktop Actions */}
@@ -219,24 +283,56 @@ export default function SiteHeader() {
         {mobileMenuOpen && (
           <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
             <div className="flex flex-col gap-1 mt-4">
-              {visibleNavItems.map((item) => {
-                const isActive = router.pathname === item.href.split('#')[0];
-                return (
+              {visibleNavItems
+                .filter(item => item.label !== "Settings") // Filter out regular settings
+                .map((item) => {
+                  const isActive = router.pathname === item.href.split('#')[0];
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                      }`}
+                    >
+                      {item.icon && <span className="text-lg">{item.icon}</span>}
+                      {item.label}
+                    </Link>
+                  );
+                })}
+
+              {/* Add Mobile Settings Links for authenticated users */}
+              {isAuthenticated && (
+                <>
                   <Link
-                    key={item.href}
-                    href={item.href}
+                    href="/settings"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
-                    {item.icon && <span className="text-lg">{item.icon}</span>}
-                    {item.label}
+                    <span className="text-lg">👤</span>
+                    Account Settings
                   </Link>
-                );
-              })}
+                  <Link
+                    href="/settings#rss"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span className="text-lg">📡</span>
+                    RSS Feeds
+                  </Link>
+                  <Link
+                    href="/settings#wordpress"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  >
+                    <span className="text-lg">🌐</span>
+                    WordPress
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile User Info & Actions - Only for team owners */}

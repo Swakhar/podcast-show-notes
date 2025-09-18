@@ -8,24 +8,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06
 
 // Map your Stripe price IDs to app plans
 const PRICE_IDS = {
-  STARTER: process.env.STRIPE_PRICE_STARTER,
   PRO:     process.env.STRIPE_PRICE_PRO,
   AGENCY:  process.env.STRIPE_PRICE_AGENCY,
 };
 
 // Minutes per month per plan
 const PLAN_LIMITS: Record<PlanName, number> = {
-  FREE:    30,
-  STARTER: 300,
-  PRO:     1200,
-  AGENCY:  99999,
+  FREE: 30,
+  PRO: 300,
+  AGENCY: 1200,
 };
 
-type PlanName = "FREE" | "STARTER" | "PRO" | "AGENCY";
+type PlanName = "FREE" | "PRO" | "AGENCY";
 
 function planFromPriceId(priceId?: string): PlanName {
   if (!priceId) return "FREE";
-  if (PRICE_IDS.STARTER && priceId === PRICE_IDS.STARTER) return "STARTER";
   if (PRICE_IDS.PRO     && priceId === PRICE_IDS.PRO)     return "PRO";
   if (PRICE_IDS.AGENCY  && priceId === PRICE_IDS.AGENCY)  return "AGENCY";
   return "FREE";

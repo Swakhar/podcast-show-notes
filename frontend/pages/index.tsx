@@ -9,13 +9,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useToast } from "../contexts/ToastContext";
 
 type Me = {
-  plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
+  plan: "FREE" | "PRO" | "AGENCY";
   subscriptionStatus: string | null;
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
 };
 
-const planText = (p?: string) => (p === "AGENCY" ? "Agency" : p === "PRO" ? "Pro" : p === "STARTER" ? "Starter" : "Free");
+const planText = (p?: string) => (p === "AGENCY" ? "Agency" : p === "PRO" ? "Pro" : "Free");
 
 function useReveal() {
   useEffect(() => {
@@ -47,31 +47,53 @@ export default function Landing() {
   const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
   const cards = [
     { 
-      key: "STARTER", 
-      name: "Starter", 
-      price: "€19", 
-      period: "per month",
-      bullets: ["5 hours / month", "Show notes & summaries", "Social snippets", "Basic templates", "Email support"], 
-      priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER || "",
-      popular: false
+      key: "FREE", 
+      name: "Free", 
+      price: "€0", 
+      period: "forever",
+      bullets: [
+        "30 minutes/month", 
+        "Manual uploads only", 
+        "Basic content generation", 
+        "Email support"
+      ], 
+      priceId: "",
+      popular: false,
+      description: "Perfect for trying out CastLumen"
     },
     { 
       key: "PRO", 
       name: "Pro", 
-      price: "€49", 
-      period: "per month",
-      bullets: ["20 hours / month", "All content types", "Advanced SEO optimization", "Custom templates", "WordPress integration", "Priority support"], 
+      price: "€19", 
+      period: "month",
+      bullets: [
+        "300 minutes/month",
+        "RSS feed automation",
+        "WordPress integration", 
+        "Email notifications",
+        "All content types",
+        "Priority support"
+      ],
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || "",
-      popular: true
+      popular: true,
+      description: "Everything you need to scale your podcast"
     },
     { 
       key: "AGENCY", 
       name: "Agency", 
-      price: "€99", 
-      period: "per month",
-      bullets: ["Unlimited processing*", "Team collaboration", "White-label exports", "API access", "Custom integrations", "Dedicated support"], 
+      price: "€49", 
+      period: "month",
+      bullets: [
+        "1000+ minutes/month",
+        "Everything in Pro",
+        "Team management",
+        "Unlimited RSS feeds",
+        "White-label options",
+        "API access (coming soon)"
+      ],
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY || "",
-      popular: false
+      popular: false,
+      description: "For agencies and power users"
     },
   ] as const;
 
@@ -569,25 +591,32 @@ export default function Landing() {
                     style={{ transitionDelay: `${i * 100}ms` }}
                     className={`relative rounded-3xl p-8 transition-all duration-300 ${
                       plan.popular 
-                        ? 'bg-white border-2 border-[#9CEE69] shadow-xl scale-105' 
+                        ? 'bg-white border-2 border-[#9CEE69] shadow-xl scale-105 ring-4 ring-[#9CEE69]/10' 
                         : 'bg-white border border-gray-200 hover:shadow-lg hover:border-gray-300'
                     }`}
                   >
                     {plan.popular && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-[#9CEE69] text-gray-900 px-4 py-2 rounded-full text-sm font-bold">
-                          Most Popular
+                        <span className="bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                          🔥 Most Popular
                         </span>
                       </div>
                     )}
 
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                      <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
                       <div className="flex items-baseline justify-center mb-2">
                         <span className="text-5xl font-black text-gray-900">{plan.price}</span>
-                        <span className="text-gray-600 ml-2">/{plan.period.split(' ')[1]}</span>
+                        {plan.period !== "forever" && (
+                          <span className="text-gray-600 ml-2">/{plan.period}</span>
+                        )}
                       </div>
-                      <p className="text-gray-600">{plan.period}</p>
+                      {plan.period === "forever" ? (
+                        <p className="text-gray-600 font-medium">No credit card required</p>
+                      ) : (
+                        <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+                      )}
                     </div>
 
                     <ul className="space-y-4 mb-8">
@@ -596,39 +625,52 @@ export default function Landing() {
                           <svg className="w-5 h-5 text-[#9CEE69] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-gray-700">{bullet}</span>
+                          <span className="text-gray-700 leading-relaxed">{bullet}</span>
                         </li>
                       ))}
                     </ul>
 
                     <div className="mt-auto">
                       {isCurrent ? (
-                        <button disabled className="w-full px-6 py-4 rounded-xl bg-gray-100 text-gray-500 border font-semibold">
-                          Current Plan
-                        </button>
+                        <div className="text-center">
+                          <button disabled className="w-full px-6 py-4 rounded-xl bg-gray-100 text-gray-500 border font-semibold mb-2">
+                            ✅ Current Plan
+                          </button>
+                          <p className="text-xs text-gray-500">
+                            {me?.monthlyMinutesUsed}/{me?.monthlyMinutesLimit} minutes used this month
+                          </p>
+                        </div>
                       ) : active ? (
+                        // User is active but this is NOT their current plan
                         <button
                           onClick={() => handleCheckout(plan.priceId)}
-                          disabled={!plan.priceId}
+                          disabled={!plan.priceId && plan.key !== "FREE"}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
-                              ? "bg-[#9CEE69] text-gray-900 hover:bg-green-400 hover:scale-105"
+                              ? "bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 hover:shadow-lg hover:scale-105"
+                              : plan.key === "FREE"
+                              ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          } ${!plan.priceId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${!plan.priceId && plan.key !== "FREE" ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          Switch to {plan.name}
+                          {plan.key === "FREE" ? "Downgrade to Free" : 
+                           current === "FREE" ? `Upgrade to ${plan.name}` : 
+                           `Change to ${plan.name}`}
                         </button>
                       ) : (
+                        // User is not active (no paid plan)
                         <button
-                          onClick={() => handleCheckout(plan.priceId)}
-                          disabled={!plan.priceId}
+                          onClick={() => plan.key === "FREE" ? router.push("/generate") : handleCheckout(plan.priceId)}
+                          disabled={!plan.priceId && plan.key !== "FREE"}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
-                              ? "bg-[#9CEE69] text-gray-900 hover:bg-green-400 hover:scale-105"
+                              ? "bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 hover:shadow-lg hover:scale-105"
+                              : plan.key === "FREE"
+                              ? "bg-gray-900 text-white hover:bg-gray-800"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          } ${!plan.priceId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${!plan.priceId && plan.key !== "FREE" ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          Start {plan.name} Plan
+                          {plan.key === "FREE" ? "Start Free" : `Start ${plan.name} Plan`}
                         </button>
                       )}
                     </div>

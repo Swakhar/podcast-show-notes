@@ -9,10 +9,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06
 
 function planForPrice(priceId?: string) {
   switch (priceId) {
-    case process.env.STRIPE_PRICE_STARTER: return { plan: "STARTER", limit: 300 };
-    case process.env.STRIPE_PRICE_PRO:     return { plan: "PRO",     limit: 1200 };
-    case process.env.STRIPE_PRICE_AGENCY:  return { plan: "AGENCY",  limit: 99999 };
-    default:                               return { plan: "FREE",    limit: 30 };
+    case process.env.STRIPE_PRICE_PRO: return { plan: "PRO", limit: 300 };
+    case process.env.STRIPE_PRICE_AGENCY:     return { plan: "AGENCY", limit: 1200 };
+    default:                               return { plan: "FREE", limit: 30 };
   }
 }
 

@@ -57,7 +57,7 @@ interface JobStatus {
   billed_minutes?: number;
 }
 interface Me {
-  plan: "FREE" | "STARTER" | "PRO" | "AGENCY";
+  plan: "FREE" | "PRO" | "AGENCY";
   subscriptionStatus: string | null;
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
@@ -129,8 +129,7 @@ export default function Generate() {
   const isFree = plan === "FREE" && !hasAgencyAccess;
   const planLabel =
     me?.plan === "AGENCY" ? "Agency" :
-    me?.plan === "PRO"    ? "Pro"    :
-    me?.plan === "STARTER"? "Starter": "Free";
+    me?.plan === "PRO"    ? "Pro"    : "Free"
 
   // Inputs
   const [file, setFile] = useState<File | null>(null);
