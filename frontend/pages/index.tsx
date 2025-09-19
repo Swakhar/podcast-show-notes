@@ -463,48 +463,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ENHANCED DEMO SECTION */}
-        <section id="demo" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12" data-reveal>
-              <h2 className="text-4xl font-black text-gray-900 mb-4">
-                See CastLumen in action
-              </h2>
-              <p className="text-xl text-gray-600">Watch how we transform a 60-minute podcast into complete show notes in under 2 minutes</p>
-            </div>
-            
-            <div data-reveal className="relative rounded-3xl overflow-hidden shadow-2xl bg-black">
-              <video
-                className="w-full aspect-video"
-                src="/CatLumen.mp4"
-                poster="/castlumen-background.jpg"
-                controls
-                title="CastLumen Demo"
-                playsInline
-              >
-                Sorry, your browser does not support embedded videos.
-              </video>
-              
-              {/* Video Overlay Info */}
-              <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg backdrop-blur-sm">
-                <span className="text-sm font-medium">⏱️ 2:00 Demo</span>
-              </div>
-            </div>
-
-            <div className="text-center mt-8" data-reveal style={{ transitionDelay: "200ms" }}>
-              <Link 
-                href="/generate" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
-              >
-                Try it yourself - Free demo
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* ENHANCED TESTIMONIALS */}
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">

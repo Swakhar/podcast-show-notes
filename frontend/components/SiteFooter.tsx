@@ -89,11 +89,6 @@ export default function SiteFooter() {
                   Templates
                 </Link>
               </li>
-              <li>
-                <Link href="/integrations" className="text-gray-300 hover:text-[#9CEE69] transition-colors">
-                  Integrations
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -112,18 +107,8 @@ export default function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-gray-300 hover:text-[#9CEE69] transition-colors">
-                  Careers
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="text-gray-300 hover:text-[#9CEE69] transition-colors">
                   Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/help" className="text-gray-300 hover:text-[#9CEE69] transition-colors">
-                  Help Center
                 </Link>
               </li>
             </ul>

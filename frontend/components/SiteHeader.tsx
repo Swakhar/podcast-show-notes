@@ -59,7 +59,6 @@ export default function SiteHeader() {
   const navigationItems = [
     { href: "/#features", label: "Features", public: true },
     { href: "/#pricing", label: "Pricing", public: true },
-    { href: "/#demo", label: "Demo", public: true, hideWhenAuth: true },
     { href: "/generate", label: "Generate", authOnly: true, icon: "⚡" },
     { href: "/templates", label: "Templates", authOnly: true, icon: "📝" },
     // Only show Teams link for Agency users or team members
@@ -130,10 +129,8 @@ export default function SiteHeader() {
     );
   }
 
-
   const visibleNavItems = navigationItems.filter(item => {
     if (item.authOnly && !isAuthenticated) return false;
-    if (item.hideWhenAuth && isAuthenticated) return false;
     if (!item.authOnly && !item.public) return false;
     
     // Show Teams link if user has Agency plan OR is a team member
