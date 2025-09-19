@@ -36,6 +36,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
     allow_promotion_codes: true,
     client_reference_id: user.id, // we’ll need it in webhook
+
+    // German-specific settings:
+    automatic_tax: {
+      enabled: true, // Let Stripe handle VAT calculation
+    },
+    customer_update: {
+      address: "auto", // Collect address for VAT
+    },
+    billing_address_collection: "required", // Required for German VAT
+    locale: "de", // German locale
+
+    // Add German payment methods
+    payment_method_types: ["card", "sepa_debit", "sofort"],
+    subscription_data: {
+      description: "CastLumen Subscription",
+      metadata: {
+        company_vat_id: "DE123456789",
+        customer_country: "DE",
+        invoice_language: "de",
+      },
+    },
   });
 
   res.status(200).json({ sessionId: checkout.id });

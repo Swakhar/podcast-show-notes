@@ -51,6 +51,8 @@ export default function Landing() {
       name: "Free", 
       price: "€0", 
       period: "forever",
+      priceNet: 0,
+      vatAmount: 0,
       bullets: [
         "30 minutes/month", 
         "Manual uploads only", 
@@ -66,6 +68,8 @@ export default function Landing() {
       name: "Pro", 
       price: "€19", 
       period: "month",
+      priceNet: 15.97, // €19 / 1.19
+      vatAmount: 3.03,
       bullets: [
         "300 minutes/month",
         "RSS feed automation",
@@ -83,6 +87,8 @@ export default function Landing() {
       name: "Agency", 
       price: "€49", 
       period: "month",
+      priceNet: 41.18, // €49 / 1.19
+      vatAmount: 7.82,
       bullets: [
         "1000+ minutes/month",
         "Everything in Pro",
@@ -615,7 +621,9 @@ export default function Landing() {
                       {plan.period === "forever" ? (
                         <p className="text-gray-600 font-medium">No credit card required</p>
                       ) : (
-                        <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+                        <div className="text-center">
+                          <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+                        </div>
                       )}
                     </div>
 

@@ -52,6 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     switch (event.type) {
+      // ✅ KEEP ALL YOUR EXISTING WORKING CASES
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
         const customerId = s.customer as string | undefined;
@@ -165,6 +166,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         break;
       }
+
+      // ✅ ADD ONLY THESE NEW CASES FOR GERMAN PAYMENT METHODS
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        
+        // For SEPA, payment can fail after initial success
+        await prisma.user.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: {
+            subscriptionStatus: "past_due",
+          },
+        });
+
+        // Send email notification about failed payment (only if emailService.sendPaymentFailed exists)
+        if (invoice.customer_email) {
+          try {
+            // Check if method exists before calling
+            if (emailService.sendPaymentFailed) {
+              await emailService.sendPaymentFailed(invoice.customer_email);
+            } else {
+              console.log("Payment failed email not configured yet for:", invoice.customer_email);
+            }
+          } catch (emailError) {
+            console.error("Failed to send payment failed email:", emailError);
+          }
+        }
+        break;
+      }
+
+      // ✅ OPTIONAL: Handle payment method updates (for SEPA Direct Debit)
+      case "setup_intent.succeeded": {
+        const setupIntent = event.data.object as Stripe.SetupIntent;
+        console.log("Payment method updated successfully:", setupIntent.id);
+        // This is just for logging - no database updates needed
+        break;
+      }
+
+      case "payment_method.attached": {
+        const paymentMethod = event.data.object as Stripe.PaymentMethod;
+        console.log("New payment method attached:", paymentMethod.id, paymentMethod.type);
+        // This is just for logging - no database updates needed
+        break;
+      }
+
+      // ✅ OPTIONAL: Handle Sofort payment failures
+      case "payment_intent.payment_failed": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        console.log("Payment failed for intent:", paymentIntent.id);
+        
+        // Check if this payment intent has invoice metadata or is related to a subscription
+        if (paymentIntent.metadata?.invoice_id) {
+          console.log("Subscription payment failed for invoice:", paymentIntent.metadata.invoice_id);
+          // The invoice.payment_failed event above will handle the database update
+        } else if (paymentIntent.description?.includes('subscription')) {
+          console.log("Subscription-related payment failed:", paymentIntent.description);
+        } else {
+          console.log("One-time payment failed (not subscription-related)");
+        }
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+        break;
     }
   } catch (e) {
     console.error("[webhook] handler failed:", e);

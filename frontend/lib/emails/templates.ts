@@ -310,5 +310,44 @@ export const emailTemplates = {
       </div>
     </div>
     `
-  })
+  }),
+
+  // Add German email templates:
+
+  germanEmailTemplates: {
+    welcome: {
+      subject: 'Willkommen bei CastLumen! 🎉',
+      html: `
+        <h1>Willkommen bei CastLumen!</h1>
+        <p>Vielen Dank für Ihre Anmeldung. Hier sind Ihre ersten Schritte:</p>
+        <ul>
+          <li>Laden Sie Ihre erste Podcast-Episode hoch</li>
+          <li>Generieren Sie automatisch Show Notes</li>
+          <li>Teilen Sie Inhalte auf Social Media</li>
+        </ul>
+        <p>Bei Fragen erreichen Sie uns unter support@castlumen.com</p>
+        <hr>
+        <small>
+          CastLumen GmbH, Musterstraße 123, 10115 Berlin<br>
+          USt-IdNr: DE123456789 | <a href="${process.env.NEXT_PUBLIC_APP_URL}/impressum">Impressum</a>
+        </small>
+      `
+    },
+    
+    invoice: {
+      subject: 'Ihre CastLumen Rechnung',
+      html: `
+        <h1>Rechnung für Ihr CastLumen Abonnement</h1>
+        <p>Ihre monatliche Rechnung ist verfügbar.</p>
+        <p><strong>Betrag:</strong> €{amount} (inkl. 19% MwSt.)</p>
+        <p><strong>Rechnungsdatum:</strong> {date}</p>
+        <a href="{invoice_url}">Rechnung herunterladen</a>
+        <hr>
+        <small>
+          CastLumen GmbH | USt-IdNr: DE123456789<br>
+          Diese Rechnung wurde automatisch erstellt.
+        </small>
+      `
+    }
+  }
 };
