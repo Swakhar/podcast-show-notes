@@ -1,0 +1,29 @@
+{
+  "navigation": {
+    "features": "Features",
+    "pricing": "Pricing", 
+    "generate": "Generate",
+    "templates": "Templates",
+    "settings": "Settings",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "billing": "Billing"
+  },
+  "hero": {
+    "title": "Transform Podcasts into Engaging Content",
+    "subtitle": "Generate show notes, summaries, social media posts, and more from your podcast episodes in minutes.",
+    "cta": "Try Free"
+  },
+  "pricing": {
+    "free": {
+      "name": "Free",
+      "description": "Perfect for trying out CastLumen",
+      "features": ["30 minutes/month", "Manual uploads only", "Basic content generation"]
+    },
+    "pro": {
+      "name": "Pro", 
+      "description": "Everything you need to scale your podcast",
+      "features": ["300 minutes/month", "RSS feed automation", "WordPress integration"]
+    }
+  }
+}

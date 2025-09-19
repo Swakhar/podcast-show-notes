@@ -23,11 +23,13 @@
     "marked": "^16.2.1",
     "next": "14.2.0",
     "next-auth": "^4.24.11",
+    "next-i18next": "^15.4.2",
     "nodemailer": "^6.10.1",
     "prisma": "^6.15.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-google-recaptcha": "^3.1.0",
+    "react-i18next": "^15.7.3",
     "rss-parser": "^3.13.0",
     "stripe": "^18.5.0",
     "swr": "^2.3.6"

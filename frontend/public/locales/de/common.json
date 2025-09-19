@@ -1,0 +1,29 @@
+{
+  "navigation": {
+    "features": "Funktionen",
+    "pricing": "Preise",
+    "generate": "Generieren", 
+    "templates": "Vorlagen",
+    "settings": "Einstellungen",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden", 
+    "billing": "Abrechnung"
+  },
+  "hero": {
+    "title": "Verwandeln Sie Podcasts in ansprechende Inhalte",
+    "subtitle": "Erstellen Sie Shownotes, Zusammenfassungen, Social-Media-Posts und mehr aus Ihren Podcast-Episoden in Minuten.",
+    "cta": "Kostenlos testen"
+  },
+  "pricing": {
+    "free": {
+      "name": "Kostenlos",
+      "description": "Perfekt zum Ausprobieren von CastLumen",
+      "features": ["30 Minuten/Monat", "Nur manuelle Uploads", "Grundlegende Inhaltserstellung"]
+    },
+    "pro": {
+      "name": "Pro",
+      "description": "Alles was Sie brauchen, um Ihren Podcast zu skalieren", 
+      "features": ["300 Minuten/Monat", "RSS-Feed-Automatisierung", "WordPress-Integration"]
+    }
+  }
+}
