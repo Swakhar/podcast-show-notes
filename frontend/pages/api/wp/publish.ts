@@ -4,6 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
 import axios from "axios";
 import { marked } from "marked";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -22,20 +23,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // ✅ WordPress.com Free Plan Detection & Mock Mode
     if (cred.siteUrl.includes('wordpress.com')) {
-      console.log('WordPress.com detected - using demo mode for free plan');
+      logger.debug('WordPress.com detected - using demo mode for free plan');
       
       // ✅ Mock successful publish for WordPress.com free sites
       const mockPostId = Math.floor(Math.random() * 1000) + 1;
       const mockUrl = `${cred.siteUrl}/post-${mockPostId}`;
       
       // ✅ Log what would have been published
-      console.log('=== MOCK WORDPRESS PUBLISH ===');
-      console.log('Title:', title);
-      console.log('Content Length:', html.length, 'characters');
-      console.log('Status:', status);
-      console.log('Target Site:', cred.siteUrl);
-      console.log('Mock Post ID:', mockPostId);
-      console.log('==============================');
+      logger.debug('=== MOCK WORDPRESS PUBLISH ===');
+      logger.debug('Title:', title);
+      logger.debug('Content Length:', html.length, 'characters');
+      logger.debug('Status:', status);
+      logger.debug('Target Site:', cred.siteUrl);
+      logger.debug('Mock Post ID:', mockPostId);
+      logger.debug('==============================');
       
       // ✅ Return success response
       return res.status(200).json({
@@ -57,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       status
     };
 
-    console.log('Publishing to self-hosted WordPress:', endpoint);
+    logger.debug('Publishing to self-hosted WordPress:', endpoint);
 
     const response = await axios.post(endpoint, postData, {
       headers: { 
@@ -69,15 +70,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const postId = response.data.id;
     const link = response.data.link;
 
-    console.log('Published successfully:', { postId, link });
+    logger.debug('Published successfully:', { postId, link });
 
     return res.status(200).json({ ok: true, postId, link });
   } catch (e: any) {
-    console.error("[wp publish] error:", e.response?.data || e.message);
+    logger.error("[wp publish] error:", e.response?.data || e.message);
     
     // ✅ Fallback to demo mode if real publishing fails
     if (cred.siteUrl.includes('wordpress.com')) {
-      console.log('WordPress.com publish failed, falling back to demo mode');
+      logger.debug('WordPress.com publish failed, falling back to demo mode');
       
       const mockPostId = Math.floor(Math.random() * 1000) + 1;
       const mockUrl = `${cred.siteUrl}/demo-post-${mockPostId}`;

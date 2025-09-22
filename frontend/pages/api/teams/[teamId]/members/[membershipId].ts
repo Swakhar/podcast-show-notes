@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]";
 import { prisma } from "../../../../../lib/prisma";
+import { logger } from "../../../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -58,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
     } catch (error) {
-      console.error("Error removing team member:", error);
+      logger.error("Error removing team member:", error);
       return res.status(500).json({ error: "Failed to remove team member" });
     }
   }

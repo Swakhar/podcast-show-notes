@@ -1,9 +1,9 @@
-// pages/api/stripe/confirm.ts
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { logger } from "../../../lib/logger";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 
@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ ok: true, plan, priceId });
   } catch (e: any) {
-    console.error("[stripe/confirm] error:", e);
+    logger.error("[stripe/confirm] error:", e);
     return res.status(400).json({ error: e.message || "Confirm failed" });
   }
 }

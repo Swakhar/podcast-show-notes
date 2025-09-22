@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
+import { logger } from '../../../lib/logger';
 
 const BACKEND = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(jobData);
     
   } catch (error) {
-    console.error('Failed to fetch job:', error);
+    logger.error('Failed to fetch job:', error);
     return res.status(500).json({ message: 'Failed to fetch job' });
   }
 }

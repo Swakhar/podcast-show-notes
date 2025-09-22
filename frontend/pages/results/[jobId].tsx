@@ -15,6 +15,7 @@ import {
   EyeIcon,
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
+import { logger } from '../../lib/logger';
 
 interface JobResult {
   id: string;
@@ -60,7 +61,7 @@ export default function JobResults() {
         setError('Job not found');
       }
     } catch (err) {
-      console.error('Failed to load job:', err);
+      logger.error('Failed to load job:', err);
       setError('Failed to load job');
     } finally {
       setLoading(false);
@@ -243,7 +244,6 @@ export default function JobResults() {
   }
 
   const result = job.result;
-  console.log('Job result:', result);
   if (!result) {
     return (
       <>

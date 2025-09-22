@@ -6,6 +6,7 @@ import formidable from "formidable";
 import axios from "axios";
 import FormData from "form-data";
 import fs from "fs";
+import { logger } from "../../../lib/logger";
 
 export const config = { api: { bodyParser: false } };
 
@@ -96,12 +97,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data = r.data;
 
     if (r.status < 200 || r.status >= 300) {
-      console.error("[upload->backend] non-200:", r.status, data);
+      logger.error("[upload->backend] non-200:", r.status, data);
       const msg = data?.detail || data?.error || "Backend error";
       return res.status(r.status).json({ error: msg });
     }
     if (!data?.id) {
-      console.error("[upload->backend] no id in response:", data);
+      logger.error("[upload->backend] no id in response:", data);
       return res.status(502).json({ error: "Backend returned no job id." });
     }
 
@@ -122,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       billed_minutes: billed,
     });
   } catch (e: any) {
-    console.error("[upload] error:", e);
+    logger.error("[upload] error:", e);
     // Common developer mistakes surfaced nicely:
     if (String(e?.message || "").includes("maxFileSize")) {
       return res.status(413).json({ error: "File too large (limit 200MB)." });

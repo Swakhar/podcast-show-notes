@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "DELETE") {
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ message: "RSS feed removed successfully" });
   } catch (error) {
-    console.error("Error removing RSS feed:", error);
+    logger.error("Error removing RSS feed:", error);
     return res.status(500).json({ error: "Failed to remove RSS feed" });
   }
 }

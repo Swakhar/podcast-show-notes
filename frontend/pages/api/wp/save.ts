@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // ✅ Fix: Use getServerSession instead of getSession
@@ -26,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json({ cred });
     } catch (error) {
-      console.error("Error fetching WordPress credentials:", error);
+      logger.error("Error fetching WordPress credentials:", error);
       return res.status(500).json({ error: "Failed to fetch credentials" });
     }
   }
@@ -67,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
     } catch (error) {
-      console.error("Error saving WordPress credentials:", error);
+      logger.error("Error saving WordPress credentials:", error);
       return res.status(500).json({ error: "Failed to save credentials" });
     }
   }

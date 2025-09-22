@@ -211,7 +211,6 @@ export default function Generate() {
         const j = await r.json();
         if (!cancel && j.list) setTemplates(j.list);
       } catch (e) {
-        console.error("Failed to fetch templates:", e);
       }
     }
     if (status === "authenticated") fetchTemplates();

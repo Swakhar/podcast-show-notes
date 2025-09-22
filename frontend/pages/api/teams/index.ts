@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -19,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         select: { plan: true, email: true }
       });
 
-      console.log("Teams API - User:", { userId, plan: currentUser?.plan, email: currentUser?.email });
+      logger.debug("Teams API - User:", { userId, plan: currentUser?.plan, email: currentUser?.email });
 
       // Check if user has Agency plan OR is a team member
       const hasAgencyPlan = currentUser?.plan === "AGENCY";
@@ -28,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       const isTeamMember = membershipCount > 0;
 
-      console.log("Teams API - Access:", { hasAgencyPlan, isTeamMember, membershipCount });
+      logger.debug("Teams API - Access:", { hasAgencyPlan, isTeamMember, membershipCount });
 
       if (!hasAgencyPlan && !isTeamMember) {
         return res.status(403).json({ 
@@ -83,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: { createdAt: "desc" }
       });
 
-      console.log("Teams API - Result:", { 
+      logger.debug("Teams API - Result:", { 
         ownedTeams: ownedTeams.length, 
         memberTeams: memberTeams.length,
         canCreateTeams: hasAgencyPlan
@@ -96,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      logger.error("Error fetching teams:", error);
       return res.status(500).json({ error: "Failed to fetch teams" });
     }
   }
@@ -139,12 +140,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       });
 
-      console.log("Team created:", team);
+      logger.debug("Team created:", team);
 
       return res.status(201).json(team);
 
     } catch (error) {
-      console.error("Error creating team:", error);
+      logger.error("Error creating team:", error);
       return res.status(500).json({ error: "Failed to create team" });
     }
   }

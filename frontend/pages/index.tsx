@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import SiteHeader from "../components/SiteHeader";
 import LogoBumper from "../components/LogoBumper";
 import SiteFooter from "../components/SiteFooter";
@@ -35,6 +36,7 @@ function useReveal() {
 
 export default function Landing() {
   useReveal();
+  const router = useRouter();
   const { showToast } = useToast();
   const [me, setMe] = useState<Me | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -195,12 +197,42 @@ export default function Landing() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleCheckout = async (priceId: string) => {
+  const handleCheckout = async (priceId: string, planKey: string) => {
     try {
+      // ✅ Handle Free plan
+      if (planKey === "FREE") {
+        if (active && current !== "FREE") {
+          // User wants to downgrade to free - redirect to billing portal
+          showToast("Redirecting to billing portal to manage subscription...", "info");
+          
+          const res = await fetch("/api/stripe/create-portal-session", { 
+            method: "POST" 
+          });
+          
+          if (!res.ok) {
+            const { error } = await res.json();
+            showToast(error || "Failed to open billing portal", "error");
+            return;
+          }
+          
+          const { url } = await res.json();
+          window.location.href = url;
+          return;
+        } else {
+          // User is not active or already on free - redirect to generator
+          showToast("Welcome! Starting with free plan...", "success");
+          router.push("/generate");
+          return;
+        }
+      }
+
+      // ✅ Handle paid plans
       if (!priceId) {
-        showToast("Price ID not configured. Please contact support.", "error");
+        showToast("This plan is not available yet. Please contact support.", "error");
         return;
       }
+
+      showToast("Redirecting to checkout...", "info");
 
       const res = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
@@ -208,18 +240,22 @@ export default function Landing() {
         body: JSON.stringify({ priceId }),
       });
       
-      const { sessionId, error } = await res.json();
-
-      if (error) {
-        showToast(error, "error");
+      if (!res.ok) {
+        const { error } = await res.json();
+        showToast(error || "Failed to create checkout session", "error");
         return;
       }
+
+      const { sessionId } = await res.json();
 
       if (sessionId) {
         const stripe = await stripePromise;
         await stripe?.redirectToCheckout({ sessionId });
+      } else {
+        showToast("Failed to create checkout session", "error");
       }
     } catch (e: any) {
+      console.error("Checkout error:", e);
       showToast("Something went wrong. Please try again.", "error");
     }
   };
@@ -607,9 +643,8 @@ export default function Landing() {
                           </p>
                         </div>
                       ) : active ? (
-                        // User is active but this is NOT their current plan
                         <button
-                          onClick={() => handleCheckout(plan.priceId)}
+                          onClick={() => handleCheckout(plan.priceId, plan.key)}
                           disabled={!plan.priceId && plan.key !== "FREE"}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
@@ -617,16 +652,15 @@ export default function Landing() {
                               : plan.key === "FREE"
                               ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          } ${!plan.priceId && plan.key !== "FREE" ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          }`}
                         >
                           {plan.key === "FREE" ? "Downgrade to Free" : 
                            current === "FREE" ? `Upgrade to ${plan.name}` : 
-                           `Change to ${plan.name}`}
+                           `Switch to ${plan.name}`}
                         </button>
                       ) : (
-                        // User is not active (no paid plan)
                         <button
-                          onClick={() => plan.key === "FREE" ? router.push("/generate") : handleCheckout(plan.priceId)}
+                          onClick={() => handleCheckout(plan.priceId, plan.key)}
                           disabled={!plan.priceId && plan.key !== "FREE"}
                           className={`w-full px-6 py-4 rounded-xl font-semibold transition-all duration-200 ${
                             plan.popular
@@ -634,9 +668,9 @@ export default function Landing() {
                               : plan.key === "FREE"
                               ? "bg-gray-900 text-white hover:bg-gray-800"
                               : "bg-gray-900 text-white hover:bg-gray-800"
-                          } ${!plan.priceId && plan.key !== "FREE" ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          }`}
                         >
-                          {plan.key === "FREE" ? "Start Free" : `Start ${plan.name} Plan`}
+                          {plan.key === "FREE" ? "Start Free" : `Get ${plan.name}`}
                         </button>
                       )}
                     </div>

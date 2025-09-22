@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { prisma } from "../../../lib/prisma";
 import { emailService } from "../../../lib/emails/sender";
+import { logger } from '../../../lib/logger';
 
 export const config = { api: { bodyParser: false } };
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
@@ -91,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           try {
             await emailService.sendWelcomeSubscription(email);
           } catch (emailError) {
-            console.error("Failed to send welcome email:", emailError);
+            logger.error("Failed to send welcome email:", emailError);
             // Don't fail the webhook for email errors
           }
         }
@@ -108,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const currency = invoice.currency || "usd";
             await emailService.sendPaymentReceived(email, amount, currency);
           } catch (emailError) {
-            console.error("Failed to send payment confirmation email:", emailError);
+            logger.error("Failed to send payment confirmation email:", emailError);
           }
         }
         break;
@@ -187,10 +188,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (emailService.sendPaymentFailed) {
               await emailService.sendPaymentFailed(invoice.customer_email);
             } else {
-              console.log("Payment failed email not configured yet for:", invoice.customer_email);
+              logger.debug("Payment failed email not configured yet for:", invoice.customer_email);
             }
           } catch (emailError) {
-            console.error("Failed to send payment failed email:", emailError);
+            logger.error("Failed to send payment failed email:", emailError);
           }
         }
         break;
@@ -199,14 +200,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // ✅ OPTIONAL: Handle payment method updates (for SEPA Direct Debit)
       case "setup_intent.succeeded": {
         const setupIntent = event.data.object as Stripe.SetupIntent;
-        console.log("Payment method updated successfully:", setupIntent.id);
+        logger.debug("Payment method updated successfully:", setupIntent.id);
         // This is just for logging - no database updates needed
         break;
       }
 
       case "payment_method.attached": {
         const paymentMethod = event.data.object as Stripe.PaymentMethod;
-        console.log("New payment method attached:", paymentMethod.id, paymentMethod.type);
+        logger.debug("New payment method attached:", paymentMethod.id, paymentMethod.type);
         // This is just for logging - no database updates needed
         break;
       }
@@ -214,26 +215,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // ✅ OPTIONAL: Handle Sofort payment failures
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log("Payment failed for intent:", paymentIntent.id);
+        logger.debug("Payment failed for intent:", paymentIntent.id);
         
         // Check if this payment intent has invoice metadata or is related to a subscription
         if (paymentIntent.metadata?.invoice_id) {
-          console.log("Subscription payment failed for invoice:", paymentIntent.metadata.invoice_id);
+          logger.debug("Subscription payment failed for invoice:", paymentIntent.metadata.invoice_id);
           // The invoice.payment_failed event above will handle the database update
         } else if (paymentIntent.description?.includes('subscription')) {
-          console.log("Subscription-related payment failed:", paymentIntent.description);
+          logger.debug("Subscription-related payment failed:", paymentIntent.description);
         } else {
-          console.log("One-time payment failed (not subscription-related)");
+          logger.debug("One-time payment failed (not subscription-related)");
         }
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        logger.debug(`Unhandled event type: ${event.type}`);
         break;
     }
   } catch (e) {
-    console.error("[webhook] handler failed:", e);
+    logger.error("[webhook] handler failed:", e);
     return res.status(500).send("Webhook handler failed");
   }
 

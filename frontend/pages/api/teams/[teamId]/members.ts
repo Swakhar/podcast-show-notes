@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../../../lib/prisma";
 import { requireAgencyPlan } from "../../../../lib/teamMiddleware";
+import { logger } from "../../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { teamId } = req.query;
@@ -61,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json({ message: "Member removed successfully" });
     } catch (error) {
-      console.error("Error removing team member:", error);
+      logger.error("Error removing team member:", error);
       return res.status(500).json({ error: "Failed to remove team member" });
     }
   }

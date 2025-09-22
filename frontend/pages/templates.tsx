@@ -5,6 +5,7 @@ import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useToast } from "../contexts/ToastContext";
+import { logger } from "../lib/logger";
 
 interface Template {
   id: string;
@@ -42,7 +43,7 @@ export default function Templates() {
       const data = await res.json();
       setTemplates(data.list || []);
     } catch (error) {
-      console.error("Failed to fetch templates:", error);
+      logger.error("Failed to fetch templates:", error);
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +72,7 @@ export default function Templates() {
         showToast(error.error || "Failed to save template", "error");
       }
     } catch (error) {
-      console.error("Error saving template:", error);
+      logger.error("Error saving template:", error);
       showToast("Failed to save template", "error");
     }
   };
@@ -103,7 +104,7 @@ export default function Templates() {
         showToast(error.error || "Failed to delete template", "error");
       }
     } catch (error) {
-      console.error("Error deleting template:", error);
+      logger.error("Error deleting template:", error);
       showToast("Failed to delete template", "error");
     }
   };

@@ -5,12 +5,12 @@ export const logger = {
     if (isDev) console.log(`🔍 ${message}`, ...args);
   },
   info: (message: string, ...args: any[]) => {
-    console.log(`ℹ️ ${message}`, ...args);
+    if (isDev) console.log(`ℹ️ ${message}`, ...args);
   },
   error: (message: string, ...args: any[]) => {
-    console.error(`❌ ${message}`, ...args);
+    if (isDev) console.error(`❌ ${message}`, ...args);
   },
   success: (message: string, ...args: any[]) => {
-    console.log(`✅ ${message}`, ...args);
+    if (isDev) console.log(`✅ ${message}`, ...args);
   }
 };

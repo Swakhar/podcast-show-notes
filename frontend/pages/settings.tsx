@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useToast } from "../contexts/ToastContext";
 import JobsStatus from '../components/JobsStatus';
+import { logger } from "../lib/logger";
 
 interface WordPressCred {
   siteUrl: string;
@@ -71,7 +71,7 @@ export default function SettingsPage() {
       // Load email preferences
       await loadEmailPreferences();
     } catch (error) {
-      console.error("Failed to load settings:", error);
+      logger.error("Failed to load settings:", error);
     } finally {
       setIsLoadingData(false);
     }
@@ -85,7 +85,7 @@ export default function SettingsPage() {
         setEmailNotifications(data.preferences);
       }
     } catch (error) {
-      console.error('Failed to load email preferences:', error);
+      logger.error('Failed to load email preferences:', error);
     }
   }
 
@@ -108,7 +108,7 @@ export default function SettingsPage() {
         showToast(data.error || "Failed to save WordPress credentials", "error");
       }
     } catch (error) {
-      console.error("Error saving WordPress credentials:", error);
+      logger.error("Error saving WordPress credentials:", error);
       showToast("Failed to save WordPress credentials", "error");
     } finally {
       setLoading(false);
@@ -163,7 +163,7 @@ export default function SettingsPage() {
         showToast(data.error || "Failed to add RSS feed", "error");
       }
     } catch (error) {
-      console.error("Error adding RSS feed:", error);
+      logger.error("Error adding RSS feed:", error);
       showToast("Failed to add RSS feed", "error");
     } finally {
       setRssLoading(false);
@@ -188,7 +188,7 @@ export default function SettingsPage() {
         showToast(data.error || "Failed to remove RSS feed", "error");
       }
     } catch (error) {
-      console.error("Error removing RSS feed:", error);
+      logger.error("Error removing RSS feed:", error);
       showToast("Failed to remove RSS feed", "error");
     }
   }
@@ -208,7 +208,7 @@ export default function SettingsPage() {
         showToast(data.error || "Failed to update RSS feed", "error");
       }
     } catch (error) {
-      console.error("Error updating RSS feed:", error);
+      logger.error("Error updating RSS feed:", error);
       showToast("Failed to update RSS feed", "error");
     }
   }
@@ -231,7 +231,7 @@ export default function SettingsPage() {
         showToast(data.message || "Failed to pull RSS feed", "error");
       }
     } catch (error) {
-      console.error("Error pulling RSS feed:", error);
+      logger.error("Error pulling RSS feed:", error);
       showToast("Failed to pull RSS feed", "error");
     } finally {
       setPullingFeeds(prev => {
@@ -256,7 +256,7 @@ export default function SettingsPage() {
         showToast('Failed to save email preferences', 'error');
       }
     } catch (error) {
-      console.error('Failed to save email preferences:', error);
+      logger.error('Failed to save email preferences:', error);
       showToast('Failed to save email preferences', 'error');
     }
   }

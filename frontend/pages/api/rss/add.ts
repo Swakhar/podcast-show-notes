@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import { prisma } from "../../../lib/prisma";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -63,10 +64,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } catch (error: any) {
-      console.warn("Could not fetch RSS feed for validation:", error);
       // Continue anyway - feed might be temporarily unavailable
       if (error.name === 'AbortError') {
-        console.warn("RSS feed fetch timed out");
+        logger.error("RSS feed fetch timed out");
       }
     }
 
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ feed });
   } catch (error) {
-    console.error("Error adding RSS feed:", error);
+    logger.error("Error adding RSS feed:", error);
     return res.status(500).json({ error: "Failed to add RSS feed" });
   }
 }

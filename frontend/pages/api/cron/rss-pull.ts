@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../../lib/prisma";
 import Parser from "rss-parser";
+import { logger } from "../../../lib/logger";
 
 const parser = new Parser();
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -57,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         await prisma.rssFeed.update({ where: { id: feed.id }, data: { lastItemGuid: items[0].guid! } });
       }
     } catch (e) {
-      console.error("[rss-pull] feed error:", feed.url, e);
+      logger.error("[rss-pull] feed error:", feed.url, e);
     }
   }
 

@@ -38,7 +38,6 @@ export default function TemplatesDrawer({
       const j = await r.json();
       setTemplates(j.list || []);
     } catch (e) {
-      console.error("Failed to fetch templates:", e);
     } finally {
       setLoading(false);
     }

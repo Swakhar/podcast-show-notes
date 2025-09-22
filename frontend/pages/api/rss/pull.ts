@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 import { prisma } from '../../../lib/prisma';
 import Parser from 'rss-parser';
+import { logger } from '../../../lib/logger';
 
 const parser = new Parser();
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           jobsCreated++;
         }
       } catch (error) {
-        console.error('Error creating job for:', audioUrl, error);
+        logger.error('Error creating job for:', audioUrl, error);
       }
     }
 
@@ -107,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error('Error pulling RSS feed:', error);
+    logger.error('Error pulling RSS feed:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 }

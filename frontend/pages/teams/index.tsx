@@ -192,16 +192,6 @@ export default function Teams() {
   // Only Agency plan users can create teams (not team members)
   const canCreateTeams = me?.user?.plan === "AGENCY" && !me?.user?.isTeamMember;
 
-  // Debug: Let's see what we're getting
-  console.log("Debug Teams Data:", {
-    me: me?.user,
-    teamsData,
-    hasTeamAccess,
-    canCreateTeams,
-    ownedTeams: ownedTeams.length,
-    memberTeams: memberTeams.length
-  });
-
   return (
     <>
       <Head>

@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { emailService } from "../../lib/emails/sender";
+import { logger } from "../../lib/logger";
 
 // --- tiny in-memory rate limiter (per IP) ---
 const windowMs = 60_000;         // 1 minute
@@ -78,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: "reCAPTCHA verification failed" });
       }
     } catch (error) {
-      console.error("reCAPTCHA verification error:", error);
+      logger.error("reCAPTCHA verification error:", error);
       return res.status(500).json({ error: "reCAPTCHA verification failed" });
     }
   }
@@ -120,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await emailService.sendWelcomeUser(user.email, user.name || "there");
     } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
+      logger.error("Failed to send welcome email:", emailError);
       // Don't fail registration if email fails
     }
 
@@ -134,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error("Registration error:", error);
+    logger.error("Registration error:", error);
     return res.status(500).json({ error: "Failed to create account" });
   }
 }

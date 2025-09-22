@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -40,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // WordPress.com API test
       const siteId = siteUrl.replace(/https?:\/\//, '').replace(/\/.*$/, '');
       testEndpoint = `https://public-api.wordpress.com/rest/v1.1/sites/${siteId}`;
-      console.log('Testing WordPress.com site:', siteId);
+      logger.debug('Testing WordPress.com site:', siteId);
     } else {
       // Self-hosted WordPress
       testEndpoint = `${siteUrl}/wp-json/wp/v2/users/me`;
@@ -68,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     } else {
       const errorData = await response.text();
-      console.error("WordPress test failed:", errorData);
+      logger.error("WordPress test failed:", errorData);
       return res.status(400).json({ 
         error: `WordPress API error: ${response.status}`,
         details: errorData,
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error: any) {
-    console.error("WordPress connection test failed:", error);
+    logger.error("WordPress connection test failed:", error);
     return res.status(500).json({ 
       error: "Connection failed", 
       details: error.message

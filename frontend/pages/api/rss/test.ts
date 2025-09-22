@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { logger } from "../../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { url } = req.query;
@@ -8,8 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log("🔍 Testing RSS feed:", url);
-    
     const response = await fetch(url, {
       headers: { 'User-Agent': 'CastLumen RSS Reader/1.0' }
     });
@@ -22,7 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     
     const text = await response.text();
-    console.log("📄 RSS content length:", text.length);
     
     // Extract title
     const titleMatch = text.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>|<title>(.*?)<\/title>/i);
@@ -61,12 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       contentPreview: text.substring(0, 500) + "..."
     };
     
-    console.log("✅ RSS parsing result:", JSON.stringify(result, null, 2));
-    
     return res.status(200).json(result);
     
   } catch (error) {
-    console.error("❌ RSS test error:", error);
+    logger.error("❌ RSS test error:", error);
     return res.status(500).json({ 
       error: "Failed to test RSS feed",
       details: error instanceof Error ? error.message : "Unknown error"

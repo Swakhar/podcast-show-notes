@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "../../lib/prisma";
 import { emailService } from "../../lib/emails/sender";
 import crypto from "crypto";
+import { logger } from "../../lib/logger";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -42,9 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Send password reset email
     try {
       await emailService.sendPasswordReset(user.email, user.name || "there", resetToken);
-      console.log(`Password reset email sent to ${user.email}`);
     } catch (emailError) {
-      console.error("Failed to send password reset email:", emailError);
+      logger.error("Failed to send password reset email:", emailError);
       return res.status(500).json({ error: "Failed to send reset email" });
     }
 
@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error("Forgot password error:", error);
+    logger.error("Forgot password error:", error);
     return res.status(500).json({ error: "Something went wrong" });
   }
 }
