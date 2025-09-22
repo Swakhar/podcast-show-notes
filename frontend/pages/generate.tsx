@@ -1066,8 +1066,9 @@ export default function Generate() {
                           label: "Publish to WordPress",
                           icon: "🌐",
                           onClick: async () => {
-                            const title = jobStatus.result?.seo?.title || "Episode notes";
-                            const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
+                            const newsletter = jobStatus.result!.newsletter!;
+                            const title = newsletter.subject || "New Episode Highlights";
+                            const md = mkNewsletterMarkdown(newsletter.subject, newsletter.body_markdown, coverPreviewUrl);
                             try {
                               const r = await fetch("/api/wp/publish", {
                                 method: "POST",
@@ -1076,7 +1077,11 @@ export default function Generate() {
                               });
                               const j = await r.json();
                               if (!r.ok) throw new Error(j.error || "Failed to publish");
-                              window.open(j.link, "_blank");
+                              if (j.demo) {
+                                showToast(`📝 Demo published! ${j.message}`, "success");
+                              } else {
+                                showToast(`✅ Published to WordPress! View: ${j.link}`, "success");
+                              }
                             } catch (error: any) {
                               showToast(`Publishing failed: ${error.message}`, "error", 5000);
                             }

@@ -382,13 +382,12 @@ export default function SettingsPage() {
 
                 <div className="mt-4 p-3 bg-blue-50 rounded-md">
                   <p className="text-sm text-blue-800">
-                    <strong>How to set up:</strong>
+                    <strong>📝 WordPress Publishing Note</strong>
                   </p>
                   <ol className="text-xs text-blue-700 mt-1 space-y-1 list-decimal list-inside">
-                    <li>Go to your WordPress admin → Users → Your Profile</li>
-                    <li>Scroll to "Application Passwords"</li>
-                    <li>Create a new app password for "CastLumen"</li>
-                    <li>Copy the generated password and paste it above</li>
+                    <li><strong>WordPress.com Free:</strong> Demo mode only (API limitations)</li>
+                    <li><strong>WordPress.com Business ($25/mo):</strong> Full publishing</li>
+                    <li><strong>Self-hosted WordPress:</strong> Full publishing with Application Passwords</li>
                   </ol>
                 </div>
               </div>

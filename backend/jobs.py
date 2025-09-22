@@ -1,6 +1,6 @@
+import json
 import os
 from typing import Dict, Set
-from unittest import result
 
 from core.openai_utils import transcribe
 from core.business import (
@@ -12,13 +12,35 @@ from core.business import (
     generate_newsletter,
 )
 
+JOBS_FILE = "jobs_data.json"
 JOBS: Dict[str, Dict] = {}
 TEMPLATES_CACHE: Dict[str, Dict[str,str]] = {}
+
+def load_jobs():
+    """Load jobs from file on startup"""
+    global JOBS
+    try:
+        if os.path.exists(JOBS_FILE):
+            with open(JOBS_FILE, 'r') as f:
+                JOBS = json.load(f)
+                print(f"✅ Loaded {len(JOBS)} jobs from storage")
+    except Exception as e:
+        print(f"❌ Failed to load jobs: {e}")
+        JOBS = {}
+
+def save_jobs():
+    """Save jobs to file"""
+    try:
+        with open(JOBS_FILE, 'w') as f:
+            json.dump(JOBS, f, indent=2)
+    except Exception as e:
+        print(f"❌ Failed to save jobs: {e}")
 
 def set_stage(job_id: str, stage: str) -> None:
     job = JOBS.get(job_id)
     if job is not None:
         job["stage"] = stage
+        save_jobs()  # ✅ Persist after each update
 
 
 def _pull_templates(job_id: str):
@@ -236,3 +258,6 @@ def process_text_job(job_id: str, transcript: str, feature_set: Set[str], langua
                 send_error_email(user_email, str(e), "")
             except Exception as email_e:
                 print(f"Failed to send error email: {email_e}")
+
+# ✅ Call this when your app starts
+load_jobs()
