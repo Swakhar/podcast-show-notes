@@ -30,16 +30,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           OR: [
             { ownerId: auth.user.id }, // Team owner can remove anyone
             { 
-              memberships: {
-                some: { 
-                  userId: auth.user.id,
-                  userId: userId // User can remove themselves
-                }
-              }
+              AND: [
+                { memberships: { some: { userId: auth.user.id } } }, // User is a member
+                { id: teamId } // Additional check if needed
+              ]
             }
           ]
         }
       });
+
+      // Then check if it's self-removal
+      const isSelfRemoval = auth.user.id === userId;
+      const isTeamOwner = team?.ownerId === auth.user.id;
+
+      if (!isTeamOwner && !isSelfRemoval) {
+        return res.status(403).json({ error: "You can only remove yourself or you must be the team owner" });
+      }
 
       if (!team) {
         return res.status(404).json({ error: "Team not found or insufficient permissions" });
