@@ -1,10 +1,10 @@
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")  // ✅ Change from NEXT_DATABASE_URL
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -166,4 +166,3 @@ model WordpressCred {
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
 }
-

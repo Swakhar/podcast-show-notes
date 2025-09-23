@@ -46,7 +46,10 @@ export default function Landing() {
   const active = me?.subscriptionStatus === "active";
   const current = me?.plan;
 
-  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+  // Or even better, add validation:
+  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+
   const cards = [
     { 
       key: "FREE", 
