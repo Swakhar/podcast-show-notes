@@ -5,7 +5,7 @@ import { emailService } from "../../../lib/emails/sender";
 import { logger } from '../../../lib/logger';
 
 export const config = { api: { bodyParser: false } };
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-08-27.basil" });
 
 // Map your Stripe price IDs to app plans
 const PRICE_IDS = {
