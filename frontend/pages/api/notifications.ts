@@ -9,11 +9,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'GET') {
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user?.email) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(200).json({ 
+        notifications: [],
+        authenticated: false 
+      });
     }
 
     const notifications = userNotifications[session.user.email] || [];
-    return res.status(200).json({ notifications });
+    return res.status(200).json({ 
+      notifications,
+      authenticated: true 
+    });
   }
 
   if (req.method === 'POST') {
@@ -26,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!targetEmail) {
       const session = await getServerSession(req, res, authOptions);
       if (!session?.user?.email) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized - Cannot create notification without user email' });
       }
       targetEmail = session.user.email;
     }
@@ -53,4 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     return res.status(200).json({ success: true });
   }
+
+  return res.status(405).json({ error: "Method not allowed" });
 }

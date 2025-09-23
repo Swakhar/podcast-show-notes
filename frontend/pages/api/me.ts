@@ -11,7 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user?.email) {
-    return res.status(401).json({ error: "Not authenticated" });
+    return res.status(200).json({ 
+      user: null,
+      authenticated: false 
+    });
   }
 
   try {
@@ -25,11 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         subscriptionStatus: true,
         monthlyMinutesLimit: true,
         monthlyMinutesUsed: true,
-        // Check if user owns any teams
         ownedTeams: {
           select: { id: true }
         },
-        // Check if user is a member of any teams
         memberships: {
           select: { 
             id: true,
@@ -42,7 +43,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(200).json({ 
+        user: null,
+        authenticated: true,
+        error: "User not found in database"
+      });
     }
 
     const isTeamOwner = user.ownedTeams.length > 0;
@@ -61,7 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isTeamMember,
         ownedTeamsCount: user.ownedTeams.length,
         memberTeamsCount: user.memberships.length
-      }
+      },
+      authenticated: true
     });
 
   } catch (error) {
