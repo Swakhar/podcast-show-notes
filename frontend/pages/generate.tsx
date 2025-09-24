@@ -299,14 +299,40 @@ export default function Generate() {
     setJobStatus({ id: "pending", status: "pending", stage: "submitting…", result: {} });
     setJobId(null);
     setIsSubmitting(true);
+    
     try {
-      const selected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
+      // ✅ Filter features based on user's plan and selections
+      const allSelected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
+      
+      // ✅ Remove premium features for FREE users (unless they have team access)
+      const selected = allSelected.filter(feature => {
+        // If user has PRO/AGENCY plan or team access, allow all features
+        if (!isFree || me?.isTeamMember) {
+          return true;
+        }
+        
+        // For FREE users, exclude premium features
+        const premiumFeatures = ['seo', 'newsletter'];
+        return !premiumFeatures.includes(feature);
+      });
+      
       let data: JobStatus;
-      if (file) data = await submitUploadJob(file, previewMinutes, selected, language, selectedTemplateIds);
-      else if (url) data = await submitUrlJob(url, previewMinutes, selected, language, selectedTemplateIds);
-      else throw new Error("Please upload a file or enter a URL.");
+      if (file) {
+        data = await submitUploadJob(file, previewMinutes, selected, language, selectedTemplateIds);
+      } else if (url) {
+        data = await submitUrlJob(url, previewMinutes, selected, language, selectedTemplateIds);
+      } else {
+        throw new Error("Please upload a file or enter a URL.");
+      }
+      
       setJobId(data.id);
-      setJobStatus({ id: data.id, status: data.status || "pending", stage: data.stage, billed_minutes: data.billed_minutes, result: {} });
+      setJobStatus({ 
+        id: data.id, 
+        status: data.status || "pending", 
+        stage: data.stage, 
+        billed_minutes: data.billed_minutes, 
+        result: {} 
+      });
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to create job");
       setIsSubmitting(false);

@@ -40,8 +40,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const language = String(req.body?.language || "auto");
 
   // Enforce feature gates for FREE
-  if (isFree && /\b(seo|newsletter)\b/i.test(features)) {
-    return res.status(402).json({ error: "Feature requires upgrade." });
+  if (isFree && features) {
+    // Split features into array and check each one
+    const featureList = features.toLowerCase().split(',').map(f => f.trim());
+    const premiumFeatures = ['seo', 'newsletter'];
+    
+    // Check if any requested feature is premium
+    const hasPremiumFeature = featureList.some(feature => 
+      premiumFeatures.includes(feature)
+    );
+    
+    if (hasPremiumFeature) {
+      return res.status(402).json({ 
+        error: "SEO and Newsletter features require upgrade to PRO plan." 
+      });
+    }
   }
 
   // Forward to FastAPI as x-www-form-urlencoded

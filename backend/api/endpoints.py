@@ -13,6 +13,8 @@ from core.yt_utils import (
 from core.audio_utils import trim_audio, get_audio_duration_seconds
 from jobs import JOBS, TEMPLATES_CACHE, set_stage, process_audio_job, process_text_job
 from models.schemas import EstimateRequest
+from services.youtube_service import YouTubeService
+from services.transcript_service import get_youtube_transcript
 import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
 
@@ -86,7 +88,18 @@ async def create_job_from_url(
         try:
             transcript_text = fetch_youtube_captions(url)
         except Exception:
+            print(f"Original caption fetch failed: {e}")
             transcript_text = None
+
+        if not transcript_text:
+            try:
+                print("Trying new transcript service...")
+                transcript_result = get_youtube_transcript(url)
+                if transcript_result.get('success'):
+                    transcript_text = transcript_result.get('transcript')
+                    print("✅ Got transcript from new service")
+            except Exception as e:
+                print(f"New transcript service failed: {e}")
 
         if transcript_text:
             # If only captions used: bill preview if provided, else bill by video length (metadata) if available, else fallback 2
@@ -97,12 +110,53 @@ async def create_job_from_url(
                 billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
 
             JOBS[job_id]["billed_minutes"] = billed_minutes
-            # Fixed: Pass user_email as 5th parameter
             background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
             return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
 
-        # fallback: download audio
-        local_path = download_audio_from_youtube(url, preview_minutes)
+        print("No transcript available, trying audio download...")
+        set_stage(job_id, "downloading audio")
+        local_path = None
+        
+        try:
+            local_path = download_audio_from_youtube(url, preview_minutes)
+        except Exception as e:
+            print(f"Original audio download failed: {e}")
+            local_path = None
+
+        if not local_path:
+            try:
+                print("Trying enhanced YouTube service...")
+                youtube_service = YouTubeService()
+                
+                # Create temp directory for download
+                temp_dir = tempfile.mkdtemp()
+                result = youtube_service.download_audio(url, temp_dir)
+                
+                if result.get('success'):
+                    if result.get('transcript_only'):
+                        # New service returned transcript-only mode
+                        print("✅ Using transcript-only mode from enhanced service")
+                        transcript_text = result.get('message', 'Transcript extracted')
+                        
+                        if preview_minutes and preview_minutes > 0:
+                            billed_minutes = int(preview_minutes)
+                        else:
+                            dur_sec = result.get('duration', 0)
+                            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+                        JOBS[job_id]["billed_minutes"] = billed_minutes
+                        # Use transcript mode but mark as audio job since we might have some audio info
+                        background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
+                        return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
+                    else:
+                        # Successfully downloaded audio
+                        filename = result.get('filename', 'audio.mp3')
+                        local_path = os.path.join(temp_dir, filename)
+                        print(f"✅ Enhanced service downloaded: {filename}")
+                        
+            except Exception as e:
+                print(f"Enhanced YouTube service failed: {e}")
+
         if not local_path:
             raise HTTPException(status_code=400, detail="Could not fetch audio from YouTube URL.")
 

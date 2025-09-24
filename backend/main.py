@@ -11,7 +11,7 @@ app = FastAPI(title="Castlumen API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Local development
+        "http://localhost:3001",  # Local development
         "https://castlumen.vercel.app",  # Vercel deployment
         "https://castlumen.com",  # Custom domain
         "https://*.vercel.app",  # All Vercel preview deployments
