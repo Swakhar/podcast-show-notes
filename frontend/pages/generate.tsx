@@ -271,7 +271,38 @@ export default function Generate() {
   }
 
   async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string, templateIds: string[]) {
-    // ✅ Keep existing template caching logic
+    // ✅ 1. Authentication check (moved from upload.ts)
+    if (!me?.email) {
+      throw new Error("Sign in required");
+    }
+
+    // ✅ 3. Business logic checks (moved from upload.ts)
+    const features = selected.join(",");
+    
+    // Gate paid features on FREE plan
+    if (isFree && /\b(seo|newsletter)\b/i.test(features)) {
+      throw new Error("Feature requires upgrade.");
+    }
+
+    // Preview minutes with free cap
+    const FREE_PREVIEW_CAP = 3;
+    const reqPreview = Number(pm) || 0;
+    const effectivePreview = reqPreview ? (isFree ? Math.min(reqPreview, FREE_PREVIEW_CAP) : reqPreview) : 0;
+
+    // ✅ 4. File size validation
+    const maxSize = 200 * 1024 * 1024; // 200MB
+    if (file.size > maxSize) {
+      throw new Error(`File too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB`);
+    }
+
+    // ✅ 5. Quota pre-check (moved from upload.ts)
+    // Estimate billed minutes conservatively
+    const estimatedMinutes = effectivePreview || 2;
+    if (me.monthlyMinutesUsed + estimatedMinutes > me.monthlyMinutesLimit) {
+      throw new Error("Quota exceeded. Please upgrade.");
+    }
+
+    // ✅ 6. Keep existing template caching logic
     if (templateIds.length) {
       const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
       await fetch(`${API_BASE_URL}/templates/cache`, {
@@ -281,24 +312,19 @@ export default function Generate() {
       });
     }
 
-    // ✅ NEW: Upload directly to Railway backend instead of Vercel proxy
+    // ✅ 7. Prepare upload with validated data
     const formData = new FormData();
     formData.append("file", file);
-    if (pm) formData.append("preview_minutes", String(pm));
-    formData.append("features", selected.join(","));
+    if (effectivePreview) formData.append("preview_minutes", String(effectivePreview));
+    formData.append("features", features);
     formData.append("language", language);
     formData.append("template_ids", templateIds.join(","));
-    
-    // ✅ Add user email for notifications
-    if (me?.email) {
-      formData.append("user_email", me.email);
-    }
+    formData.append("user_email", me.email);
 
-    // ✅ Post directly to Railway backend
+    // ✅ 8. Upload directly to Railway backend
     const response = await fetch(`${API_BASE_URL}/jobs/upload`, {
       method: "POST",
       body: formData,
-      // Don't set Content-Type - let browser set it with boundary
     });
 
     if (!response.ok) {
@@ -317,7 +343,6 @@ export default function Generate() {
     if (!data?.id) {
       throw new Error("Backend did not return a job id.");
     }
-
     return data as JobStatus;
   }
 
