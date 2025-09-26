@@ -169,7 +169,6 @@ async def create_job_from_upload(
     template_ids: Optional[str] = Form(None),
     user_email: Optional[str] = Form(None),
 ):
-    print(f"Received upload: {file.filename}, {file.content_type}")
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "stage": "queued", "features": list(feature_set)}

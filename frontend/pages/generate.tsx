@@ -58,6 +58,7 @@ interface JobStatus {
 }
 interface Me {
   plan: "FREE" | "PRO" | "AGENCY";
+  email: string;
   subscriptionStatus: string | null;
   monthlyMinutesLimit: number;
   monthlyMinutesUsed: number;
@@ -270,7 +271,7 @@ export default function Generate() {
   }
 
   async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string, templateIds: string[]) {
-    // Cache templates if any selected
+    // ✅ Keep existing template caching logic
     if (templateIds.length) {
       const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
       await fetch(`${API_BASE_URL}/templates/cache`, {
@@ -280,16 +281,43 @@ export default function Generate() {
       });
     }
 
-    const form = new FormData();
-    form.append("file", file);
-    if (pm) form.append("preview_minutes", String(pm));
-    form.append("features", selected.join(","));
-    form.append("language", language);
-    form.append("template_ids", templateIds.join(","));
-    const res = await axios.post("/api/jobs/upload", form);
-    const data = res.data;
-    if (!res.status) throw new Error(data?.error || `Upload job failed (${res.status})`);
-    if (!data?.id) throw new Error("Backend did not return a job id.");
+    // ✅ NEW: Upload directly to Railway backend instead of Vercel proxy
+    const formData = new FormData();
+    formData.append("file", file);
+    if (pm) formData.append("preview_minutes", String(pm));
+    formData.append("features", selected.join(","));
+    formData.append("language", language);
+    formData.append("template_ids", templateIds.join(","));
+    
+    // ✅ Add user email for notifications
+    if (me?.email) {
+      formData.append("user_email", me.email);
+    }
+
+    // ✅ Post directly to Railway backend
+    const response = await fetch(`${API_BASE_URL}/jobs/upload`, {
+      method: "POST",
+      body: formData,
+      // Don't set Content-Type - let browser set it with boundary
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Upload failed (${response.status})`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.error || errorMessage;
+      } catch {
+        errorMessage = `Network error: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    
+    if (!data?.id) {
+      throw new Error("Backend did not return a job id.");
+    }
+
     return data as JobStatus;
   }
 
