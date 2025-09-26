@@ -9,3 +9,4 @@ redis==5.0.1
 httpx==0.27.0
 yt-dlp==2025.9.23
 youtube-transcript-api
+psycopg2-binary>=2.9.0  # For PostgreSQL

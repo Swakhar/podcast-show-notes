@@ -20,6 +20,145 @@ from core.openai_utils import CHAT_MODEL
 
 router = APIRouter()
 
+@router.post("/jobs/url")
+async def create_job_from_url(
+    background: BackgroundTasks,
+    url: str = Form(...),
+    preview_minutes: Optional[int] = Form(None),
+    features: Optional[str] = Form(None),
+    language: Optional[str] = Form("auto"),
+    template_ids: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None),
+):
+    feature_set = parse_features(features)
+    job_id = str(os.urandom(8).hex())
+    JOBS[job_id] = {"status": "pending", "features": list(feature_set)}
+    JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
+    JOBS[job_id]["url"] = url
+    
+    # ✅ Store user_email in job from the start
+    if user_email:
+        JOBS[job_id]["user_email"] = user_email
+        print(f"👤 Stored user_email in job {job_id}: {user_email}")
+    else:
+        print(f"⚠️ No user_email provided for job {job_id}")
+    
+    set_stage(job_id, "inspecting URL")
+    billed_minutes = 0
+
+    if is_youtube_or_streaming_site(url):
+        set_stage(job_id, "fetching captions")
+        transcript_text = None
+        
+        # Try Method 1: Your existing caption fetcher
+        try:
+            transcript_text = fetch_youtube_captions(url)
+        except Exception as e:
+            print(f"Original caption fetch failed: {e}")
+            transcript_text = None
+
+        # Try Method 2: New transcript service
+        if not transcript_text:
+            try:
+                print("Trying new transcript service...")
+                transcript_result = get_youtube_transcript(url)
+                if transcript_result.get('success'):
+                    transcript_text = transcript_result.get('transcript')
+                    print("✅ Got transcript from new service")
+            except Exception as e:
+                print(f"New transcript service failed: {e}")
+
+        # If we have transcript, use it
+        if transcript_text:
+            if preview_minutes and preview_minutes > 0:
+                billed_minutes = int(preview_minutes)
+            else:
+                dur_sec = get_youtube_duration_seconds(url)
+                billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+            JOBS[job_id]["billed_minutes"] = billed_minutes
+            # ✅ Pass user_email to background task
+            background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
+            return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
+
+        # Try audio download
+        print("No transcript available, trying audio download...")
+        set_stage(job_id, "downloading audio")
+        local_path = None
+        
+        try:
+            local_path = download_audio_from_youtube(url, preview_minutes)
+        except Exception as e:
+            print(f"Original audio download failed: {e}")
+            local_path = None
+
+        # Try enhanced YouTube service
+        if not local_path:
+            try:
+                print("Trying enhanced YouTube service...")
+                youtube_service = YouTubeService()
+                temp_dir = tempfile.mkdtemp()
+                result = youtube_service.download_audio(url, temp_dir)
+                
+                if result.get('success'):
+                    if result.get('transcript_only'):
+                        print("✅ Using transcript-only mode from enhanced service")
+                        transcript_text = result.get('message', 'Transcript extracted')
+                        
+                        if preview_minutes and preview_minutes > 0:
+                            billed_minutes = int(preview_minutes)
+                        else:
+                            dur_sec = result.get('duration', 0)
+                            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+                        JOBS[job_id]["billed_minutes"] = billed_minutes
+                        # ✅ Pass user_email to background task
+                        background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
+                        return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
+                    else:
+                        filename = result.get('filename', 'audio.mp3')
+                        local_path = os.path.join(temp_dir, filename)
+                        print(f"✅ Enhanced service downloaded: {filename}")
+                        
+            except Exception as e:
+                print(f"Enhanced YouTube service failed: {e}")
+
+        if not local_path:
+            raise HTTPException(
+                status_code=400, 
+                detail="Could not fetch audio or transcript from YouTube URL."
+            )
+
+        if preview_minutes and preview_minutes > 0:
+            billed_minutes = int(preview_minutes)
+        else:
+            dur_sec = get_audio_duration_seconds(local_path)
+            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+    else:
+        # Non-YouTube URLs
+        try:
+            local_path = await download_to_tempfile(url)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Download failed: {e}") from e
+
+        if preview_minutes and preview_minutes > 0:
+            set_stage(job_id, "preparing preview")
+            from core.audio_utils import trim_audio as _trim
+            local_path = _trim(local_path, preview_minutes * 60)
+            billed_minutes = int(preview_minutes)
+        else:
+            dur_sec = get_audio_duration_seconds(local_path)
+            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+
+    # Final audio processing
+    JOBS[job_id]["billed_minutes"] = billed_minutes
+    set_stage(job_id, "transcribing")
+    # ✅ Pass user_email to background task
+    background.add_task(process_audio_job, job_id, local_path, feature_set, language, user_email)
+    return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
+
+
 @router.post("/jobs/upload")
 async def create_job_from_upload(
     background: BackgroundTasks,
@@ -28,12 +167,19 @@ async def create_job_from_upload(
     features: Optional[str] = Form(None),
     language: Optional[str] = Form("auto"),
     template_ids: Optional[str] = Form(None),
-    user_email: Optional[str] = Form(None),  # Made optional
+    user_email: Optional[str] = Form(None),
 ):
     feature_set = parse_features(features)
     job_id = str(os.urandom(8).hex())
     JOBS[job_id] = {"status": "pending", "stage": "queued", "features": list(feature_set)}
     JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
+    
+    # ✅ Store user_email in job from the start
+    if user_email:
+        JOBS[job_id]["user_email"] = user_email
+        print(f"👤 Stored user_email in job {job_id}: {user_email}")
+    else:
+        print(f"⚠️ No user_email provided for job {job_id}")
 
     suffix = os.path.splitext(file.filename or "")[1] or ".bin"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
@@ -53,137 +199,12 @@ async def create_job_from_upload(
         local_path = trim_audio(local_path, preview_minutes * 60)
         billed_minutes = int(preview_minutes)
     else:
-        # full file → compute real duration
         dur_sec = get_audio_duration_seconds(local_path)
-        billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2  # fallback 2
-
-    JOBS[job_id]["billed_minutes"] = billed_minutes
-
-    set_stage(job_id, "transcribing")
-    # Fixed: Pass user_email as 5th parameter
-    background.add_task(process_audio_job, job_id, local_path, feature_set, language, user_email)
-    return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
-
-@router.post("/jobs/url")
-async def create_job_from_url(
-    background: BackgroundTasks,
-    url: str = Form(...),
-    preview_minutes: Optional[int] = Form(None),
-    features: Optional[str] = Form(None),
-    language: Optional[str] = Form("auto"),
-    template_ids: Optional[str] = Form(None),
-    user_email: Optional[str] = Form(None),  # Made optional
-):
-    feature_set = parse_features(features)
-    job_id = str(os.urandom(8).hex())
-    JOBS[job_id] = {"status": "pending", "features": list(feature_set)}
-    JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
-    JOBS[job_id]["url"] = url  # Store URL for error emails
-    set_stage(job_id, "inspecting URL")
-    billed_minutes = 0
-
-    if is_youtube_or_streaming_site(url):
-        set_stage(job_id, "fetching captions")
-        transcript_text = None
-        try:
-            transcript_text = fetch_youtube_captions(url)
-        except Exception:
-            print(f"Original caption fetch failed: {e}")
-            transcript_text = None
-
-        if not transcript_text:
-            try:
-                print("Trying new transcript service...")
-                transcript_result = get_youtube_transcript(url)
-                if transcript_result.get('success'):
-                    transcript_text = transcript_result.get('transcript')
-                    print("✅ Got transcript from new service")
-            except Exception as e:
-                print(f"New transcript service failed: {e}")
-
-        if transcript_text:
-            # If only captions used: bill preview if provided, else bill by video length (metadata) if available, else fallback 2
-            if preview_minutes and preview_minutes > 0:
-                billed_minutes = int(preview_minutes)
-            else:
-                dur_sec = get_youtube_duration_seconds(url)
-                billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
-
-            JOBS[job_id]["billed_minutes"] = billed_minutes
-            background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
-            return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
-
-        print("No transcript available, trying audio download...")
-        set_stage(job_id, "downloading audio")
-        local_path = None
-        
-        try:
-            local_path = download_audio_from_youtube(url, preview_minutes)
-        except Exception as e:
-            print(f"Original audio download failed: {e}")
-            local_path = None
-
-        if not local_path:
-            try:
-                print("Trying enhanced YouTube service...")
-                youtube_service = YouTubeService()
-                
-                # Create temp directory for download
-                temp_dir = tempfile.mkdtemp()
-                result = youtube_service.download_audio(url, temp_dir)
-                
-                if result.get('success'):
-                    if result.get('transcript_only'):
-                        # New service returned transcript-only mode
-                        print("✅ Using transcript-only mode from enhanced service")
-                        transcript_text = result.get('message', 'Transcript extracted')
-                        
-                        if preview_minutes and preview_minutes > 0:
-                            billed_minutes = int(preview_minutes)
-                        else:
-                            dur_sec = result.get('duration', 0)
-                            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
-
-                        JOBS[job_id]["billed_minutes"] = billed_minutes
-                        # Use transcript mode but mark as audio job since we might have some audio info
-                        background.add_task(process_text_job, job_id, transcript_text, feature_set, language, user_email)
-                        return {"id": job_id, "status": "pending", "stage": JOBS[job_id].get("stage"), "billed_minutes": billed_minutes}
-                    else:
-                        # Successfully downloaded audio
-                        filename = result.get('filename', 'audio.mp3')
-                        local_path = os.path.join(temp_dir, filename)
-                        print(f"✅ Enhanced service downloaded: {filename}")
-                        
-            except Exception as e:
-                print(f"Enhanced YouTube service failed: {e}")
-
-        if not local_path:
-            raise HTTPException(status_code=400, detail="Could not fetch audio from YouTube URL.")
-
-        if preview_minutes and preview_minutes > 0:
-            billed_minutes = int(preview_minutes)
-        else:
-            dur_sec = get_audio_duration_seconds(local_path)
-            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
-
-    else:
-        try:
-            local_path = await download_to_tempfile(url)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Download failed: {e}") from e
-
-        if preview_minutes and preview_minutes > 0:
-            set_stage(job_id, "preparing preview")
-            from core.audio_utils import trim_audio as _trim
-            local_path = _trim(local_path, preview_minutes * 60)
-            billed_minutes = int(preview_minutes)
-        else:
-            dur_sec = get_audio_duration_seconds(local_path)
-            billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
+        billed_minutes = max(1, math.ceil(dur_sec / 60.0)) if dur_sec > 0 else 2
 
     JOBS[job_id]["billed_minutes"] = billed_minutes
     set_stage(job_id, "transcribing")
-    # Fixed: Pass user_email as 5th parameter
+    # ✅ Pass user_email to background task
     background.add_task(process_audio_job, job_id, local_path, feature_set, language, user_email)
     return {"id": job_id, "status": "pending", "stage": JOBS[job_id]["stage"], "billed_minutes": billed_minutes}
 

@@ -86,7 +86,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     if (effectivePreview) fd.append("preview_minutes", String(effectivePreview));
     if (features) fd.append("features", features);
-    fd.append("language", language);
+    if (language) fd.append("language", language);
+    fd.append("user_email", session.user.email);
 
     // Axios: pass fd and headers
     const r = await axios.post(`${BACKEND}/jobs/upload`, fd, {

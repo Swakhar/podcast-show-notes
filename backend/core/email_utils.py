@@ -1,193 +1,170 @@
-import smtplib
 import os
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from urllib.parse import urlparse
+import requests
+from typing import Dict, Any
 
-def send_completion_email(user_email: str, job_result: dict, source_type: str = "manual", job_id: str = "") -> bool:
-    """Send completion email when job finishes"""
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://castlumen.com')
+MAILERSEND_API_KEY = os.getenv('MAILERSEND_API_KEY')
+MAILERSEND_DOMAIN = os.getenv('MAILERSEND_DOMAIN', 'castlumen.com')
+FROM_EMAIL = f"noreply@{MAILERSEND_DOMAIN}"
+FROM_NAME = "CastLumen"
+
+def send_email_via_mailersend(to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
+    """Send email using MailerSend API"""
+    if not MAILERSEND_API_KEY:
+        print("❌ MAILERSEND_API_KEY not configured")
+        return False
+    
+    url = "https://api.mailersend.com/v1/email"
+    
+    payload = {
+        "from": {
+            "email": FROM_EMAIL,
+            "name": FROM_NAME
+        },
+        "to": [
+            {
+                "email": to_email
+            }
+        ],
+        "subject": subject,
+        "html": html_content,
+        "text": text_content or html_content
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {MAILERSEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
     try:
-        # Parse your existing SMTP_SERVER URL (with credentials)
-        smtp_url = os.getenv("SMTP_SERVER")
-        if not smtp_url:
-            print("SMTP_SERVER not configured - skipping email")
+        print(f"📧 Sending email to {to_email}: {subject}")
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 202:
+            print(f"✅ Email sent successfully to {to_email}")
+            return True
+        else:
+            print(f"❌ Email failed: {response.status_code} - {response.text}")
             return False
             
-        # Parse the smtp://username:password@host:port format
-        parsed = urlparse(smtp_url)
-        smtp_host = parsed.hostname
-        smtp_port = parsed.port or 587
-        smtp_user = parsed.username
-        smtp_password = parsed.password
+    except Exception as e:
+        print(f"❌ Email send error: {e}")
+        return False
+
+def send_completion_email(user_email: str, result: Dict[str, Any], content_type: str, job_id: str) -> bool:
+    """Send completion notification email"""
+    
+    subject = f"🎉 Your {content_type} content is ready!"
+    
+    # Count generated features
+    features_generated = []
+    if result.get('summary'):
+        features_generated.append("📋 Summary")
+    if result.get('show_notes'):
+        features_generated.append("📝 Show Notes")
+    if result.get('timestamps'):
+        features_generated.append("⏰ Timestamps")
+    if result.get('social_snippets'):
+        features_generated.append("📱 Social Snippets")
+    if result.get('seo'):
+        features_generated.append("🔍 SEO Content")
+    if result.get('newsletter'):
+        features_generated.append("📧 Newsletter")
+    
+    features_html = "".join(f"<li>{feature}</li>" for feature in features_generated)
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Content Ready - CastLumen</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2d3748;">🎉 Your Content is Ready!</h1>
+        </div>
         
-        from_email = os.getenv("FROM_EMAIL", "noreply@castlumen.com")
-        
-        if not all([smtp_host, smtp_user, smtp_password]):
-            print("Email configuration incomplete - skipping email")
-            return False
-        
-        # Create email content
-        title = job_result.get("seo", {}).get("title", "Your Podcast Content")
-        source_text = "RSS Feed Auto-Pull" if source_type == "rss" else "Manual Upload"
-        
-        subject = f"🎙️ New Podcast Content Ready: {title}"
-        
-        # HTML email body
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #9CEE69, #4ADE80); padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h1 style="color: #1F2937; margin: 0;">🎙️ Your podcast content is ready!</h1>
-            </div>
+        <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <p>Hi there!</p>
+            <p>Great news! We've successfully processed your <strong>{content_type}</strong> content and generated:</p>
             
-            <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <p><strong>Episode:</strong> {title}</p>
-                <p><strong>Source:</strong> {source_text}</p>
-            </div>
-            
-            <h2 style="color: #1F2937;">What's Ready:</h2>
-            <ul style="background: #F3F4F6; padding: 20px; border-radius: 8px;">
-        """
-        
-        # Add checkmarks for generated content
-        features = []
-        if job_result.get("summary"):
-            features.append("✅ AI Summary")
-        if job_result.get("show_notes"):
-            features.append("✅ Show Notes")
-        if job_result.get("timestamps"):
-            features.append("✅ Timestamps")
-        if job_result.get("social_snippets"):
-            features.append("✅ Social Media Snippets")
-        if job_result.get("seo"):
-            features.append("✅ SEO Content")
-        if job_result.get("newsletter"):
-            features.append("✅ Newsletter Draft")
-            
-        for feature in features:
-            html_content += f"<li style='margin: 8px 0;'>{feature}</li>"
-        
-        html_content += f"""
+            <ul style="line-height: 1.6;">
+                {features_html}
             </ul>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="{os.getenv('FRONTEND_URL', 'http://localhost:3001')}/results/{job_id}" 
-                   style="background: #3B82F6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                    View Your Content
-                </a>
-            </div>
-            
-            <div style="background: #EFF6FF; padding: 15px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-                <p style="margin: 0; color: #1E40AF; font-size: 14px;">
-                    <strong>Tip:</strong> Your content is ready to download, copy, or publish directly to WordPress!
-                </p>
-            </div>
-            
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #E5E7EB;">
-            
-            <p style="color: #6B7280; font-size: 12px; text-align: center;">
-                This content was automatically generated from your {source_text.lower()}.<br>
-                <a href="{os.getenv('FRONTEND_URL', 'http://localhost:3001')}/settings" style="color: #3B82F6;">Manage your notification preferences</a>
-            </p>
-        </body>
-        </html>
-        """
+        </div>
         
-        # Create message
-        msg = MIMEMultipart('alternative')  # Changed from MimeMultipart
-        msg['Subject'] = subject
-        msg['From'] = from_email
-        msg['To'] = user_email
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{FRONTEND_URL}/results/{job_id}" 
+               style="background: #48bb78; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                View Your Content
+            </a>
+        </div>
         
-        # Attach HTML content
-        html_part = MIMEText(html_content, 'html')  # Changed from MimeText
-        msg.attach(html_part)
-        
-        # Send email using your existing Mailtrap configuration
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.send_message(msg)
-            
-        print(f"✅ Completion email sent to {user_email} via Mailtrap")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Failed to send completion email: {e}")
-        return False
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px; font-size: 14px; color: #718096;">
+            <p>Thanks for using CastLumen!</p>
+            <p>Need help? Reply to this email or visit our <a href="{FRONTEND_URL}/support">support page</a>.</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    text_content = f"""
+    🎉 Your Content is Ready!
+    
+    Hi there!
+    
+    Great news! We've successfully processed your {content_type} content.
+    
+    Generated content:
+    {chr(10).join(f"• {feature}" for feature in features_generated)}
 
-def send_error_email(user_email: str, error_message: str, job_url: str):
+    View your content: {FRONTEND_URL}/results/{job_id}
+
+    Thanks for using CastLumen!
+    """
+    
+    return send_email_via_mailersend(user_email, subject, html_content, text_content)
+
+def send_error_email(user_email: str, error_message: str, source_url: str = "") -> bool:
     """Send error notification email"""
-    try:
-        # Parse your existing SMTP_SERVER URL (same as send_completion_email)
-        smtp_url = os.getenv("SMTP_SERVER")
-        if not smtp_url:
-            print("SMTP_SERVER not configured - skipping error email")
-            return False
-            
-        # Parse the smtp://username:password@host:port format
-        parsed = urlparse(smtp_url)
-        smtp_host = parsed.hostname
-        smtp_port = parsed.port or 587
-        smtp_user = parsed.username
-        smtp_password = parsed.password
+    
+    subject = "❌ Processing failed - CastLumen"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Processing Failed - CastLumen</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #e53e3e;">❌ Processing Failed</h1>
+        </div>
         
-        from_email = os.getenv("FROM_EMAIL", "noreply@castlumen.com")
+        <div style="background: #fed7d7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <p>Hi there,</p>
+            <p>We encountered an issue while processing your content:</p>
+            <p style="font-family: monospace; background: #fff; padding: 10px; border-radius: 4px;">
+                {error_message}
+            </p>
+            {f"<p><strong>Source:</strong> {source_url}</p>" if source_url else ""}
+        </div>
         
-        if not all([smtp_host, smtp_user, smtp_password]):
-            print("Email configuration incomplete - skipping error email")
-            return False
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{FRONTEND_URL}/generate" 
+               style="background: #48bb78; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Try Again
+            </a>
+        </div>
         
-        subject = "❌ Podcast Processing Failed"
-        
-        html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: #FEE2E2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #EF4444;">
-                <h1 style="color: #DC2626; margin: 0;">❌ Processing Failed</h1>
-            </div>
-            
-            <p>We encountered an issue processing your podcast:</p>
-            <p><strong>URL:</strong> {job_url}</p>
-            <p><strong>Error:</strong> {error_message}</p>
-            
-            <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0; color: #92400E;">
-                    <strong>What to try:</strong><br>
-                    • Check if the audio URL is accessible<br>
-                    • Try a different format (MP3, WAV, M4A)<br>
-                    • Ensure the file isn't too large<br>
-                    • Contact support if the issue persists
-                </p>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="{os.getenv('FRONTEND_URL', 'http://localhost:3001')}/results/{job_id}" 
-                   style="background: #3B82F6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                    View Your Content
-                </a>
-            </div>
-        </body>
-        </html>
-        """
-        
-        msg = MIMEMultipart('alternative')  # Changed from MimeMultipart
-        msg['Subject'] = subject
-        msg['From'] = from_email
-        msg['To'] = user_email
-        
-        html_part = MIMEText(html_content, 'html')  # Changed from MimeText
-        msg.attach(html_part)
-        
-        # Use the same method as send_completion_email
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.send_message(msg)
-            
-        print(f"✅ Error email sent to {user_email} via Mailtrap")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Failed to send error email: {e}")
-        return False
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 30px; font-size: 14px; color: #718096;">
+            <p>If this issue persists, please contact our support team.</p>
+            <p>Thanks for using CastLumen!</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return send_email_via_mailersend(user_email, subject, html_content)
