@@ -28,6 +28,17 @@ export default function GuestResearchForm({ onSubmit, isSubmitting, templates, m
     language: 'en',
     templateIds: []
   });
+  const [inputMode, setInputMode] = useState<'textarea' | 'structured'>('structured');
+  const [structuredData, setStructuredData] = useState({
+    linkedinUrl: '',
+    twitterUrl: '',
+    facebookUrl: '',
+    instagramUrl: '',
+    websiteUrl: '',
+    companyInfo: '',
+    recentWork: '',
+    personalBio: ''
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +55,42 @@ export default function GuestResearchForm({ onSubmit, isSubmitting, templates, m
   };
 
   const isFree = me?.plan === "FREE" && !me?.isTeamMember;
+
+  const convertStructuredToText = () => {
+    const parts = [];
+    
+    if (structuredData.linkedinUrl) {
+      parts.push(`LinkedIn: ${structuredData.linkedinUrl}`);
+    }
+    if (structuredData.twitterUrl) {
+      parts.push(`Twitter: ${structuredData.twitterUrl}`);
+    }
+    if (structuredData.facebookUrl) {
+      parts.push(`Facebook: ${structuredData.facebookUrl}`);
+    }
+    if (structuredData.instagramUrl) {
+      parts.push(`Instagram: ${structuredData.instagramUrl}`);
+    }
+    if (structuredData.websiteUrl) {
+      parts.push(`Website: ${structuredData.websiteUrl}`);
+    }
+    if (structuredData.companyInfo) {
+      parts.push(`Company/Role: ${structuredData.companyInfo}`);
+    }
+    if (structuredData.recentWork) {
+      parts.push(`Recent Work: ${structuredData.recentWork}`);
+    }
+    if (structuredData.personalBio) {
+      parts.push(`Bio: ${structuredData.personalBio}`);
+    }
+    
+    return parts.join('\n\n');
+  };
+
+  const updateFormDataFromStructured = () => {
+    const textData = convertStructuredToText();
+    setFormData(prev => ({ ...prev, guestInfo: textData }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -72,21 +119,204 @@ export default function GuestResearchForm({ onSubmit, isSubmitting, templates, m
 
           {/* Guest Information */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Guest Background & Information *
-            </label>
-            <textarea
-              required
-              rows={6}
-              placeholder="Paste LinkedIn profile, bio, website content, recent interviews, articles, or any information about your guest..."
-              value={formData.guestInfo}
-              onChange={(e) => setFormData(prev => ({ ...prev, guestInfo: e.target.value }))}
-              disabled={isSubmitting}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69] transition-colors"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              💡 Tip: Include their LinkedIn, recent work, articles, or social media to get better research
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-semibold text-gray-700">
+                Guest Background & Information *
+              </label>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('structured')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    inputMode === 'structured'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  📋 Guided
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('textarea')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                    inputMode === 'textarea'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ✏️ Free Text
+                </button>
+              </div>
+            </div>
+
+            {inputMode === 'structured' ? (
+              <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* LinkedIn URL */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      🔗 LinkedIn Profile
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://linkedin.com/in/guest-name"
+                      value={structuredData.linkedinUrl}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, linkedinUrl: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+
+                  {/* Twitter URL */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      🐦 Twitter/X Profile
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://twitter.com/username"
+                      value={structuredData.twitterUrl}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, twitterUrl: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+
+                  {/* ✅ Facebook URL */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      📘 Facebook Profile/Page
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://facebook.com/username"
+                      value={structuredData.facebookUrl}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, facebookUrl: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+
+                  {/* ✅ Instagram URL */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      📸 Instagram Profile
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/username"
+                      value={structuredData.instagramUrl}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, instagramUrl: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+
+                  {/* Website URL */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      🌐 Website/Blog
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://website.com"
+                      value={structuredData.websiteUrl}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, websiteUrl: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+
+                  {/* Company Info */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      🏢 Company & Role
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="CEO at TechCorp, Former Google PM"
+                      value={structuredData.companyInfo}
+                      onChange={(e) => {
+                        setStructuredData(prev => ({ ...prev, companyInfo: e.target.value }));
+                        setTimeout(() => updateFormDataFromStructured(), 100);
+                      }}
+                      disabled={isSubmitting}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                    />
+                  </div>
+                </div>
+
+                {/* Recent Work */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    🚀 Recent Work & Achievements
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Recent funding, new product launch, awards, speaking engagements, publications..."
+                    value={structuredData.recentWork}
+                    onChange={(e) => {
+                      setStructuredData(prev => ({ ...prev, recentWork: e.target.value }));
+                      setTimeout(() => updateFormDataFromStructured(), 100);
+                    }}
+                    disabled={isSubmitting}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                  />
+                </div>
+
+                {/* Personal Bio */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    👤 Personal Background & Interests
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Education, personal interests, unique background, fun facts..."
+                    value={structuredData.personalBio}
+                    onChange={(e) => {
+                      setStructuredData(prev => ({ ...prev, personalBio: e.target.value }));
+                      setTimeout(() => updateFormDataFromStructured(), 100);
+                    }}
+                    disabled={isSubmitting}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
+                  />
+                </div>
+
+                <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded border border-blue-200">
+                  💡 <strong>Tip:</strong> Fill in any fields you have information for. URLs will be automatically included in the research. The more details you provide, the better the AI research results!
+                </div>
+              </div>
+            ) : (
+              <div>
+                <textarea
+                  required
+                  rows={6}
+                  placeholder="Paste LinkedIn profile, bio, website content, recent interviews, articles, or any information about your guest..."
+                  value={formData.guestInfo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, guestInfo: e.target.value }))}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69] transition-colors"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Tip: Include their LinkedIn, recent work, articles, or social media to get better research
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Additional Context */}

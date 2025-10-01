@@ -534,19 +534,75 @@ export default function Generate() {
               {!jobStatus?.result ? (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
                   <div className="text-center space-y-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-[#9CEE69] to-green-400 rounded-full flex items-center justify-center mx-auto">
-                      <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                      activeTab === 'guest' 
+                        ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                        : 'bg-gradient-to-br from-[#9CEE69] to-green-400'
+                    }`}>
+                      {activeTab === 'guest' ? (
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
                     </div>
                     
                     {isBusy ? (
                       <>
-                        <StageTimeline stage={jobStatus?.stage} />
+                        {/* Show stage timeline with current stage */}
+                        <StageTimeline stage={jobStatus?.stage || "queued"} />
+                        
+                        {/* Show current stage text */}
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {jobStatus?.stage ? 
+                              jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
+                              "Starting..."
+                            }
+                          </h3>
+                          <p className="text-gray-600">
+                            {progress}% complete • This may take a few minutes
+                          </p>
+                        </div>
+                        
+                        {/* Progress bar */}
+                        <div className="w-full max-w-md mx-auto">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-500 ${
+                                activeTab === 'guest' 
+                                  ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                                  : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
+                              }`}
+                              style={{ width: `${Math.max(5, progress)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        
                         <div className="space-y-4 max-w-md mx-auto">
                           <Skeleton className="h-6 w-full" />
                           <Skeleton className="h-4 w-5/6" />
                           <Skeleton className="h-4 w-4/6" />
+                        </div>
+                      </>
+                    ) : activeTab === 'guest' ? (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-900">Ready for Guest Research</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">
+                          Fill in your guest's information in the sidebar to generate comprehensive research, interview questions, and conversation starters powered by AI.
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                          <div className="p-4 bg-purple-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">🔍</div>
+                            <p className="text-sm font-medium text-gray-700">Deep Research</p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">❓</div>
+                            <p className="text-sm font-medium text-gray-700">Smart Questions</p>
+                          </div>
                         </div>
                       </>
                     ) : (
