@@ -4,7 +4,7 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
 export default function Privacy() {
-  const lastUpdated = "September 13, 2025";
+  const lastUpdated = "2. Oktober 2025";
 
   return (
     <>
@@ -49,10 +49,10 @@ export default function Privacy() {
                 <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">📋 Verantwortlicher</h3>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Your Company GmbH</strong></p>
-                    <p>Musterstraße 1, 12345 Musterstadt, Deutschland</p>
-                    <p>E-Mail: <a href="mailto:hello@yourcompany.com" className="text-blue-600 hover:text-blue-800">hello@yourcompany.com</a></p>
-                    <p>Datenschutz: <a href="mailto:datenschutz@yourcompany.com" className="text-blue-600 hover:text-blue-800">datenschutz@yourcompany.com</a></p>
+                    <p><strong>DataFiora IT - Pratyushi Roy Oishee</strong></p>
+                    <p>Falltorstraße 2, 63486 Bruchköbel, Deutschland</p>
+                    <p>E-Mail: <a href="mailto:roy302156@gmail.com" className="text-blue-600 hover:text-blue-800">roy302156@gmail.com</a></p>
+                    <p>Telefon: 01629334092</p>
                   </div>
                 </div>
 
@@ -232,18 +232,12 @@ export default function Privacy() {
                     Bei Fragen zum Datenschutz oder zur Ausübung Ihrer Rechte kontaktieren Sie uns:
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    <a href="mailto:datenschutz@yourcompany.com" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <a href="mailto:roy302156@gmail.com" className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      Datenschutzbeauftragter
+                      E-Mail senden
                     </a>
-                    <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                      Allgemeiner Support
-                    </Link>
                   </div>
                 </section>
               </div>

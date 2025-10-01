@@ -60,121 +60,103 @@ export default function Contact() {
       
       <SiteHeader />
       
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-blue-50 via-white to-gray-50 py-20">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-          <div className="relative max-w-7xl mx-auto px-4 text-center">
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <span>📞</span>
-              Support & Kontakt
-            </div>
-            <h1 className="text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight">
-              Wir sind für Sie da
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Haben Sie Fragen zu CastLumen? Benötigen Sie technischen Support oder möchten Sie mehr über unsere Enterprise-Lösungen erfahren? Unser Team hilft Ihnen gerne weiter.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Antwort binnen 24h
+        <div className="bg-gradient-to-r from-blue-900 to-purple-900 text-white">
+          <div className="max-w-4xl mx-auto px-4 py-16">
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-4">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Support & Kontakt
               </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                Deutschsprachiger Support
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                Enterprise-Beratung
+              <h1 className="text-4xl lg:text-5xl font-black mb-4">Wir sind für Sie da</h1>
+              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+                Haben Sie Fragen zu CastLumen? Benötigen Sie Support oder möchten Sie mehr über unsere Enterprise-Lösungen erfahren?
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Antwort binnen 24 Stunden
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Contact Content */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid lg:grid-cols-3 gap-12">
-              
-              {/* Contact Methods */}
-              <div className="lg:col-span-1 space-y-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Kontaktmöglichkeiten</h2>
-                </div>
-
-                {/* Support Card */}
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <span className="text-2xl">🎧</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">Support</h3>
-                      <p className="text-sm text-gray-600">Technische Hilfe</p>
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="p-8 lg:p-12">
+              <div className="grid lg:grid-cols-3 gap-12">
+                
+                {/* Contact Methods */}
+                <div className="lg:col-span-1 space-y-8">
+                  {/* Contact Info */}
+                  <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">📋 Kontakt</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>DataFiora IT - Pratyushi Roy Oishee</strong></p>
+                      <p>Falltorstraße 2, 63486 Bruchköbel, Deutschland</p>
+                      <p>E-Mail: <a href="mailto:roy302156@gmail.com" className="text-blue-600 hover:text-blue-800">roy302156@gmail.com</a></p>
+                      <p>Telefon: 01629334092</p>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-400">📧</span>
-                      <a href="mailto:support@castlumen.com" className="text-blue-600 hover:text-blue-700 font-medium">
-                        support@castlumen.com
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-400">⏱️</span>
-                      <span className="text-gray-700 text-sm">Antwort binnen 24 Stunden</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Sales Card */}
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                      <span className="text-2xl">💼</span>
+                  {/* Support Card */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">🎧</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Support</h3>
+                        <p className="text-sm text-gray-600">Technische Hilfe</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">Vertrieb</h3>
-                      <p className="text-sm text-gray-600">Enterprise & Beratung</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400">📧</span>
+                        <a href="mailto:roy302156@gmail.com" className="text-blue-600 hover:text-blue-700 font-medium">
+                          roy302156@gmail.com
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400">⏱️</span>
+                        <span className="text-gray-700 text-sm">Antwort binnen 24 Stunden</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-400">📧</span>
-                      <a href="mailto:sales@castlumen.com" className="text-blue-600 hover:text-blue-700 font-medium">
-                        sales@castlumen.com
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-400">📞</span>
-                      <span className="text-gray-700 text-sm">+49 (0) 30 12345678</span>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Company Info */}
-                <div className="bg-gray-50 rounded-2xl p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Unternehmen</h3>
-                  <div className="space-y-3 text-sm text-gray-700">
-                    <div>
-                      <strong>CastLumen GmbH</strong><br/>
-                      Musterstraße 123<br/>
-                      10115 Berlin<br/>
-                      Deutschland
+                  {/* Sales Card */}
+                  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">💼</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Vertrieb</h3>
+                        <p className="text-sm text-gray-600">Enterprise & Beratung</p>
+                      </div>
                     </div>
-                    <div className="pt-3 border-t border-gray-200">
-                      <p><strong>USt-IdNr:</strong> DE123456789</p>
-                      <p><strong>HRB:</strong> 123456 B</p>
-                      <p><strong>Registergericht:</strong> Berlin-Charlottenburg</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400">📧</span>
+                        <a href="mailto:roy302156@gmail.com" className="text-blue-600 hover:text-blue-700 font-medium">
+                          roy302156@gmail.com
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-400">📞</span>
+                        <span className="text-gray-700 text-sm">01629334092</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Contact Form */}
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-2xl p-8 lg:p-12 shadow-lg border border-gray-100">
+                {/* Contact Form */}
+                <div className="lg:col-span-2">
                   <div className="mb-8">
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">Nachricht senden</h2>
                     <p className="text-gray-600">
@@ -307,18 +289,16 @@ export default function Contact() {
               </div>
             </div>
           </div>
-        </section>
 
-        {/* FAQ Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4">
+          {/* FAQ Section */}
+          <div className="mt-16">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Häufige Fragen</h2>
               <p className="text-gray-600">Schnelle Antworten auf die wichtigsten Fragen</p>
             </div>
             
             <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Wie schnell erhalte ich Support?</h3>
                 <p className="text-gray-600 text-sm">
                   Unser Support-Team antwortet innerhalb von 24 Stunden auf alle Anfragen. 
@@ -326,7 +306,7 @@ export default function Contact() {
                 </p>
               </div>
               
-              <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Bieten Sie Telefon-Support an?</h3>
                 <p className="text-gray-600 text-sm">
                   Ja, für Enterprise-Kunden bieten wir dedizierten Telefon-Support. 
@@ -334,7 +314,7 @@ export default function Contact() {
                 </p>
               </div>
               
-              <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Gibt es eine Demo oder Beratung?</h3>
                 <p className="text-gray-600 text-sm">
                   Selbstverständlich! Wir bieten personalisierte Demos und Beratungsgespräche 
@@ -342,7 +322,7 @@ export default function Contact() {
                 </p>
               </div>
               
-              <div className="bg-white rounded-xl p-6 shadow-sm">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-3">Wie kann ich mein Abo verwalten?</h3>
                 <p className="text-gray-600 text-sm">
                   In Ihren Account-Einstellungen können Sie Ihr Abonnement jederzeit anpassen, 
@@ -351,7 +331,7 @@ export default function Contact() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </main>
       
       <SiteFooter />
