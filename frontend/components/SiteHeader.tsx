@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
+import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import PlanBadge from "./PlanBadge";
 import { useToast } from "../contexts/ToastContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const fetcher = (url: string) => fetch(url).then((res) => {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -24,6 +26,7 @@ type Me = {
 
 export default function SiteHeader() {
   const { data: session, status } = useSession();
+  const { t } = useTranslation('common');
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,19 +60,19 @@ export default function SiteHeader() {
   }, []);
 
   const navigationItems = [
-    { href: "/#features", label: "Features", public: true },
-    { href: "/#pricing", label: "Pricing", public: true },
-    { href: "/generate", label: "Generate", authOnly: true, icon: "⚡" },
-    { href: "/templates", label: "Templates", authOnly: true, icon: "📝" },
+    { href: "/#features", label: t('nav.features'), public: true },
+    { href: "/#pricing", label: t('nav.pricing'), public: true },
+    { href: "/generate", label: t('nav.generate'), authOnly: true, icon: "⚡" },
+    { href: "/templates", label: t('nav.templates'), authOnly: true, icon: "📝" },
     // Only show Teams link for Agency users or team members
     { 
       href: "/teams", 
-      label: "Teams", 
+      label: t('nav.teams'), // Add this translation key
       authOnly: true, 
       icon: "👥",
       showForTeams: true,
     },
-    { href: "/settings", label: "Settings", authOnly: true, icon: "⚙️" }, // ADD THIS LINE
+    { href: "/settings", label: t('nav.settings'), authOnly: true, icon: "⚙️" },
   ];
 
   function SettingsDropdown() {
@@ -80,7 +83,7 @@ export default function SiteHeader() {
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         >
           <span className="text-base">⚙️</span>
-          Settings
+          {t('nav.settings')}
           <svg 
             className={`w-4 h-4 transition-transform ${settingsDropdownOpen ? 'rotate-180' : ''}`} 
             fill="none" 
@@ -104,7 +107,7 @@ export default function SiteHeader() {
                 onClick={() => setSettingsDropdownOpen(false)}
               >
                 <span className="text-base">👤</span>
-                Account Settings
+                {t('nav.accountSettings')}
               </Link>
               <Link 
                 href="/settings#rss"
@@ -112,7 +115,7 @@ export default function SiteHeader() {
                 onClick={() => setSettingsDropdownOpen(false)}
               >
                 <span className="text-base">📡</span>
-                RSS Feeds
+                {t('nav.rssFeeds')}
               </Link>
               <Link 
                 href="/settings#wordpress"
@@ -161,7 +164,7 @@ export default function SiteHeader() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {visibleNavItems
-              .filter(item => item.label !== "Settings") // Filter out regular settings
+              .filter(item => item.label !== t('nav.settings')) // Use translated settings label
               .map((item) => {
                 const isActive = router.pathname === item.href.split('#')[0];
                 return (
@@ -201,7 +204,7 @@ export default function SiteHeader() {
             {me && isOnlyTeamMember && (
               <div className="flex items-center gap-2">
                 <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 border border-blue-200">
-                  Team Member
+                  {t('nav.teamMember')}
                 </span>
               </div>
             )}
@@ -225,13 +228,13 @@ export default function SiteHeader() {
                       }}
                       className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Billing
+                      {t('nav.billing')}
                     </button>
                     <button
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Sign out
+                      {t('nav.signOut')}
                     </button>
                   </>
                 ) : (
@@ -239,7 +242,7 @@ export default function SiteHeader() {
                     onClick={() => signOut({ callbackUrl: "/" })}
                     className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm"
                   >
-                    Sign out
+                    {t('nav.signOut')}
                   </button>
                 )}
               </div>
@@ -249,31 +252,41 @@ export default function SiteHeader() {
                   href="/generate" 
                   className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Try Demo
+                  {t('nav.tryDemo')}
                 </Link>
                 <Link 
                   href="/login" 
                   className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all shadow-sm"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
               </div>
             )}
+
+            {/* Language Switcher - Moved to the far right */}
+            <div className="ml-2 pl-2 border-l border-gray-200">
+              <LanguageSwitcher />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          <div className="flex items-center gap-2 lg:hidden">
+            {/* Language Switcher for Mobile - Show on mobile only */}
+            <LanguageSwitcher />
+            
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -281,7 +294,7 @@ export default function SiteHeader() {
           <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
             <div className="flex flex-col gap-1 mt-4">
               {visibleNavItems
-                .filter(item => item.label !== "Settings") // Filter out regular settings
+                .filter(item => item.label !== t('nav.settings')) // Use translated settings label
                 .map((item) => {
                   const isActive = router.pathname === item.href.split('#')[0];
                   return (
@@ -310,7 +323,7 @@ export default function SiteHeader() {
                     className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span className="text-lg">👤</span>
-                    Account Settings
+                    {t('nav.accountSettings')}
                   </Link>
                   <Link
                     href="/settings#rss"
@@ -318,7 +331,7 @@ export default function SiteHeader() {
                     className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <span className="text-lg">📡</span>
-                    RSS Feeds
+                    {t('nav.rssFeeds')}
                   </Link>
                   <Link
                     href="/settings#wordpress"
@@ -349,9 +362,9 @@ export default function SiteHeader() {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 border border-blue-200">
-                    Team Member
+                    {t('nav.teamMember')}
                   </span>
-                  <span className="text-xs text-gray-500">Billing managed by team owner</span>
+                  <span className="text-xs text-gray-500">{t('nav.billingManagedByTeam')}</span>
                 </div>
               </div>
             )}
@@ -374,14 +387,14 @@ export default function SiteHeader() {
                       }}
                       className="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Manage Billing
+                      {t('nav.manageBilling')}
                     </button>
                   )}
                   <button
                     onClick={() => signOut({ callbackUrl: "/" })}
                     className="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
                   >
-                    Sign out
+                    {t('nav.signOut')}
                   </button>
                 </>
               ) : (
@@ -391,14 +404,14 @@ export default function SiteHeader() {
                     className="w-full px-3 py-2 text-sm font-medium text-center text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Try Demo
+                    {t('nav.tryDemo')}
                   </Link>
                   <Link 
                     href="/login" 
                     className="w-full px-4 py-2 text-sm font-medium text-center text-white bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-600 hover:to-green-700 transition-all"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Sign In
+                    {t('nav.signIn')}
                   </Link>
                 </>
               )}

@@ -1,29 +1,246 @@
 {
-  "navigation": {
-    "features": "Funktionen",
+  "nav": {
+    "features": "Features",
     "pricing": "Preise",
-    "generate": "Generieren", 
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "generate": "Generieren",
     "templates": "Vorlagen",
     "settings": "Einstellungen",
+    "teams": "Teams",
     "signIn": "Anmelden",
-    "signOut": "Abmelden", 
-    "billing": "Abrechnung"
+    "signOut": "Abmelden",
+    "dashboard": "Dashboard",
+    "accountSettings": "Konto-Einstellungen",
+    "rssFeeds": "RSS-Feeds",
+    "billing": "Abrechnung",
+    "manageBilling": "Abrechnung verwalten",
+    "teamMember": "Team-Mitglied",
+    "billingManagedByTeam": "Abrechnung wird vom Team-Besitzer verwaltet",
+    "tryDemo": "Demo testen",
+    "language": "Sprache"
   },
   "hero": {
-    "title": "Verwandeln Sie Podcasts in ansprechende Inhalte",
-    "subtitle": "Erstellen Sie Shownotes, Zusammenfassungen, Social-Media-Posts und mehr aus Ihren Podcast-Episoden in Minuten.",
-    "cta": "Kostenlos testen"
+    "title": "Perfekte Show Notes in Minuten, nicht Stunden",
+    "subtitle": "Transformieren Sie Ihren Podcast-Workflow mit KI. Generieren Sie professionelle Show Notes, Zeitstempel, SEO-Inhalte und Social Snippets aus jeder Audiodatei oder URL.",
+    "socialProof": "Vertraut von 2.400+ Podcast-Erstellern",
+    "cta": "Demo kostenlos testen",
+    "ctaSecondary": "Demo ansehen",
+    "ctaGenerate": "Generator öffnen →",
+    "ctaBilling": "Abrechnung verwalten",
+    "currentPlan": "Aktuell: {{plan}} • {{used}}/{{limit}} Min verwendet",
+    "freeNotice": "Kostenloser Plan verfügbar • Keine Kreditkarte erforderlich",
+    "benefits": {
+      "faster": "95% schnellerer Workflow",
+      "seo": "SEO-optimierte Inhalte",
+      "social": "Social Media Ready",
+      "wordpress": "WordPress-Integration"
+    }
+  },
+  "stats": {
+    "episodes": "50.000+",
+    "episodesLabel": "Episoden verarbeitet",
+    "creators": "2.400+",
+    "creatorsLabel": "Zufriedene Ersteller",
+    "timeSaved": "95%",
+    "timeSavedLabel": "Zeit gespart",
+    "rating": "4,9★",
+    "ratingLabel": "Nutzerbewertung"
+  },
+  "features": {
+    "title": "Alles was Sie brauchen, um Ihren Podcast zu skalieren",
+    "subtitle": "Vom Audio-Upload bis zum veröffentlichten Inhalt - unsere KI übernimmt die schwere Arbeit, damit Sie sich auf die Erstellung großartiger Inhalte konzentrieren können.",
+    "items": [
+      {
+        "icon": "📝",
+        "title": "KI-gestützte Show Notes",
+        "description": "Generieren Sie umfassende, gut strukturierte Show Notes mit wichtigen Punkten, Zitaten und Handlungsempfehlungen.",
+        "benefits": ["90% Zeitersparnis", "SEO-optimiert", "Mehrere Formate"]
+      },
+      {
+        "icon": "⏱️",
+        "title": "Intelligente Zeitstempel",
+        "description": "Automatische Kapitelmarkierungen und Zeitstempel für bessere Navigation und Engagement.",
+        "benefits": ["Mehr Engagement", "YouTube-ready", "Benutzerdefinierte Kapitel"]
+      },
+      {
+        "icon": "📱",
+        "title": "Social Media Ready",
+        "description": "Plattform-optimierte Snippets für Twitter, LinkedIn, Instagram und TikTok.",
+        "benefits": ["Mehrere Plattformen", "Trending Hashtags", "Visuelle Zitate"]
+      },
+      {
+        "icon": "🔍",
+        "title": "SEO-Optimierung",
+        "description": "Meta-Beschreibungen, Keywords und Titel, die Ihren Inhalten zu besseren Rankings verhelfen.",
+        "benefits": ["Bessere Rankings", "Mehr Traffic", "Keyword-Recherche"]
+      },
+      {
+        "icon": "📧",
+        "title": "Newsletter-Integration",
+        "description": "Versandfertige Newsletter-Entwürfe mit Episode-Highlights und CTAs.",
+        "benefits": ["E-Mail-Vorlagen", "Abonnenten-Wachstum", "Automatisierung"]
+      },
+      {
+        "icon": "🔗",
+        "title": "WordPress-Veröffentlichung",
+        "description": "Ein-Klick-Veröffentlichung direkt auf Ihrer WordPress-Seite mit korrekter Formatierung.",
+        "benefits": ["Direkte Veröffentlichung", "Custom Themes", "Auto-Planung"]
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Geliebt von Podcast-Erstellern weltweit",
+    "subtitle": "Schließen Sie sich Tausenden von Erstellern an, die ihren Workflow transformiert haben",
+    "items": [
+      {
+        "name": "Sarah Chen",
+        "role": "Podcast-Moderatorin bei TechTalks",
+        "company": "TechTalks Media",
+        "quote": "CastLumen hat unseren Workflow transformiert. Was früher 3 Stunden dauerte, dauert jetzt 15 Minuten. Die KI-generierten Show Notes sind unglaublich genau."
+      },
+      {
+        "name": "Marcus Rodriguez",
+        "role": "Content Director",
+        "company": "StartupStories",
+        "quote": "Allein die SEO-Optimierung hat unsere Podcast-Entdeckung um 40% gesteigert. Die Social Snippets sparen uns Stunden bei der Content-Erstellung."
+      },
+      {
+        "name": "Emma Thompson",
+        "role": "Marketing Lead",
+        "company": "Business Insights Podcast",
+        "quote": "Ein Game-Changer für unser Team. Die WordPress-Integration und benutzerdefinierten Vorlagen machen das Veröffentlichen nahtlos."
+      }
+    ]
   },
   "pricing": {
-    "free": {
-      "name": "Kostenlos",
-      "description": "Perfekt zum Ausprobieren von CastLumen",
-      "features": ["30 Minuten/Monat", "Nur manuelle Uploads", "Grundlegende Inhaltserstellung"]
+    "title": "Einfache, transparente Preise",
+    "subtitle": "Wählen Sie den Plan, der zu Ihren Bedürfnissen passt. Jederzeit upgraden oder downgraden. Keine versteckten Kosten.",
+    "billedMonthly": "Monatlich abgerechnet • Jederzeit kündbar",
+    "noCardRequired": "Keine Kreditkarte erforderlich",
+    "currentPlan": "✅ Aktueller Plan",
+    "minutesUsed": "{{used}}/{{limit}} Minuten diesen Monat verwendet",
+    "startFree": "Kostenlos starten",
+    "downgrade": "Auf Kostenlos downgraden",
+    "upgrade": "Auf {{plan}} upgraden",
+    "switch": "Zu {{plan}} wechseln",
+    "get": "{{plan}} holen",
+    "fairUse": "*Fair-Use-Richtlinie gilt für unbegrenzte Pläne",
+    "guarantees": {
+      "cancel": "Jederzeit kündbar",
+      "moneyBack": "30-Tage Geld-zurück-Garantie",
+      "noSetup": "Keine Einrichtungsgebühren"
     },
-    "pro": {
-      "name": "Pro",
-      "description": "Alles was Sie brauchen, um Ihren Podcast zu skalieren", 
-      "features": ["300 Minuten/Monat", "RSS-Feed-Automatisierung", "WordPress-Integration"]
+    "plans": {
+      "free": {
+        "name": "Kostenlos",
+        "description": "Perfekt zum Ausprobieren von CastLumen",
+        "features": [
+          "30 Minuten/Monat",
+          "Nur manuelle Uploads",
+          "Grundlegende Content-Generierung",
+          "E-Mail-Support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Alles was Sie brauchen, um Ihren Podcast zu skalieren",
+        "features": [
+          "300 Minuten/Monat",
+          "RSS-Feed-Automatisierung",
+          "WordPress-Integration",
+          "E-Mail-Benachrichtigungen",
+          "Alle Inhaltstypen",
+          "Priority-Support"
+        ]
+      },
+      "agency": {
+        "name": "Agency",
+        "description": "Für Agenturen und Power-User",
+        "features": [
+          "1000+ Minuten/Monat",
+          "Alles in Pro",
+          "Team-Management",
+          "Unbegrenzte RSS-Feeds",
+          "White-Label-Optionen",
+          "API-Zugang (bald verfügbar)"
+        ]
+      }
     }
+  },
+  "faq": {
+    "title": "Häufig gestellte Fragen",
+    "subtitle": "Alles was Sie über CastLumen wissen müssen",
+    "items": [
+      {
+        "question": "Wie genau sind die KI-generierten Show Notes?",
+        "answer": "Unsere KI erreicht 95%+ Genauigkeit bei den meisten Podcasts. Das System ist speziell auf Podcast-Inhalte trainiert und verbessert sich kontinuierlich. Sie können die Ausgabe jederzeit bearbeiten und an Ihren Stil anpassen."
+      },
+      {
+        "question": "Welche Audioformate unterstützen Sie?",
+        "answer": "Wir unterstützen MP3, WAV, M4A und die meisten gängigen Audioformate. Sie können auch YouTube-URLs, Podcast-RSS-Feeds oder direkte Audio-Links bereitstellen."
+      },
+      {
+        "question": "Kann ich das Ausgabeformat anpassen?",
+        "answer": "Ja! Sie können benutzerdefinierte Vorlagen erstellen, Ton und Stil anpassen und sogar die Ausgabe für Ihre Marke white-labeln. Pro- und Agency-Pläne beinhalten erweiterte Anpassungsoptionen."
+      },
+      {
+        "question": "Wie funktioniert die WordPress-Integration?",
+        "answer": "Verbinden Sie einfach Ihre WordPress-Seite mit Ihren Anmeldedaten und Sie können Show Notes direkt von CastLumen mit einem Klick veröffentlichen. Es übernimmt automatisch Formatierung, Bilder und SEO."
+      },
+      {
+        "question": "Gibt es eine kostenlose Testversion?",
+        "answer": "Ja! Sie können unsere Demo ohne Anmeldung ausprobieren, und alle bezahlten Pläne kommen mit einer 30-tägigen Geld-zurück-Garantie. Der kostenlose Plan beinhaltet begrenzte Verarbeitungszeit pro Monat."
+      },
+      {
+        "question": "Wie sicher sind meine Inhalte?",
+        "answer": "Sehr sicher. Wir verwenden Enterprise-Grade-Verschlüsselung, speichern Ihre Audiodateien niemals dauerhaft und sind DSGVO-konform. Ihre Inhalte werden verarbeitet und dann sicher gelöscht."
+      }
+    ]
+  },
+  "newsletter": {
+    "title": "Bleiben Sie der Zeit voraus",
+    "subtitle": "Erhalten Sie die neuesten Podcast-Marketing-Tipps, KI-Updates und exklusiven frühen Zugang zu neuen Features.",
+    "placeholder": "E-Mail eingeben",
+    "button": "Abonnieren",
+    "cta": "Abonnieren",
+    "loading": "...",
+    "disclaimer": "Schließen Sie sich 5.000+ Erstellern an. Jederzeit abbestellbar.",
+    "success": "Danke fürs Abonnieren! Prüfen Sie Ihre E-Mails für Updates.",
+    "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+  },
+  "cta": {
+    "title": "Bereit, Ihren Podcast-Workflow zu transformieren?",
+    "subtitle": "Schließen Sie sich Tausenden von Erstellern an, die bereits Hunderte von Stunden mit CastLumen gespart haben.",
+    "primary": "Demo kostenlos starten",
+    "secondary": "Preise ansehen",
+    "features": {
+      "freeStart": "Kostenlos starten",
+      "noCard": "Keine Kreditkarte erforderlich",
+      "quickSetup": "Einrichtung in 2 Minuten"
+    }
+  },
+  "meta": {
+    "title": "KI Podcast Show Notes Generator – CastLumen",
+    "description": "Transformieren Sie Ihren Podcast-Workflow mit KI. Generieren Sie professionelle Show Notes, Zeitstempel, SEO-Inhalte und Social Snippets in Minuten, nicht Stunden.",
+    "keywords": "podcast, show notes, KI, transkription, SEO, social media, content creation"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "download": "Herunterladen",
+    "back": "Zurück",
+    "continue": "Weiter",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "close": "Schließen",
+    "timeSaved": "95% Zeit gespart!",
+    "aiPowered": "KI-gestützt"
   }
 }

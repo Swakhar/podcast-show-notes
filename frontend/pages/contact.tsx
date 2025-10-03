@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useToast } from "../contexts/ToastContext";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -338,3 +340,11 @@ export default function Contact() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

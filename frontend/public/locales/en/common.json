@@ -1,29 +1,245 @@
 {
-  "navigation": {
+  "nav": {
     "features": "Features",
-    "pricing": "Pricing", 
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "contact": "Contact",
     "generate": "Generate",
     "templates": "Templates",
     "settings": "Settings",
-    "signIn": "Sign in",
-    "signOut": "Sign out",
-    "billing": "Billing"
+    "teams": "Teams",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "dashboard": "Dashboard",
+    "accountSettings": "Account Settings",
+    "rssFeeds": "RSS Feeds",
+    "billing": "Billing",
+    "manageBilling": "Manage Billing",
+    "teamMember": "Team Member",
+    "billingManagedByTeam": "Billing managed by team owner",
+    "tryDemo": "Try Demo",
+    "language": "Language"
   },
   "hero": {
-    "title": "Transform Podcasts into Engaging Content",
-    "subtitle": "Generate show notes, summaries, social media posts, and more from your podcast episodes in minutes.",
-    "cta": "Try Free"
+    "title": "Ship perfect show notes in minutes, not hours",
+    "subtitle": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets from any audio file or URL.",
+    "socialProof": "Trusted by 2,400+ podcast creators",
+    "cta": "Try Free Demo",
+    "ctaSecondary": "Watch Demo",
+    "ctaGenerate": "Open Generator →",
+    "ctaBilling": "Manage Billing",
+    "currentPlan": "Current: {{plan}} • {{used}}/{{limit}} min used",
+    "freeNotice": "Free plan available • No credit card required",
+    "benefits": {
+      "faster": "95% faster workflow",
+      "seo": "SEO optimized content",
+      "social": "Social media ready",
+      "wordpress": "WordPress integration"
+    }
+  },
+  "stats": {
+    "episodes": "50,000+",
+    "episodesLabel": "Episodes Processed",
+    "creators": "2,400+",
+    "creatorsLabel": "Happy Creators", 
+    "timeSaved": "95%",
+    "timeSavedLabel": "Time Saved",
+    "rating": "4.9★",
+    "ratingLabel": "User Rating"
+  },
+  "features": {
+    "title": "Everything you need to scale your podcast",
+    "subtitle": "From audio upload to published content - our AI handles the heavy lifting so you can focus on creating great content.",
+    "items": [
+      {
+        "icon": "📝",
+        "title": "AI-Powered Show Notes",
+        "description": "Generate comprehensive, well-structured show notes with key points, quotes, and actionable takeaways.",
+        "benefits": ["90% time saved", "SEO optimized", "Multiple formats"]
+      },
+      {
+        "icon": "⏱️",
+        "title": "Smart Timestamps",
+        "description": "Automatic chapter marks and timestamps for better navigation and engagement.",
+        "benefits": ["Higher engagement", "YouTube ready", "Custom chapters"]
+      },
+      {
+        "icon": "📱",
+        "title": "Social Media Ready",
+        "description": "Platform-optimized snippets for Twitter, LinkedIn, Instagram, and TikTok.",
+        "benefits": ["Multiple platforms", "Trending hashtags", "Visual quotes"]
+      },
+      {
+        "icon": "🔍",
+        "title": "SEO Optimization",
+        "description": "Meta descriptions, keywords, and titles that help your content rank better.",
+        "benefits": ["Better rankings", "More traffic", "Keyword research"]
+      },
+      {
+        "icon": "📧",
+        "title": "Newsletter Integration",
+        "description": "Ready-to-send newsletter drafts with episode highlights and CTAs.",
+        "benefits": ["Email templates", "Subscriber growth", "Automation"]
+      },
+      {
+        "icon": "🔗",
+        "title": "WordPress Publishing",
+        "description": "One-click publishing directly to your WordPress site with proper formatting.",
+        "benefits": ["Direct publishing", "Custom themes", "Auto-scheduling"]
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Loved by podcast creators worldwide",
+    "subtitle": "Join thousands of creators who've transformed their workflow",
+    "items": [
+      {
+        "name": "Sarah Chen",
+        "role": "Podcast Host at TechTalks",
+        "company": "TechTalks Media",
+        "quote": "CastLumen transformed our workflow. What used to take 3 hours now takes 15 minutes. The AI-generated show notes are incredibly accurate."
+      },
+      {
+        "name": "Marcus Rodriguez", 
+        "role": "Content Director",
+        "company": "StartupStories",
+        "quote": "The SEO optimization alone increased our podcast discovery by 40%. The social snippets save us hours of content creation."
+      },
+      {
+        "name": "Emma Thompson",
+        "role": "Marketing Lead", 
+        "company": "Business Insights Podcast",
+        "quote": "Game-changer for our team. The WordPress integration and custom templates make publishing seamless."
+      }
+    ]
   },
   "pricing": {
-    "free": {
-      "name": "Free",
-      "description": "Perfect for trying out CastLumen",
-      "features": ["30 minutes/month", "Manual uploads only", "Basic content generation"]
+    "title": "Simple, transparent pricing",
+    "subtitle": "Choose the plan that fits your needs. Upgrade or downgrade anytime. No hidden fees.",
+    "billedMonthly": "Billed monthly • Cancel anytime",
+    "noCardRequired": "No credit card required",
+    "currentPlan": "✅ Current Plan",
+    "minutesUsed": "{{used}}/{{limit}} minutes used this month",
+    "startFree": "Start Free",
+    "downgrade": "Downgrade to Free",
+    "upgrade": "Upgrade to {{plan}}",
+    "switch": "Switch to {{plan}}",
+    "get": "Get {{plan}}",
+    "fairUse": "*Fair-use policy applies to unlimited plans",
+    "guarantees": {
+      "cancel": "Cancel anytime",
+      "moneyBack": "30-day money back", 
+      "noSetup": "No setup fees"
     },
-    "pro": {
-      "name": "Pro", 
-      "description": "Everything you need to scale your podcast",
-      "features": ["300 minutes/month", "RSS feed automation", "WordPress integration"]
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "Perfect for trying out CastLumen",
+        "features": [
+          "30 minutes/month",
+          "Manual uploads only",
+          "Basic content generation", 
+          "Email support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Everything you need to scale your podcast",
+        "features": [
+          "300 minutes/month",
+          "RSS feed automation",
+          "WordPress integration",
+          "Email notifications", 
+          "All content types",
+          "Priority support"
+        ]
+      },
+      "agency": {
+        "name": "Agency",
+        "description": "For agencies and power users", 
+        "features": [
+          "1000+ minutes/month",
+          "Everything in Pro",
+          "Team management",
+          "Unlimited RSS feeds",
+          "White-label options",
+          "API access (coming soon)"
+        ]
+      }
     }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about CastLumen",
+    "items": [
+      {
+        "question": "How accurate are the AI-generated show notes?",
+        "answer": "Our AI achieves 95%+ accuracy on most podcasts. The system is trained specifically on podcast content and continuously improves. You can always edit and customize the output to match your style."
+      },
+      {
+        "question": "What audio formats do you support?",
+        "answer": "We support MP3, WAV, M4A, and most common audio formats. You can also provide YouTube URLs, podcast RSS feeds, or direct audio links."
+      },
+      {
+        "question": "Can I customize the output format?",
+        "answer": "Yes! You can create custom templates, adjust tone and style, and even white-label the output for your brand. Pro and Agency plans include advanced customization options."
+      },
+      {
+        "question": "How does the WordPress integration work?",
+        "answer": "Simply connect your WordPress site with your credentials, and you can publish show notes directly from CastLumen with one click. It handles formatting, images, and SEO automatically."
+      },
+      {
+        "question": "Is there a free trial?",
+        "answer": "Yes! You can try our demo without signing up, and all paid plans come with a 30-day money-back guarantee. The Free plan includes limited processing time each month."
+      },
+      {
+        "question": "How secure is my content?",
+        "answer": "Very secure. We use enterprise-grade encryption, never store your audio files permanently, and are GDPR compliant. Your content is processed and then securely deleted."
+      }
+    ]
+  },
+  "newsletter": {
+    "title": "Stay ahead of the curve",
+    "subtitle": "Get the latest podcast marketing tips, AI updates, and exclusive early access to new features.",
+    "placeholder": "Enter your email",
+    "button": "Subscribe",
+    "loading": "...",
+    "disclaimer": "Join 5,000+ creators. Unsubscribe anytime.",
+    "success": "Thanks for subscribing! Check your email for updates.",
+    "error": "Something went wrong. Please try again."
+  },
+  "finalCta": {
+    "title": "Ready to transform your podcast workflow?",
+    "subtitle": "Join thousands of creators who've already saved hundreds of hours with CastLumen.",
+    "cta": "Start Free Demo",
+    "viewPricing": "View Pricing",
+    "features": {
+      "freeStart": "Free to start",
+      "noCard": "No credit card required", 
+      "quickSetup": "Setup in 2 minutes"
+    }
+  },
+  "meta": {
+    "title": "AI Podcast Show Notes Generator – CastLumen",
+    "description": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes, not hours.",
+    "keywords": "podcast, show notes, AI, transcription, SEO, social media, content creation"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "back": "Back",
+    "continue": "Continue", 
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "timeSaved": "95% Time Saved!",
+    "aiPowered": "AI Powered"
   }
 }

@@ -4,6 +4,9 @@ import axios from "axios";
 import Head from "next/head";
 import Link from "next/link";
 import useSWR from "swr";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
+
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
@@ -990,3 +993,12 @@ function ProCard({ title, icon, children, expanded = true, onToggle, actions }: 
     </div>
   );
 }
+
+/* ---------- i18n Support ---------- */
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

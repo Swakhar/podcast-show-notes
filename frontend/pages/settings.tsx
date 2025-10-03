@@ -6,6 +6,8 @@ import SiteFooter from "../components/SiteFooter";
 import { useToast } from "../contexts/ToastContext";
 import JobsStatus from '../components/JobsStatus';
 import { logger } from "../lib/logger";
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
 
 interface WordPressCred {
   siteUrl: string;
@@ -590,3 +592,12 @@ export default function SettingsPage() {
     </>
   );
 }
+
+// Add this at the bottom:
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};
