@@ -536,6 +536,44 @@
       "redirecting": "Redirecting to homepage in"
     }
   },
+  "success": {
+    "title": "Payment Successful – CastLumen",
+    "metaDescription": "Your CastLumen subscription is now active. Start generating AI-powered podcast content.",
+    "status": {
+      "activating": "Activating your subscription…",
+      "missingSession": "Missing session id. Redirecting…",
+      "activationFailed": "Activation failed. Redirecting…",
+      "active": "Subscription active! Redirecting…"
+    },
+    "header": {
+      "settingUp": "Setting Up Your Account",
+      "welcome": "🎉 Welcome to CastLumen!",
+      "error": "⚠️ Something Went Wrong"
+    },
+    "content": {
+      "whatsNext": {
+        "title": "What's Next?",
+        "steps": {
+          "upload": "✨ Upload your first podcast",
+          "generate": "🚀 Generate professional show notes",
+          "social": "📱 Create social media content",
+          "seo": "🔍 Optimize for SEO"
+        }
+      }
+    },
+    "buttons": {
+      "startCreating": "Start Creating Content",
+      "goToDashboard": "Go to Dashboard",
+      "tryGenerator": "Try the Generator"
+    },
+    "support": {
+      "needHelp": "Need help getting started?",
+      "contactSupport": "Contact our support team →"
+    },
+    "confirmation": {
+      "emailSent": "A confirmation email has been sent to your inbox"
+    }
+  },
   "contact": {
     "title": "Contact – CastLumen | Support & Sales",
     "metaDescription": "Contact the CastLumen team. Professional support, sales and general inquiries. Response within 24 hours.",
@@ -733,6 +771,301 @@
     "toast": {
       "success": "Reset instructions sent to your email",
       "error": "Something went wrong. Please try again."
+    }
+  },
+  "login": {
+    "signIn": {
+      "title": "Sign In – CastLumen",
+      "metaDescription": "Sign in to your CastLumen account"
+    },
+    "register": {
+      "title": "Create Account – CastLumen",
+      "metaDescription": "Create a new CastLumen account"
+    },
+    "header": {
+      "welcomeBack": "Welcome back",
+      "createAccount": "Create your account",
+      "signInSubtitle": "Sign in to continue generating amazing content",
+      "registerSubtitle": "Join thousands of creators using AI-powered content generation"
+    },
+    "tabs": {
+      "signIn": "Sign In",
+      "signUp": "Sign Up"
+    },
+    "form": {
+      "fields": {
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "Enter your full name",
+        "email": "Email Address",
+        "emailPlaceholder": "Enter your email",
+        "password": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "createPasswordPlaceholder": "Create a strong password",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "passwordRequirement": "Must be at least 8 characters",
+        "rememberMe": "Remember me"
+      },
+      "buttons": {
+        "signIn": "Sign In",
+        "signingIn": "Signing In...",
+        "createAccount": "Create Account",
+        "creatingAccount": "Creating Account...",
+        "forgotPassword": "Forgot password?"
+      },
+      "legal": {
+        "agreement": "By creating an account, you agree to our",
+        "termsOfService": "Terms of Service",
+        "and": "and",
+        "privacyPolicy": "Privacy Policy"
+      }
+    },
+    "demo": {
+      "tryBefore": "Want to try before signing up?",
+      "tryFreeDemo": "Try Free Demo"
+    },
+    "support": {
+      "needHelp": "Need help?",
+      "contactSupport": "Contact Support"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords don't match",
+      "registrationFailed": "Registration failed"
+    }
+  },
+  "resetPassword": {
+    "title": "Reset Password – CastLumen",
+    "metaDescription": "Create a new password for your CastLumen account",
+    "successTitle": "Password Reset Successful – CastLumen",
+    "form": {
+      "title": "Reset your password",
+      "subtitle": "Enter your new password below",
+      "fields": {
+        "newPassword": "New Password",
+        "newPasswordPlaceholder": "Enter new password",
+        "confirmPassword": "Confirm New Password",
+        "confirmPasswordPlaceholder": "Confirm new password",
+        "passwordRequirement": "Must be at least 8 characters"
+      },
+      "buttons": {
+        "resetPassword": "Reset Password",
+        "resettingPassword": "Resetting Password..."
+      },
+      "footer": {
+        "rememberPassword": "Remember your password?",
+        "signInHere": "Sign in here"
+      }
+    },
+    "success": {
+      "title": "Password Reset Successful!",
+      "message": "Your password has been reset successfully. You can now sign in with your new password.",
+      "signInNow": "Sign In Now"
+    },
+    "invalidLink": {
+      "title": "Invalid Reset Link",
+      "message": "This password reset link is invalid or has expired.",
+      "requestNew": "Request a new reset link"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords don't match",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "resetFailed": "Something went wrong",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "toast": {
+      "success": "Password reset successfully!"
+    }
+  },
+  "settings": {
+    "title": "Settings – CastLumen",
+    "metaDescription": "Configure your CastLumen settings and integrations",
+    "signInRequired": {
+      "title": "Settings - Sign in required",
+      "heading": "Sign in required",
+      "message": "Please sign in to access your settings."
+    },
+    "header": {
+      "title": "Settings",
+      "subtitle": "Configure your integrations and preferences"
+    },
+    "loading": {
+      "settings": "Loading settings...",
+      "general": "Loading..."
+    },
+    "wordpress": {
+      "title": "WordPress Integration",
+      "subtitle": "Connect your WordPress site to publish content directly",
+      "fields": {
+        "siteUrl": "Site URL",
+        "siteUrlPlaceholder": "https://yoursite.com",
+        "username": "Username",
+        "usernamePlaceholder": "Your WordPress username",
+        "appPassword": "Application Password",
+        "appPasswordPlaceholder": "WordPress App Password",
+        "appPasswordHelp": "Generate this in WordPress → Users → Your Profile → Application Passwords"
+      },
+      "buttons": {
+        "save": "Save Credentials",
+        "saving": "Saving...",
+        "test": "Test",
+        "testing": "Testing..."
+      },
+      "note": {
+        "title": "📝 WordPress Publishing Note",
+        "free": "WordPress.com Free: Demo mode only (API limitations)",
+        "business": "WordPress.com Business ($25/mo): Full publishing",
+        "selfHosted": "Self-hosted WordPress: Full publishing with Application Passwords"
+      },
+      "toast": {
+        "saved": "WordPress credentials saved successfully!",
+        "connectionSuccess": "Connection successful! ✅",
+        "connectionFailed": "Connection failed:",
+        "testFailed": "Connection test failed",
+        "saveFailed": "Failed to save WordPress credentials",
+        "fillRequired": "Please fill in Site URL and Username first"
+      }
+    },
+    "rss": {
+      "title": "RSS Feed Management",
+      "subtitle": "Monitor podcast feeds for automatic processing",
+      "fields": {
+        "feedUrl": "RSS Feed URL",
+        "feedUrlPlaceholder": "https://feeds.example.com/podcast.xml"
+      },
+      "buttons": {
+        "add": "Add RSS Feed",
+        "adding": "Adding...",
+        "pullNow": "Pull Now",
+        "pulling": "Pulling...",
+        "pause": "Pause",
+        "activate": "Activate",
+        "remove": "Remove"
+      },
+      "feeds": {
+        "title": "Your RSS Feeds",
+        "empty": {
+          "noFeeds": "No RSS feeds configured yet.",
+          "getStarted": "Add your first feed to get started!"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "lastChecked": "Last checked:",
+        "untitled": "Untitled Feed"
+      },
+      "confirmRemove": "Remove RSS feed:",
+      "toast": {
+        "added": "RSS feed added successfully!",
+        "removed": "RSS feed removed successfully!",
+        "pullSuccess": "✅ Pulled {itemCount} episodes, created {jobsCreated} AI jobs for \"{feedTitle}\"",
+        "addFailed": "Failed to add RSS feed",
+        "removeFailed": "Failed to remove RSS feed",
+        "updateFailed": "Failed to update RSS feed",
+        "pullFailed": "Failed to pull RSS feed"
+      }
+    },
+    "email": {
+      "title": "📧 Email Notifications",
+      "preferences": {
+        "rssNewContent": "Email me when RSS feeds generate new content",
+        "manualJobs": "Email me when manual uploads complete",
+        "weeklyDigest": "Send weekly content digest"
+      },
+      "buttons": {
+        "save": "Save Email Preferences"
+      },
+      "toast": {
+        "saved": "Email preferences saved!",
+        "saveFailed": "Failed to save email preferences"
+      }
+    },
+    "benefits": {
+      "title": "Integration Benefits",
+      "wordpress": {
+        "title": "WordPress Integration",
+        "description": "Automatically publish your generated show notes, newsletters, and content directly to your WordPress site with one click."
+      },
+      "rss": {
+        "title": "RSS Monitoring",
+        "description": "Monitor your podcast RSS feeds and automatically process new episodes as they're published to your feed."
+      }
+    }
+  },
+  "templates": {
+    "title": "Templates – CastLumen",
+    "metaDescription": "Create and manage custom AI templates for personalized podcast content generation",
+    "signInRequired": {
+      "title": "Templates - Sign in required",
+      "heading": "Sign in required",
+      "message": "Please sign in to manage your templates."
+    },
+    "header": {
+      "title": "Templates",
+      "subtitle": "Create custom templates to personalize your AI-generated content",
+      "backToGenerate": "Back to Generate"
+    },
+    "loading": {
+      "general": "Loading...",
+      "templates": "Loading templates..."
+    },
+    "form": {
+      "create": {
+        "title": "Create New Template",
+        "submitButton": "Create Template"
+      },
+      "edit": {
+        "title": "Edit Template",
+        "submitButton": "Update Template"
+      },
+      "fields": {
+        "templateName": {
+          "label": "Template Name",
+          "placeholder": "e.g., Formal Business Summary"
+        },
+        "contentType": {
+          "label": "Content Type",
+          "options": {
+            "summary": "Summary",
+            "showNotes": "Show Notes",
+            "socialSnippets": "Social Snippets",
+            "seo": "SEO",
+            "newsletter": "Newsletter"
+          }
+        },
+        "systemPrompt": {
+          "label": "System Prompt",
+          "placeholder": "You are a professional content writer who...",
+          "help": "Define the AI's role and behavior"
+        },
+        "userInstructions": {
+          "label": "User Instructions",
+          "placeholder": "Create a professional summary with the following format...",
+          "help": "Specific instructions for the content generation"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel"
+      }
+    },
+    "list": {
+      "title": "Your Templates",
+      "empty": {
+        "noTemplates": "No templates yet.",
+        "getStarted": "Create your first template to get started!"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    },
+    "confirmDelete": "Are you sure you want to delete this template?",
+    "toast": {
+      "saveSuccess": "Template saved successfully!",
+      "saveFailed": "Failed to save template",
+      "deleteSuccess": "Template deleted successfully!",
+      "deleteFailed": "Failed to delete template",
+      "fetchFailed": "Failed to load templates"
     }
   }
 }

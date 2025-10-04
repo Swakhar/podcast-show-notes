@@ -537,6 +537,44 @@
       "redirecting": "Weiterleitung zur Startseite in"
     }
   },
+  "success": {
+    "title": "Zahlung erfolgreich – CastLumen",
+    "metaDescription": "Ihr CastLumen-Abonnement ist jetzt aktiv. Beginnen Sie mit der Generierung von KI-gestützten Podcast-Inhalten.",
+    "status": {
+      "activating": "Ihr Abonnement wird aktiviert…",
+      "missingSession": "Session-ID fehlt. Weiterleitung…",
+      "activationFailed": "Aktivierung fehlgeschlagen. Weiterleitung…",
+      "active": "Abonnement aktiv! Weiterleitung…"
+    },
+    "header": {
+      "settingUp": "Ihr Konto wird eingerichtet",
+      "welcome": "🎉 Willkommen bei CastLumen!",
+      "error": "⚠️ Etwas ist schiefgelaufen"
+    },
+    "content": {
+      "whatsNext": {
+        "title": "Was kommt als Nächstes?",
+        "steps": {
+          "upload": "✨ Laden Sie Ihren ersten Podcast hoch",
+          "generate": "🚀 Erstellen Sie professionelle Show Notes",
+          "social": "📱 Erstellen Sie Social Media-Inhalte",
+          "seo": "🔍 Für SEO optimieren"
+        }
+      }
+    },
+    "buttons": {
+      "startCreating": "Content erstellen",
+      "goToDashboard": "Zum Dashboard",
+      "tryGenerator": "Generator ausprobieren"
+    },
+    "support": {
+      "needHelp": "Benötigen Sie Hilfe beim Einstieg?",
+      "contactSupport": "Kontaktieren Sie unser Support-Team →"
+    },
+    "confirmation": {
+      "emailSent": "Eine Bestätigungs-E-Mail wurde an Ihr Postfach gesendet"
+    }
+  },
   "contact": {
     "title": "Kontakt – CastLumen | Support & Vertrieb",
     "metaDescription": "Kontaktieren Sie das CastLumen Team. Professioneller Support, Vertrieb und allgemeine Anfragen. Antwort binnen 24 Stunden.",
@@ -734,6 +772,301 @@
     "toast": {
       "success": "Zurücksetzungs-Anweisungen an Ihre E-Mail gesendet",
       "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
+  },
+  "login": {
+    "signIn": {
+      "title": "Anmelden – CastLumen",
+      "metaDescription": "Melden Sie sich in Ihrem CastLumen-Konto an"
+    },
+    "register": {
+      "title": "Konto erstellen – CastLumen",
+      "metaDescription": "Erstellen Sie ein neues CastLumen-Konto"
+    },
+    "header": {
+      "welcomeBack": "Willkommen zurück",
+      "createAccount": "Erstellen Sie Ihr Konto",
+      "signInSubtitle": "Melden Sie sich an, um weiterhin großartigen Content zu generieren",
+      "registerSubtitle": "Schließen Sie sich Tausenden von Erstellern an, die KI-gestützte Content-Generierung nutzen"
+    },
+    "tabs": {
+      "signIn": "Anmelden",
+      "signUp": "Registrieren"
+    },
+    "form": {
+      "fields": {
+        "fullName": "Vollständiger Name",
+        "fullNamePlaceholder": "Geben Sie Ihren vollständigen Namen ein",
+        "email": "E-Mail-Adresse",
+        "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
+        "password": "Passwort",
+        "passwordPlaceholder": "Geben Sie Ihr Passwort ein",
+        "createPasswordPlaceholder": "Erstellen Sie ein starkes Passwort",
+        "confirmPassword": "Passwort bestätigen",
+        "confirmPasswordPlaceholder": "Bestätigen Sie Ihr Passwort",
+        "passwordRequirement": "Muss mindestens 8 Zeichen haben",
+        "rememberMe": "Angemeldet bleiben"
+      },
+      "buttons": {
+        "signIn": "Anmelden",
+        "signingIn": "Anmeldung läuft...",
+        "createAccount": "Konto erstellen",
+        "creatingAccount": "Konto wird erstellt...",
+        "forgotPassword": "Passwort vergessen?"
+      },
+      "legal": {
+        "agreement": "Mit der Kontoerstellung stimmen Sie unseren",
+        "termsOfService": "Nutzungsbedingungen",
+        "and": "und der",
+        "privacyPolicy": "Datenschutzerklärung"
+      }
+    },
+    "demo": {
+      "tryBefore": "Möchten Sie es vor der Registrierung ausprobieren?",
+      "tryFreeDemo": "Kostenlose Demo testen"
+    },
+    "support": {
+      "needHelp": "Benötigen Sie Hilfe?",
+      "contactSupport": "Support kontaktieren"
+    },
+    "errors": {
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "registrationFailed": "Registrierung fehlgeschlagen"
+    }
+  },
+  "resetPassword": {
+    "title": "Passwort zurücksetzen – CastLumen",
+    "metaDescription": "Erstellen Sie ein neues Passwort für Ihr CastLumen-Konto",
+    "successTitle": "Passwort erfolgreich zurückgesetzt – CastLumen",
+    "form": {
+      "title": "Passwort zurücksetzen",
+      "subtitle": "Geben Sie Ihr neues Passwort ein",
+      "fields": {
+        "newPassword": "Neues Passwort",
+        "newPasswordPlaceholder": "Neues Passwort eingeben",
+        "confirmPassword": "Neues Passwort bestätigen",
+        "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+        "passwordRequirement": "Muss mindestens 8 Zeichen haben"
+      },
+      "buttons": {
+        "resetPassword": "Passwort zurücksetzen",
+        "resettingPassword": "Passwort wird zurückgesetzt..."
+      },
+      "footer": {
+        "rememberPassword": "Passwort wieder eingefallen?",
+        "signInHere": "Hier anmelden"
+      }
+    },
+    "success": {
+      "title": "Passwort erfolgreich zurückgesetzt!",
+      "message": "Ihr Passwort wurde erfolgreich zurückgesetzt. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+      "signInNow": "Jetzt anmelden"
+    },
+    "invalidLink": {
+      "title": "Ungültiger Reset-Link",
+      "message": "Dieser Passwort-Reset-Link ist ungültig oder abgelaufen.",
+      "requestNew": "Neuen Reset-Link anfordern"
+    },
+    "errors": {
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "passwordTooShort": "Passwort muss mindestens 8 Zeichen haben",
+      "resetFailed": "Etwas ist schiefgelaufen",
+      "genericError": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    },
+    "toast": {
+      "success": "Passwort erfolgreich zurückgesetzt!"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen – CastLumen",
+    "metaDescription": "Konfigurieren Sie Ihre CastLumen-Einstellungen und Integrationen",
+    "signInRequired": {
+      "title": "Einstellungen - Anmeldung erforderlich",
+      "heading": "Anmeldung erforderlich",
+      "message": "Bitte melden Sie sich an, um auf Ihre Einstellungen zuzugreifen."
+    },
+    "header": {
+      "title": "Einstellungen",
+      "subtitle": "Konfigurieren Sie Ihre Integrationen und Einstellungen"
+    },
+    "loading": {
+      "settings": "Einstellungen werden geladen...",
+      "general": "Wird geladen..."
+    },
+    "wordpress": {
+      "title": "WordPress-Integration",
+      "subtitle": "Verbinden Sie Ihre WordPress-Website zur direkten Veröffentlichung von Inhalten",
+      "fields": {
+        "siteUrl": "Website-URL",
+        "siteUrlPlaceholder": "https://ihreseite.de",
+        "username": "Benutzername",
+        "usernamePlaceholder": "Ihr WordPress-Benutzername",
+        "appPassword": "Anwendungspasswort",
+        "appPasswordPlaceholder": "WordPress App-Passwort",
+        "appPasswordHelp": "Generieren Sie dies in WordPress → Benutzer → Ihr Profil → Anwendungspasswörter"
+      },
+      "buttons": {
+        "save": "Zugangsdaten speichern",
+        "saving": "Wird gespeichert...",
+        "test": "Testen",
+        "testing": "Wird getestet..."
+      },
+      "note": {
+        "title": "📝 WordPress-Veröffentlichungs-Hinweis",
+        "free": "WordPress.com Kostenlos: Nur Demo-Modus (API-Beschränkungen)",
+        "business": "WordPress.com Business (25€/Monat): Vollständige Veröffentlichung",
+        "selfHosted": "Selbst gehostetes WordPress: Vollständige Veröffentlichung mit Anwendungspasswörtern"
+      },
+      "toast": {
+        "saved": "WordPress-Zugangsdaten erfolgreich gespeichert!",
+        "connectionSuccess": "Verbindung erfolgreich! ✅",
+        "connectionFailed": "Verbindung fehlgeschlagen:",
+        "testFailed": "Verbindungstest fehlgeschlagen",
+        "saveFailed": "Fehler beim Speichern der WordPress-Zugangsdaten",
+        "fillRequired": "Bitte füllen Sie zuerst Website-URL und Benutzername aus"
+      }
+    },
+    "rss": {
+      "title": "RSS-Feed-Verwaltung",
+      "subtitle": "Überwachen Sie Podcast-Feeds für automatische Verarbeitung",
+      "fields": {
+        "feedUrl": "RSS-Feed-URL",
+        "feedUrlPlaceholder": "https://feeds.beispiel.de/podcast.xml"
+      },
+      "buttons": {
+        "add": "RSS-Feed hinzufügen",
+        "adding": "Wird hinzugefügt...",
+        "pullNow": "Jetzt abrufen",
+        "pulling": "Wird abgerufen...",
+        "pause": "Pausieren",
+        "activate": "Aktivieren",
+        "remove": "Entfernen"
+      },
+      "feeds": {
+        "title": "Ihre RSS-Feeds",
+        "empty": {
+          "noFeeds": "Noch keine RSS-Feeds konfiguriert.",
+          "getStarted": "Fügen Sie Ihren ersten Feed hinzu, um zu beginnen!"
+        },
+        "status": {
+          "active": "Aktiv",
+          "inactive": "Inaktiv"
+        },
+        "lastChecked": "Zuletzt geprüft:",
+        "untitled": "Unbenannter Feed"
+      },
+      "confirmRemove": "RSS-Feed entfernen:",
+      "toast": {
+        "added": "RSS-Feed erfolgreich hinzugefügt!",
+        "removed": "RSS-Feed erfolgreich entfernt!",
+        "pullSuccess": "✅ {itemCount} Episoden abgerufen, {jobsCreated} KI-Jobs erstellt für \"{feedTitle}\"",
+        "addFailed": "Fehler beim Hinzufügen des RSS-Feeds",
+        "removeFailed": "Fehler beim Entfernen des RSS-Feeds",
+        "updateFailed": "Fehler beim Aktualisieren des RSS-Feeds",
+        "pullFailed": "Fehler beim Abrufen des RSS-Feeds"
+      }
+    },
+    "email": {
+      "title": "📧 E-Mail-Benachrichtigungen",
+      "preferences": {
+        "rssNewContent": "E-Mail senden, wenn RSS-Feeds neue Inhalte generieren",
+        "manualJobs": "E-Mail senden, wenn manuelle Uploads abgeschlossen sind",
+        "weeklyDigest": "Wöchentliche Inhalts-Zusammenfassung senden"
+      },
+      "buttons": {
+        "save": "E-Mail-Einstellungen speichern"
+      },
+      "toast": {
+        "saved": "E-Mail-Einstellungen gespeichert!",
+        "saveFailed": "Fehler beim Speichern der E-Mail-Einstellungen"
+      }
+    },
+    "benefits": {
+      "title": "Integrations-Vorteile",
+      "wordpress": {
+        "title": "WordPress-Integration",
+        "description": "Veröffentlichen Sie automatisch Ihre generierten Show Notes, Newsletter und Inhalte direkt auf Ihrer WordPress-Website mit einem Klick."
+      },
+      "rss": {
+        "title": "RSS-Überwachung",
+        "description": "Überwachen Sie Ihre Podcast-RSS-Feeds und verarbeiten Sie automatisch neue Episoden, sobald sie in Ihrem Feed veröffentlicht werden."
+      }
+    }
+  },
+  "templates": {
+    "title": "Vorlagen – CastLumen",
+    "metaDescription": "Erstellen und verwalten Sie benutzerdefinierte KI-Vorlagen für personalisierte Podcast-Content-Generierung",
+    "signInRequired": {
+      "title": "Vorlagen - Anmeldung erforderlich",
+      "heading": "Anmeldung erforderlich",
+      "message": "Bitte melden Sie sich an, um Ihre Vorlagen zu verwalten."
+    },
+    "header": {
+      "title": "Vorlagen",
+      "subtitle": "Erstellen Sie benutzerdefinierte Vorlagen, um Ihre KI-generierten Inhalte zu personalisieren",
+      "backToGenerate": "Zurück zum Generator"
+    },
+    "loading": {
+      "general": "Wird geladen...",
+      "templates": "Vorlagen werden geladen..."
+    },
+    "form": {
+      "create": {
+        "title": "Neue Vorlage erstellen",
+        "submitButton": "Vorlage erstellen"
+      },
+      "edit": {
+        "title": "Vorlage bearbeiten",
+        "submitButton": "Vorlage aktualisieren"
+      },
+      "fields": {
+        "templateName": {
+          "label": "Vorlagenname",
+          "placeholder": "z.B. Formelle Business-Zusammenfassung"
+        },
+        "contentType": {
+          "label": "Content-Typ",
+          "options": {
+            "summary": "Zusammenfassung",
+            "showNotes": "Show Notes",
+            "socialSnippets": "Social Snippets",
+            "seo": "SEO",
+            "newsletter": "Newsletter"
+          }
+        },
+        "systemPrompt": {
+          "label": "System-Prompt",
+          "placeholder": "Du bist ein professioneller Content-Autor, der...",
+          "help": "Definieren Sie die Rolle und das Verhalten der KI"
+        },
+        "userInstructions": {
+          "label": "Benutzeranweisungen",
+          "placeholder": "Erstelle eine professionelle Zusammenfassung mit folgendem Format...",
+          "help": "Spezifische Anweisungen für die Content-Generierung"
+        }
+      },
+      "buttons": {
+        "cancel": "Abbrechen"
+      }
+    },
+    "list": {
+      "title": "Ihre Vorlagen",
+      "empty": {
+        "noTemplates": "Noch keine Vorlagen vorhanden.",
+        "getStarted": "Erstellen Sie Ihre erste Vorlage, um zu beginnen!"
+      },
+      "actions": {
+        "edit": "Bearbeiten",
+        "delete": "Löschen"
+      }
+    },
+    "confirmDelete": "Sind Sie sicher, dass Sie diese Vorlage löschen möchten?",
+    "toast": {
+      "saveSuccess": "Vorlage erfolgreich gespeichert!",
+      "saveFailed": "Fehler beim Speichern der Vorlage",
+      "deleteSuccess": "Vorlage erfolgreich gelöscht!",
+      "deleteFailed": "Fehler beim Löschen der Vorlage",
+      "fetchFailed": "Fehler beim Laden der Vorlagen"
     }
   }
 }
