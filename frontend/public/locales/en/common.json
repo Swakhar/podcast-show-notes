@@ -241,5 +241,248 @@
     "close": "Close",
     "timeSaved": "95% Time Saved!",
     "aiPowered": "AI Powered"
+  },
+  "generate": {
+    "title": "AI Content Generator – Professional Podcast Production",
+    "metaDescription": "Transform your podcast into professional content. Generate show notes, timestamps, SEO content, and social media snippets with enterprise-grade AI.",
+    "hero": {
+      "badge": "AI-Powered Content Generation",
+      "title": "Transform Audio into Professional Content",
+      "subtitle": "Upload your podcast or paste a URL. Our AI generates show notes, timestamps, SEO content, and social snippets – all optimized for maximum engagement.",
+      "stats": {
+        "workflow": "95% faster workflow",
+        "ai": "Enterprise-grade AI",
+        "output": "Multi-format output"
+      }
+    },
+    "status": {
+      "plan": "Plan",
+      "minutesUsed": "minutes used",
+      "upgrade": "Upgrade Plan"
+    },
+    "tabs": {
+      "audio": "🎵 Audio Content",
+      "guest": "🔍 Guest Research"
+    },
+    "ready": {
+      "audio": {
+        "title": "Ready to Generate Content",
+        "subtitle": "Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.",
+        "features": {
+          "fast": "Lightning Fast",
+          "accurate": "Highly Accurate"
+        }
+      },
+      "guest": {
+        "title": "Ready for Guest Research",
+        "subtitle": "Fill in your guest's information in the sidebar to generate comprehensive research, interview questions, and conversation starters powered by AI.",
+        "features": {
+          "research": "Deep Research",
+          "questions": "Smart Questions"
+        }
+      }
+    },
+    "processing": {
+      "complete": "complete",
+      "takesTime": "This may take a few minutes"
+    },
+    "results": {
+      "title": "Generated Content",
+      "subtitle": "Your AI-generated podcast content is ready",
+      "complete": "Complete"
+    },
+    "cards": {
+      "summary": "Summary",
+      "showNotes": "Show Notes",
+      "timestamps": "Timestamps",
+      "socialSnippets": "Social Snippets",
+      "seo": "SEO Content",
+      "newsletter": "Newsletter Draft",
+      "transcript": "Full Transcript",
+      "guestResearch": "Guest Research Report",
+      "interviewQuestions": "Interview Questions",
+      "conversationStarters": "Conversation Starters"
+    },
+    "actions": {
+      "downloadMarkdown": "Download Markdown",
+      "copyYouTubeChapters": "Copy YouTube Chapters",
+      "copyMarkdown": "Copy Markdown",
+      "downloadFile": "Download File",
+      "publishWordPress": "Publish to WordPress",
+      "downloadReport": "Download Report",
+      "copyQuestions": "Copy Questions",
+      "copyClipboard": "Copy to clipboard"
+    },
+    "seo": {
+      "title": "SEO Title",
+      "keywords": "Keywords"
+    },
+    "newsletter": {
+      "subject": "Subject Line",
+      "content": "Email Content"
+    },
+    "messages": {
+      "youtubeCopied": "YouTube chapters copied to clipboard!",
+      "questionsCopied": "Interview questions copied to clipboard!",
+      "demoPublished": "📝 Demo published!",
+      "publishedWordPress": "✅ Published to WordPress! View:",
+      "publishingFailed": "Publishing failed:"
+    }
+  },
+  "audioUpload": {
+    "title": "Content Input",
+    "subtitle": "Upload audio or provide a URL to get started",
+    "fileUpload": {
+      "label": "Audio File Upload",
+      "dropHere": "Drop your audio file here",
+      "orClick": "or click to browse",
+      "removeFile": "Remove file",
+      "supportedFormats": "Supported formats:"
+    },
+    "url": {
+      "label": "Podcast URL",
+      "placeholder": "https://example.com/podcast.mp3 or YouTube URL",
+      "youtubeDetected": "YouTube detected:",
+      "youtubePreview": "Using 2-minute preview for faster results"
+    },
+    "cover": {
+      "label": "Episode Cover",
+      "optional": "(optional)",
+      "disclaimer": "Added to downloaded files only (not uploaded to server)"
+    },
+    "duration": {
+      "label": "Processing Duration",
+      "minutes": "minutes",
+      "processEntire": "Process entire file",
+      "freeLimit": "Free plan:",
+      "maxMinutes": "Maximum 3 minutes per job"
+    },
+    "language": {
+      "label": "Output Language",
+      "autoDetect": "🌐 Auto-detect source language",
+      "english": "🇺🇸 English",
+      "german": "🇩🇪 Deutsch (German)"
+    },
+    "features": {
+      "label": "Content to Generate",
+      "selected": "selected",
+      "of": "of",
+      "summary": {
+        "label": "Summary",
+        "desc": "Key points and overview"
+      },
+      "show_notes": {
+        "label": "Show Notes",
+        "desc": "Detailed episode notes"
+      },
+      "timestamps": {
+        "label": "Timestamps",
+        "desc": "Chapter markers & timing"
+      },
+      "social_snippets": {
+        "label": "Social Snippets",
+        "desc": "Ready-to-post content"
+      },
+      "seo": {
+        "label": "SEO Content",
+        "desc": "Titles & meta descriptions"
+      },
+      "newsletter": {
+        "label": "Newsletter",
+        "desc": "Email-ready content"
+      },
+      "pro": "Pro",
+      "teamAccess": "Team Access"
+    },
+    "templates": {
+      "label": "Custom Templates",
+      "selected": "selected",
+      "applied": "custom template",
+      "applied_plural": "custom templates",
+      "willApply": "will be applied to enhance your content"
+    },
+    "submit": {
+      "generate": "🚀 Generate Content",
+      "starting": "Starting Generation...",
+      "processing": "Processing...",
+      "disclaimer": "Results appear progressively as they're generated"
+    },
+    "or": "OR"
+  },
+  "guestResearch": {
+    "title": "Guest Research Assistant",
+    "subtitle": "Get AI-powered insights and interview prep for your guests",
+    "form": {
+      "guestName": {
+        "label": "Guest Name",
+        "required": "*",
+        "placeholder": "e.g., John Doe, CEO of TechCorp"
+      },
+      "guestInfo": {
+        "label": "Guest Background & Information",
+        "required": "*",
+        "modes": {
+          "guided": "📋 Guided",
+          "freeText": "✏️ Free Text"
+        },
+        "fields": {
+          "linkedin": "🔗 LinkedIn Profile",
+          "linkedinPlaceholder": "https://linkedin.com/in/guest-name",
+          "twitter": "🐦 Twitter/X Profile",
+          "twitterPlaceholder": "https://twitter.com/username",
+          "facebook": "📘 Facebook Profile/Page",
+          "facebookPlaceholder": "https://facebook.com/username",
+          "instagram": "📸 Instagram Profile",
+          "instagramPlaceholder": "https://instagram.com/username",
+          "website": "🌐 Website/Blog",
+          "websitePlaceholder": "https://website.com",
+          "company": "🏢 Company & Role",
+          "companyPlaceholder": "CEO at TechCorp, Former Google PM",
+          "recentWork": "🚀 Recent Work & Achievements",
+          "recentWorkPlaceholder": "Recent funding, new product launch, awards, speaking engagements, publications...",
+          "personalBio": "👤 Personal Background & Interests",
+          "personalBioPlaceholder": "Education, personal interests, unique background, fun facts..."
+        },
+        "tip": "💡 Tip: Fill in any fields you have information for. URLs will be automatically included in the research. The more details you provide, the better the AI research results!",
+        "freeTextPlaceholder": "Paste LinkedIn profile, bio, website content, recent interviews, articles, or any information about your guest...",
+        "freeTextTip": "💡 Tip: Include their LinkedIn, recent work, articles, or social media to get better research"
+      },
+      "additionalContext": {
+        "label": "Additional Context",
+        "optional": "(optional)",
+        "placeholder": "Any specific topics you want to explore, mutual connections, recent news about them..."
+      },
+      "showFocus": {
+        "label": "Show Focus/Theme",
+        "optional": "(optional)",
+        "placeholder": "e.g., Entrepreneurship, Tech Innovation, Marketing Strategies..."
+      },
+      "language": {
+        "label": "Output Language",
+        "english": "🇺🇸 English",
+        "german": "🇩🇪 Deutsch (German)"
+      },
+      "features": {
+        "label": "Research Components",
+        "guestResearch": {
+          "label": "Complete Research Report",
+          "desc": "Executive summary, expertise, achievements"
+        },
+        "interviewQuestions": {
+          "label": "Interview Questions",
+          "desc": "15 targeted questions for your interview"
+        },
+        "conversationStarters": {
+          "label": "Conversation Starters",
+          "desc": "Ice breakers and natural transitions"
+        },
+        "pro": "Pro"
+      },
+      "submit": {
+        "button": "🔍 Start Guest Research",
+        "submitting": "Researching Guest...",
+        "disclaimer": "Research typically takes 30-60 seconds"
+      }
+    }
   }
 }

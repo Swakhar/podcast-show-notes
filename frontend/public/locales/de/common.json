@@ -242,5 +242,248 @@
     "close": "Schließen",
     "timeSaved": "95% Zeit gespart!",
     "aiPowered": "KI-gestützt"
+  },
+  "generate": {
+    "title": "KI Content Generator – Professionelle Podcast Produktion",
+    "metaDescription": "Transformieren Sie Ihren Podcast in professionelle Inhalte. Generieren Sie Show Notes, Zeitstempel, SEO-Inhalte und Social Media Snippets mit Enterprise-KI.",
+    "hero": {
+      "badge": "KI-gestützte Content-Generierung",
+      "title": "Audio in professionelle Inhalte verwandeln",
+      "subtitle": "Laden Sie Ihren Podcast hoch oder fügen Sie eine URL ein. Unsere KI generiert Show Notes, Zeitstempel, SEO-Inhalte und Social Snippets – alle für maximales Engagement optimiert.",
+      "stats": {
+        "workflow": "95% schnellerer Workflow",
+        "ai": "Enterprise-KI",
+        "output": "Multi-Format-Ausgabe"
+      }
+    },
+    "status": {
+      "plan": "Plan",
+      "minutesUsed": "Minuten verwendet",
+      "upgrade": "Plan upgraden"
+    },
+    "tabs": {
+      "audio": "🎵 Audio-Inhalt",
+      "guest": "🔍 Gast-Recherche"
+    },
+    "ready": {
+      "audio": {
+        "title": "Bereit für Content-Generierung",
+        "subtitle": "Laden Sie eine Audiodatei hoch oder fügen Sie eine URL in der Seitenleiste ein, um professionelle Podcast-Inhalte mit KI zu generieren.",
+        "features": {
+          "fast": "Blitzschnell",
+          "accurate": "Hochpräzise"
+        }
+      },
+      "guest": {
+        "title": "Bereit für Gast-Recherche",
+        "subtitle": "Füllen Sie die Informationen Ihres Gastes in der Seitenleiste aus, um umfassende Recherche, Interview-Fragen und Gesprächsanregungen zu generieren.",
+        "features": {
+          "research": "Tiefe Recherche",
+          "questions": "Intelligente Fragen"
+        }
+      }
+    },
+    "processing": {
+      "complete": "vollständig",
+      "takesTime": "Dies kann einige Minuten dauern"
+    },
+    "results": {
+      "title": "Generierte Inhalte",
+      "subtitle": "Ihre KI-generierten Podcast-Inhalte sind bereit",
+      "complete": "Vollständig"
+    },
+    "cards": {
+      "summary": "Zusammenfassung",
+      "showNotes": "Show Notes",
+      "timestamps": "Zeitstempel",
+      "socialSnippets": "Social Snippets",
+      "seo": "SEO-Inhalt",
+      "newsletter": "Newsletter-Entwurf",
+      "transcript": "Vollständiges Transkript",
+      "guestResearch": "Gast-Recherche Bericht",
+      "interviewQuestions": "Interview-Fragen",
+      "conversationStarters": "Gesprächsanregungen"
+    },
+    "actions": {
+      "downloadMarkdown": "Markdown herunterladen",
+      "copyYouTubeChapters": "YouTube-Kapitel kopieren",
+      "copyMarkdown": "Markdown kopieren",
+      "downloadFile": "Datei herunterladen",
+      "publishWordPress": "Auf WordPress veröffentlichen",
+      "downloadReport": "Bericht herunterladen",
+      "copyQuestions": "Fragen kopieren",
+      "copyClipboard": "In Zwischenablage kopieren"
+    },
+    "seo": {
+      "title": "SEO-Titel",
+      "keywords": "Keywords"
+    },
+    "newsletter": {
+      "subject": "Betreffzeile",
+      "content": "E-Mail-Inhalt"
+    },
+    "messages": {
+      "youtubeCopied": "YouTube-Kapitel in Zwischenablage kopiert!",
+      "questionsCopied": "Interview-Fragen in Zwischenablage kopiert!",
+      "demoPublished": "📝 Demo veröffentlicht!",
+      "publishedWordPress": "✅ Auf WordPress veröffentlicht! Ansehen:",
+      "publishingFailed": "Veröffentlichung fehlgeschlagen:"
+    }
+  },
+  "audioUpload": {
+    "title": "Content-Eingabe",
+    "subtitle": "Laden Sie Audio hoch oder geben Sie eine URL ein, um zu beginnen",
+    "fileUpload": {
+      "label": "Audio-Datei hochladen",
+      "dropHere": "Audio-Datei hier ablegen",
+      "orClick": "oder klicken zum Durchsuchen",
+      "removeFile": "Datei entfernen",
+      "supportedFormats": "Unterstützte Formate:"
+    },
+    "url": {
+      "label": "Podcast-URL",
+      "placeholder": "https://example.com/podcast.mp3 oder YouTube-URL",
+      "youtubeDetected": "YouTube erkannt:",
+      "youtubePreview": "Verwende 2-Minuten-Vorschau für schnellere Ergebnisse"
+    },
+    "cover": {
+      "label": "Episode-Cover",
+      "optional": "(optional)",
+      "disclaimer": "Nur zu heruntergeladenen Dateien hinzugefügt (nicht auf Server hochgeladen)"
+    },
+    "duration": {
+      "label": "Verarbeitungsdauer",
+      "minutes": "Minuten",
+      "processEntire": "Gesamte Datei verarbeiten",
+      "freeLimit": "Kostenloser Plan:",
+      "maxMinutes": "Maximal 3 Minuten pro Job"
+    },
+    "language": {
+      "label": "Ausgabesprache",
+      "autoDetect": "🌐 Quellsprache automatisch erkennen",
+      "english": "🇺🇸 English",
+      "german": "🇩🇪 Deutsch (German)"
+    },
+    "features": {
+      "label": "Zu generierender Inhalt",
+      "selected": "ausgewählt",
+      "of": "von",
+      "summary": {
+        "label": "Zusammenfassung",
+        "desc": "Wichtige Punkte und Überblick"
+      },
+      "show_notes": {
+        "label": "Show Notes",
+        "desc": "Detaillierte Episode-Notizen"
+      },
+      "timestamps": {
+        "label": "Zeitstempel",
+        "desc": "Kapitelmarkierungen & Timing"
+      },
+      "social_snippets": {
+        "label": "Social Snippets",
+        "desc": "Bereiter Content für Posts"
+      },
+      "seo": {
+        "label": "SEO-Inhalt",
+        "desc": "Titel & Meta-Beschreibungen"
+      },
+      "newsletter": {
+        "label": "Newsletter",
+        "desc": "E-Mail-bereiter Inhalt"
+      },
+      "pro": "Pro",
+      "teamAccess": "Team-Zugang"
+    },
+    "templates": {
+      "label": "Benutzerdefinierte Vorlagen",
+      "selected": "ausgewählt",
+      "applied": "benutzerdefinierte Vorlage",
+      "applied_plural": "benutzerdefinierte Vorlagen",
+      "willApply": "werden angewendet, um Ihren Inhalt zu verbessern"
+    },
+    "submit": {
+      "generate": "🚀 Inhalt generieren",
+      "starting": "Generierung startet...",
+      "processing": "Verarbeitung...",
+      "disclaimer": "Ergebnisse erscheinen progressiv, während sie generiert werden"
+    },
+    "or": "ODER"
+  },
+  "guestResearch": {
+    "title": "Gast-Recherche Assistent",
+    "subtitle": "Erhalten Sie KI-gestützte Einblicke und Interview-Vorbereitung für Ihre Gäste",
+    "form": {
+      "guestName": {
+        "label": "Gast-Name",
+        "required": "*",
+        "placeholder": "z.B. John Doe, CEO von TechCorp"
+      },
+      "guestInfo": {
+        "label": "Gast-Hintergrund & Informationen",
+        "required": "*",
+        "modes": {
+          "guided": "📋 Geführt",
+          "freeText": "✏️ Freier Text"
+        },
+        "fields": {
+          "linkedin": "🔗 LinkedIn-Profil",
+          "linkedinPlaceholder": "https://linkedin.com/in/gast-name",
+          "twitter": "🐦 Twitter/X-Profil",
+          "twitterPlaceholder": "https://twitter.com/username",
+          "facebook": "📘 Facebook-Profil/Seite",
+          "facebookPlaceholder": "https://facebook.com/username",
+          "instagram": "📸 Instagram-Profil",
+          "instagramPlaceholder": "https://instagram.com/username",
+          "website": "🌐 Website/Blog",
+          "websitePlaceholder": "https://website.com",
+          "company": "🏢 Unternehmen & Rolle",
+          "companyPlaceholder": "CEO bei TechCorp, Ehemaliger Google PM",
+          "recentWork": "🚀 Aktuelle Arbeit & Erfolge",
+          "recentWorkPlaceholder": "Kürzliche Finanzierung, neuer Produktlaunch, Auszeichnungen, Vorträge, Publikationen...",
+          "personalBio": "👤 Persönlicher Hintergrund & Interessen",
+          "personalBioPlaceholder": "Bildung, persönliche Interessen, einzigartiger Hintergrund, lustige Fakten..."
+        },
+        "tip": "💡 Tipp: Füllen Sie alle Felder aus, für die Sie Informationen haben. URLs werden automatisch in die Recherche einbezogen. Je mehr Details Sie angeben, desto besser die KI-Recherche-Ergebnisse!",
+        "freeTextPlaceholder": "LinkedIn-Profil, Bio, Website-Inhalte, kürzliche Interviews, Artikel oder Informationen über Ihren Gast einfügen...",
+        "freeTextTip": "💡 Tipp: LinkedIn, aktuelle Arbeit, Artikel oder Social Media einbeziehen für bessere Recherche"
+      },
+      "additionalContext": {
+        "label": "Zusätzlicher Kontext",
+        "optional": "(optional)",
+        "placeholder": "Spezifische Themen die Sie erkunden möchten, gemeinsame Verbindungen, aktuelle Nachrichten über sie..."
+      },
+      "showFocus": {
+        "label": "Show-Fokus/Thema",
+        "optional": "(optional)",
+        "placeholder": "z.B. Unternehmertum, Tech-Innovation, Marketing-Strategien..."
+      },
+      "language": {
+        "label": "Ausgabesprache",
+        "english": "🇺🇸 English",
+        "german": "🇩🇪 Deutsch (German)"
+      },
+      "features": {
+        "label": "Recherche-Komponenten",
+        "guestResearch": {
+          "label": "Vollständiger Recherche-Bericht",
+          "desc": "Zusammenfassung, Expertise, Erfolge"
+        },
+        "interviewQuestions": {
+          "label": "Interview-Fragen",
+          "desc": "15 gezielte Fragen für Ihr Interview"
+        },
+        "conversationStarters": {
+          "label": "Gesprächsanregungen",
+          "desc": "Eisbrecher und natürliche Übergänge"
+        },
+        "pro": "Pro"
+      },
+      "submit": {
+        "button": "🔍 Gast-Recherche starten",
+        "submitting": "Recherchiere Gast...",
+        "disclaimer": "Recherche dauert normalerweise 30-60 Sekunden"
+      }
+    }
   }
 }

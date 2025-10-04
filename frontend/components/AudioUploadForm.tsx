@@ -1,4 +1,5 @@
 import { useState, ChangeEvent } from 'react';
+import { useTranslation } from 'next-i18next';
 import TemplatesDrawer from './TemplatesDrawer';
 
 interface AudioUploadFormProps {
@@ -82,6 +83,7 @@ export default function AudioUploadForm({
   jobStatus
 }: AudioUploadFormProps) {
   
+  const { t } = useTranslation('common');
   const isFree = me?.plan === "FREE" && !me?.isTeamMember;
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
 
@@ -294,14 +296,14 @@ export default function AudioUploadForm({
   return (
     <div className="space-y-6">
       <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Content Input</h2>
-        <p className="text-sm text-gray-600">Upload audio or provide a URL to get started</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">{t('audioUpload.title')}</h2>
+        <p className="text-sm text-gray-600">{t('audioUpload.subtitle')}</p>
       </div>
 
       <div className="p-6 space-y-6">
         {/* Enhanced File Upload */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">Audio File Upload</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">{t('audioUpload.fileUpload.label')}</label>
           <div
             className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
               dragActive 
@@ -329,15 +331,15 @@ export default function AudioUploadForm({
                   onClick={() => setFile(null)}
                   className="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  Remove file
+                  {t('audioUpload.fileUpload.removeFile')}
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="text-3xl">☁️</div>
                 <div>
-                  <p className="font-medium text-gray-900">Drop your audio file here</p>
-                  <p className="text-sm text-gray-500">or click to browse</p>
+                  <p className="font-medium text-gray-900">{t('audioUpload.fileUpload.dropHere')}</p>
+                  <p className="text-sm text-gray-500">{t('audioUpload.fileUpload.orClick')}</p>
                 </div>
                 <input
                   type="file"
@@ -352,7 +354,7 @@ export default function AudioUploadForm({
           
           {/* Supported Formats */}
           <div className="mt-3">
-            <p className="text-xs text-gray-500 mb-2">Supported formats:</p>
+            <p className="text-xs text-gray-500 mb-2">{t('audioUpload.fileUpload.supportedFormats')}</p>
             <div className="flex flex-wrap gap-2">
               {SUPPORTED_FORMATS.map((format) => (
                 <span 
@@ -367,18 +369,18 @@ export default function AudioUploadForm({
           </div>
         </div>
 
-        <div className="text-center text-gray-400 font-medium">OR</div>
+        <div className="text-center text-gray-400 font-medium">{t('audioUpload.or')}</div>
 
         {/* Enhanced URL Input */}
         <div>
           <label htmlFor="url" className="block text-sm font-semibold text-gray-700 mb-3">
-            Podcast URL
+            {t('audioUpload.url.label')}
           </label>
           <div className="relative">
             <input
               id="url"
               type="url"
-              placeholder="https://example.com/podcast.mp3 or YouTube URL"
+              placeholder={t('audioUpload.url.placeholder')}
               value={url}
               onChange={handleUrlChange}
               disabled={isBusy}
@@ -399,7 +401,7 @@ export default function AudioUploadForm({
           {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                <span className="font-medium">YouTube detected:</span> Using 2-minute preview for faster results
+                <span className="font-medium">{t('audioUpload.url.youtubeDetected')}</span> {t('audioUpload.url.youtubePreview')}
               </p>
             </div>
           )}
@@ -408,7 +410,7 @@ export default function AudioUploadForm({
         {/* Enhanced Cover Upload */}
         <div>
           <label htmlFor="cover" className="block text-sm font-semibold text-gray-700 mb-3">
-            Episode Cover <span className="text-gray-500 font-normal">(optional)</span>
+            {t('audioUpload.cover.label')} <span className="text-gray-500 font-normal">{t('audioUpload.cover.optional')}</span>
           </label>
           <div className="flex items-start gap-4">
             <div className="flex-1">
@@ -421,7 +423,7 @@ export default function AudioUploadForm({
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Added to downloaded files only (not uploaded to server)
+                {t('audioUpload.cover.disclaimer')}
               </p>
             </div>
             {coverPreviewUrl && (
@@ -450,7 +452,7 @@ export default function AudioUploadForm({
         {/* Preview Duration */}
         <div>
           <label htmlFor="preview" className="block text-sm font-semibold text-gray-700 mb-3">
-            Processing Duration
+            {t('audioUpload.duration.label')}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -465,15 +467,15 @@ export default function AudioUploadForm({
               className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
               placeholder="Full"
             />
-            <span className="text-sm text-gray-600">minutes</span>
+            <span className="text-sm text-gray-600">{t('audioUpload.duration.minutes')}</span>
             {!previewMinutes && (
-              <span className="text-sm text-green-600 font-medium">Process entire file</span>
+              <span className="text-sm text-green-600 font-medium">{t('audioUpload.duration.processEntire')}</span>
             )}
           </div>
           {isFree && (
             <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
               <p className="text-sm text-orange-800">
-                <span className="font-medium">Free plan:</span> Maximum 3 minutes per job
+                <span className="font-medium">{t('audioUpload.duration.freeLimit')}</span> {t('audioUpload.duration.maxMinutes')}
               </p>
             </div>
           )}
@@ -481,37 +483,37 @@ export default function AudioUploadForm({
 
         {/* Language Selection */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">Output Language</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-3">{t('audioUpload.language.label')}</label>
           <select
             className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
             value={language}
             onChange={(e) => setLanguage(e.target.value as any)}
             disabled={isBusy}
           >
-            <option value="auto">🌐 Auto-detect source language</option>
-            <option value="en">🇺🇸 English</option>
-            <option value="de">🇩🇪 Deutsch (German)</option>
+            <option value="auto">{t('audioUpload.language.autoDetect')}</option>
+            <option value="en">{t('audioUpload.language.english')}</option>
+            <option value="de">{t('audioUpload.language.german')}</option>
           </select>
         </div>
 
         {/* Feature Selection */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-semibold text-gray-700">Content to Generate</label>
+            <label className="text-sm font-semibold text-gray-700">{t('audioUpload.features.label')}</label>
             <span className="text-xs text-gray-500">
-              {selectedFeatureCount} of {Object.keys(features).length} selected
+              {selectedFeatureCount} {t('audioUpload.features.of')} {Object.keys(features).length} {t('audioUpload.features.selected')}
             </span>
           </div>
           
           <div className="grid grid-cols-1 gap-3">
             {[
-              { key: "summary", label: "Summary", desc: "Key points and overview", icon: "📋", free: true },
-              { key: "show_notes", label: "Show Notes", desc: "Detailed episode notes", icon: "📝", free: true },
-              { key: "timestamps", label: "Timestamps", desc: "Chapter markers & timing", icon: "⏰", free: true },
-              { key: "social_snippets", label: "Social Snippets", desc: "Ready-to-post content", icon: "📱", free: true },
-              { key: "seo", label: "SEO Content", desc: "Titles & meta descriptions", icon: "🔍", free: false },
-              { key: "newsletter", label: "Newsletter", desc: "Email-ready content", icon: "📧", free: false },
-            ].map(({ key, label, desc, icon, free }) => {
+              { key: "summary", icon: "📋", free: true },
+              { key: "show_notes", icon: "📝", free: true },
+              { key: "timestamps", icon: "⏰", free: true },
+              { key: "social_snippets", icon: "📱", free: true },
+              { key: "seo", icon: "🔍", free: false },
+              { key: "newsletter", icon: "📧", free: false },
+            ].map(({ key, icon, free }) => {
               const disabled = !free && isFree;
               const featureKey = key as keyof typeof features;
               return (
@@ -535,19 +537,19 @@ export default function AudioUploadForm({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{icon}</span>
-                      <span className="font-medium text-gray-900">{label}</span>
+                      <span className="font-medium text-gray-900">{t(`audioUpload.features.${key}.label`)}</span>
                       {!free && (
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                          Pro
+                          {t('audioUpload.features.pro')}
                         </span>
                       )}
                       {!free && me?.isTeamMember && (
                         <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                          Team Access
+                          {t('audioUpload.features.teamAccess')}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{desc}</p>
+                    <p className="text-sm text-gray-600 mt-1">{t(`audioUpload.features.${key}.desc`)}</p>
                   </div>
                   {features[featureKey] && !disabled && (
                     <svg className="w-5 h-5 text-[#9CEE69] mt-1" fill="currentColor" viewBox="0 0 20 20">
@@ -563,10 +565,10 @@ export default function AudioUploadForm({
         {/* Template Selection */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Custom Templates
+            {t('audioUpload.templates.label')}
             {selectedTemplateIds.length > 0 && (
               <span className="ml-2 text-xs text-gray-500">
-                ({selectedTemplateIds.length} selected)
+                ({selectedTemplateIds.length} {t('audioUpload.templates.selected')})
               </span>
             )}
           </label>
@@ -577,8 +579,11 @@ export default function AudioUploadForm({
           {selectedTemplateIds.length > 0 && (
             <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                <span className="font-medium">{selectedTemplateIds.length}</span> custom template
-                {selectedTemplateIds.length !== 1 ? 's' : ''} will be applied to enhance your content
+                <span className="font-medium">{selectedTemplateIds.length}</span> {
+                  selectedTemplateIds.length === 1 
+                    ? t('audioUpload.templates.applied')
+                    : t('audioUpload.templates.applied_plural')
+                } {t('audioUpload.templates.willApply')}
               </p>
             </div>
           )}
@@ -596,26 +601,26 @@ export default function AudioUploadForm({
                 <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Starting Generation...
+                {t('audioUpload.submit.starting')}
               </span>
             ) : isBusy ? (
               <span className="flex items-center justify-center gap-2">
                 <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Processing... {progress}%
+                {t('audioUpload.submit.processing')} {progress}%
               </span>
             ) : (
-              "🚀 Generate Content"
+              t('audioUpload.submit.generate')
             )}
           </button>
 
           <p className="text-xs text-gray-500 mt-3 text-center">
-            Results appear progressively as they're generated
+            {t('audioUpload.submit.disclaimer')}
           </p>
         </div>
 
-        {/* Processing Status */}
+        {/* Processing Status - keeping existing logic */}
         {isBusy && jobStatus?.stage && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-3">
