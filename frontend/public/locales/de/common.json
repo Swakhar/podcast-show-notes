@@ -485,5 +485,255 @@
         "disclaimer": "Recherche dauert normalerweise 30-60 Sekunden"
       }
     }
+  },
+  "about": {
+    "title": "Über CastLumen – KI-gestützte Podcast-Workflow-Automatisierung",
+    "metaDescription": "Erfahren Sie mehr über CastLumens Mission, Podcastern zu helfen, bessere Inhalte schneller mit KI-Automatisierung zu erstellen.",
+    "hero": {
+      "title": "Podcaster stärken",
+      "titleHighlight": "mit KI-Automatisierung",
+      "subtitle": "Wir glauben, dass jeder Podcaster professionelle Qualität verdient, ohne stundenlange manuelle Arbeit. Deshalb haben wir CastLumen entwickelt."
+    },
+    "mission": {
+      "title": "Unsere Mission",
+      "paragraph1": "CastLumen transformiert den Podcast-Produktions-Workflow durch die Automatisierung zeitaufwändiger Aufgaben wie Show Notes-Erstellung, Zeitstempel-Generierung und Content-Optimierung.",
+      "paragraph2": "Wir sind leidenschaftlich daran interessiert, Content-Erstellern zu helfen, sich auf das zu konzentrieren, was sie am besten können – großartige Inhalte zu erstellen – während wir den Rest mit modernster KI-Technologie übernehmen."
+    },
+    "stats": {
+      "episodes": "10.000+",
+      "episodesLabel": "Verarbeitete Episoden"
+    },
+    "creators": {
+      "title": "Von Erstellern für Ersteller gemacht",
+      "description": "Als Podcaster selbst verstehen wir die Herausforderungen, konsistente, hochwertige Inhalte zu produzieren. CastLumen ist unsere Lösung, um Ihnen zu helfen, Ihren Podcast zu skalieren, ohne die Qualität zu opfern.",
+      "cta": "Kontakt aufnehmen"
+    }
+  },
+  "cancel": {
+    "title": "Zahlung erfolgreich – CastLumen",
+    "metaDescription": "Ihre Zahlung war erfolgreich. Willkommen an Bord!",
+    "hero": {
+      "title": "Zahlung erfolgreich",
+      "subtitle": "Willkommen an Bord! Ihre Zahlung war erfolgreich und Ihr Abonnement ist jetzt aktiv."
+    },
+    "gettingStarted": {
+      "title": "Erste Schritte",
+      "description": "Hier sind einige schnelle Links, um Ihnen den Einstieg mit Ihrem neuen Abonnement zu erleichtern:",
+      "items": {
+        "explore": "Entdecken Sie unsere KI-Content-Generierungs-Features",
+        "helpCenter": "Besuchen Sie unser Hilfezentrum für Tutorials und Anleitungen",
+        "support": "Kontaktieren Sie den Support, wenn Sie Fragen haben"
+      }
+    },
+    "actions": {
+      "startGenerating": "Content-Generierung starten",
+      "viewPricing": "Preispläne ansehen"
+    },
+    "footer": {
+      "questions": "Fragen zu Ihrem Abonnement?",
+      "contactSupport": "Kontaktieren Sie unser Support-Team"
+    },
+    "countdown": {
+      "redirecting": "Weiterleitung zur Startseite in"
+    }
+  },
+  "contact": {
+    "title": "Kontakt – CastLumen | Support & Vertrieb",
+    "metaDescription": "Kontaktieren Sie das CastLumen Team. Professioneller Support, Vertrieb und allgemeine Anfragen. Antwort binnen 24 Stunden.",
+    "keywords": "CastLumen Kontakt, Support, Vertrieb, Podcast Tools, Hilfe",
+    "hero": {
+      "badge": "Support & Kontakt",
+      "title": "Wir sind für Sie da",
+      "subtitle": "Haben Sie Fragen zu CastLumen? Benötigen Sie Support oder möchten Sie mehr über unsere Enterprise-Lösungen erfahren?",
+      "responseTime": "Antwort binnen 24 Stunden"
+    },
+    "company": {
+      "title": "📋 Kontakt",
+      "name": "DataFiora IT - Pratyushi Roy Oishee",
+      "address": "Falltorstraße 2, 63486 Bruchköbel, Deutschland",
+      "email": "roy302156@gmail.com",
+      "phone": "01629334092"
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Technische Hilfe",
+      "responseTime": "Antwort binnen 24 Stunden"
+    },
+    "sales": {
+      "title": "Vertrieb",
+      "subtitle": "Enterprise & Beratung"
+    },
+    "form": {
+      "title": "Nachricht senden",
+      "subtitle": "Beschreiben Sie Ihr Anliegen und wir melden uns schnellstmöglich bei Ihnen zurück.",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "Ihr vollständiger Name",
+        "email": "E-Mail",
+        "emailPlaceholder": "ihre.email@beispiel.de",
+        "subject": "Betreff",
+        "message": "Nachricht",
+        "messagePlaceholder": "Beschreiben Sie Ihr Anliegen so detailliert wie möglich...",
+        "required": "*"
+      },
+      "subjects": {
+        "general": "Allgemeine Anfrage",
+        "support": "Technischer Support",
+        "sales": "Vertrieb & Preise",
+        "enterprise": "Enterprise-Anfrage",
+        "billing": "Rechnung & Abrechnung",
+        "partnership": "Partnership",
+        "press": "Presse & Medien",
+        "privacy": "Datenschutz"
+      },
+      "submit": {
+        "button": "Nachricht senden",
+        "sending": "Wird gesendet...",
+        "privacy": "Mit dem Absenden stimmen Sie unserer",
+        "privacyPolicy": "Datenschutzerklärung",
+        "success": "Nachricht erfolgreich gesendet! Wir melden uns binnen 24 Stunden.",
+        "error": "Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut."
+      },
+      "success": {
+        "title": "Nachricht gesendet!",
+        "subtitle": "Vielen Dank für Ihre Nachricht. Wir melden uns binnen 24 Stunden bei Ihnen.",
+        "sendAnother": "Weitere Nachricht senden"
+      }
+    },
+    "faq": {
+      "title": "Häufige Fragen",
+      "subtitle": "Schnelle Antworten auf die wichtigsten Fragen",
+      "questions": {
+        "supportSpeed": {
+          "question": "Wie schnell erhalte ich Support?",
+          "answer": "Unser Support-Team antwortet innerhalb von 24 Stunden auf alle Anfragen. Kritische technische Probleme werden priorisiert behandelt."
+        },
+        "phoneSupport": {
+          "question": "Bieten Sie Telefon-Support an?",
+          "answer": "Ja, für Enterprise-Kunden bieten wir dedizierten Telefon-Support. Kontaktieren Sie unser Sales-Team für weitere Informationen."
+        },
+        "demo": {
+          "question": "Gibt es eine Demo oder Beratung?",
+          "answer": "Selbstverständlich! Wir bieten personalisierte Demos und Beratungsgespräche für Teams und Unternehmen. Vereinbaren Sie einen Termin über unser Sales-Team."
+        },
+        "subscription": {
+          "question": "Wie kann ich mein Abo verwalten?",
+          "answer": "In Ihren Account-Einstellungen können Sie Ihr Abonnement jederzeit anpassen, pausieren oder kündigen. Bei Fragen hilft unser Support-Team gerne."
+        }
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie-Richtlinie – CastLumen",
+    "metaDescription": "Erfahren Sie, wie CastLumen Cookies verwendet, um Ihr Erlebnis auf unserer Website zu verbessern.",
+    "lastUpdated": "2. Oktober 2025",
+    "hero": {
+      "badge": "Cookie Policy",
+      "title": "Cookie-Richtlinie",
+      "subtitle": "Erfahren Sie, wie CastLumen Cookies verwendet, um Ihr Erlebnis auf unserer Website zu verbessern.",
+      "lastUpdatedLabel": "Letzte Aktualisierung:"
+    },
+    "whatAreCookies": {
+      "title": "🍪 Was sind Cookies?",
+      "description": "Cookies sind kleine Textdateien, die auf Ihrem Computer oder Mobilgerät gespeichert werden, wenn Sie unsere Website besuchen. Sie helfen uns, Ihnen ein besseres Erlebnis zu bieten und zu verstehen, wie Sie unseren Service nutzen."
+    },
+    "howWeUseCookies": {
+      "title": "Wie wir Cookies verwenden",
+      "description": "Wir verwenden Cookies für die folgenden Zwecke:",
+      "essential": {
+        "title": "🔧 Technisch notwendige Cookies",
+        "description": "Diese Cookies sind für das ordnungsgemäße Funktionieren der Website erforderlich:",
+        "items": {
+          "authentication": "Authentifizierung: Merken, dass Sie angemeldet sind",
+          "security": "Sicherheit: Schutz vor Cross-Site-Request-Forgery",
+          "preferences": "Einstellungen: Speichern Ihrer Sprach- und Theme-Einstellungen"
+        }
+      },
+      "analytics": {
+        "title": "📊 Analytics-Cookies",
+        "description": "Wir verwenden Analytics-Cookies, um zu verstehen, wie Besucher mit unserer Website interagieren:",
+        "items": {
+          "googleAnalytics": "Google Analytics: Verfolgung von Seitenaufrufen, Nutzerverhalten und Website-Performance",
+          "usageData": "Nutzungsdaten: Verstehen, welche Features am beliebtesten sind",
+          "performance": "Performance: Überwachung und Verbesserung der Website-Geschwindigkeit"
+        }
+      },
+      "marketing": {
+        "title": "🎯 Marketing-Cookies",
+        "description": "Diese Cookies helfen uns, relevante Werbung bereitzustellen:",
+        "items": {
+          "conversionTracking": "Conversion-Tracking: Messung der Effektivität unserer Marketing-Kampagnen",
+          "retargeting": "Retargeting: Anzeige relevanter Werbung für Besucher, die unseren Service genutzt haben",
+          "socialMedia": "Social Media: Integration von Social Media-Sharing und -Features"
+        }
+      }
+    },
+    "thirdPartyCookies": {
+      "title": "Drittanbieter-Cookies",
+      "description": "Wir arbeiten mit vertrauenswürdigen Drittanbietern zusammen, die möglicherweise Cookies setzen:",
+      "providers": {
+        "stripe": "Stripe: Für sichere Zahlungsabwicklung",
+        "googleAnalytics": "Google Analytics: Für Website-Analytics",
+        "youtube": "YouTube: Für eingebettete Video-Inhalte",
+        "socialMedia": "Social Media Plattformen: Für Social Media-Integration"
+      }
+    },
+    "cookieManagement": {
+      "title": "Cookie-Verwaltung",
+      "description": "Sie können Cookies über Ihre Browser-Einstellungen kontrollieren:",
+      "browserControls": {
+        "title": "Browser-Kontrollen",
+        "chrome": "Chrome: Einstellungen → Datenschutz und Sicherheit → Cookies und andere Website-Daten",
+        "firefox": "Firefox: Einstellungen → Datenschutz & Sicherheit → Cookies und Website-Daten",
+        "safari": "Safari: Einstellungen → Datenschutz → Website-Daten verwalten",
+        "edge": "Edge: Einstellungen → Cookies und Website-Berechtigungen"
+      }
+    },
+    "cookieConsent": {
+      "title": "Cookie-Einwilligung",
+      "description": "Wenn Sie unsere Website zum ersten Mal besuchen, fragen wir Sie um Ihre Einwilligung zur Verwendung nicht-essentieller Cookies. Sie können:",
+      "options": {
+        "acceptAll": "✓ Alle Cookies akzeptieren",
+        "essentialOnly": "✓ Nur essentielle Cookies akzeptieren",
+        "customize": "⚙️ Ihre Einstellungen anpassen",
+        "changeAnytime": "🔄 Einstellungen jederzeit ändern"
+      }
+    },
+    "contact": {
+      "title": "📞 Kontakt",
+      "description": "Bei Fragen zu unserer Cookie-Richtlinie kontaktieren Sie uns:",
+      "sendEmail": "E-Mail senden",
+      "phone": "01629334092"
+    },
+    "changes": {
+      "title": "⚠️ Änderungen an dieser Richtlinie",
+      "description": "Wir können diese Cookie-Richtlinie von Zeit zu Zeit aktualisieren. Wir werden Sie über wesentliche Änderungen informieren, indem wir die neue Richtlinie auf dieser Seite veröffentlichen und das Datum der letzten Aktualisierung ändern."
+    }
+  },
+  "forgotPassword": {
+    "title": "Passwort vergessen – CastLumen",
+    "metaDescription": "Setzen Sie Ihr CastLumen-Passwort zurück",
+    "checkEmailTitle": "E-Mail prüfen – CastLumen",
+    "form": {
+      "title": "Passwort vergessen?",
+      "subtitle": "Kein Problem! Geben Sie Ihre E-Mail ein und wir senden Ihnen Anweisungen zum Zurücksetzen.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "Geben Sie Ihre E-Mail-Adresse ein",
+      "submitButton": "Zurücksetzungs-Anweisungen senden",
+      "submitting": "Sende Zurücksetzungs-Anweisungen...",
+      "backToLogin": "Passwort wieder eingefallen?",
+      "signInHere": "Hier anmelden"
+    },
+    "success": {
+      "title": "E-Mail prüfen",
+      "message": "Falls ein Konto mit",
+      "messageEnd": "existiert, haben wir Anweisungen zum Zurücksetzen des Passworts gesendet.",
+      "backToSignIn": "Zurück zur Anmeldung",
+      "tryDifferentEmail": "Andere E-Mail versuchen"
+    },
+    "toast": {
+      "success": "Zurücksetzungs-Anweisungen an Ihre E-Mail gesendet",
+      "error": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
   }
 }

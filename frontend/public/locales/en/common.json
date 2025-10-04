@@ -484,5 +484,255 @@
         "disclaimer": "Research typically takes 30-60 seconds"
       }
     }
+  },
+  "about": {
+    "title": "About CastLumen – AI-Powered Podcast Workflow Automation",
+    "metaDescription": "Learn about CastLumen's mission to help podcasters create better content faster with AI automation.",
+    "hero": {
+      "title": "Empowering Podcasters",
+      "titleHighlight": "with AI Automation",
+      "subtitle": "We believe every podcaster deserves professional-quality content without the hours of manual work. That's why we built CastLumen."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "paragraph1": "CastLumen transforms the podcast production workflow by automating time-consuming tasks like show note creation, timestamp generation, and content optimization.",
+      "paragraph2": "We're passionate about helping content creators focus on what they do best – creating amazing content – while we handle the rest with cutting-edge AI technology."
+    },
+    "stats": {
+      "episodes": "10,000+",
+      "episodesLabel": "Episodes Processed"
+    },
+    "creators": {
+      "title": "Built for Creators, by Creators",
+      "description": "As podcasters ourselves, we understand the challenges of maintaining consistent, high-quality content. CastLumen is our solution to help you scale your podcast without sacrificing quality.",
+      "cta": "Get in Touch"
+    }
+  },
+  "cancel": {
+    "title": "Payment Successful – CastLumen",
+    "metaDescription": "Your payment was successful. Welcome aboard!",
+    "hero": {
+      "title": "Payment Successful",
+      "subtitle": "Welcome aboard! Your payment was successful, and your subscription is now active."
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "description": "Here are some quick links to help you get started with your new subscription:",
+      "items": {
+        "explore": "Explore our AI content generation features",
+        "helpCenter": "Visit our help center for tutorials and guides",
+        "support": "Contact support if you have any questions"
+      }
+    },
+    "actions": {
+      "startGenerating": "Start Generating Content",
+      "viewPricing": "View Pricing Plans"
+    },
+    "footer": {
+      "questions": "Questions about your subscription?",
+      "contactSupport": "Contact our support team"
+    },
+    "countdown": {
+      "redirecting": "Redirecting to homepage in"
+    }
+  },
+  "contact": {
+    "title": "Contact – CastLumen | Support & Sales",
+    "metaDescription": "Contact the CastLumen team. Professional support, sales and general inquiries. Response within 24 hours.",
+    "keywords": "CastLumen contact, support, sales, podcast tools, help",
+    "hero": {
+      "badge": "Support & Contact",
+      "title": "We're here for you",
+      "subtitle": "Have questions about CastLumen? Need support or want to learn more about our enterprise solutions?",
+      "responseTime": "Response within 24 hours"
+    },
+    "company": {
+      "title": "📋 Contact",
+      "name": "DataFiora IT - Pratyushi Roy Oishee",
+      "address": "Falltorstraße 2, 63486 Bruchköbel, Germany",
+      "email": "roy302156@gmail.com",
+      "phone": "01629334092"
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Technical Help",
+      "responseTime": "Response within 24 hours"
+    },
+    "sales": {
+      "title": "Sales",
+      "subtitle": "Enterprise & Consulting"
+    },
+    "form": {
+      "title": "Send Message",
+      "subtitle": "Describe your concern and we'll get back to you as soon as possible.",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "Your full name",
+        "email": "Email",
+        "emailPlaceholder": "your.email@example.com",
+        "subject": "Subject",
+        "message": "Message",
+        "messagePlaceholder": "Describe your concern in as much detail as possible...",
+        "required": "*"
+      },
+      "subjects": {
+        "general": "General Inquiry",
+        "support": "Technical Support",
+        "sales": "Sales & Pricing",
+        "enterprise": "Enterprise Inquiry",
+        "billing": "Invoice & Billing",
+        "partnership": "Partnership",
+        "press": "Press & Media",
+        "privacy": "Privacy"
+      },
+      "submit": {
+        "button": "Send Message",
+        "sending": "Sending...",
+        "privacy": "By submitting, you agree to our",
+        "privacyPolicy": "Privacy Policy",
+        "success": "Message sent successfully! We'll get back to you within 24 hours.",
+        "error": "Error sending message. Please try again."
+      },
+      "success": {
+        "title": "Message sent!",
+        "subtitle": "Thank you for your message. We'll get back to you within 24 hours.",
+        "sendAnother": "Send another message"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Quick answers to the most important questions",
+      "questions": {
+        "supportSpeed": {
+          "question": "How quickly do I receive support?",
+          "answer": "Our support team responds to all inquiries within 24 hours. Critical technical issues are prioritized."
+        },
+        "phoneSupport": {
+          "question": "Do you offer phone support?",
+          "answer": "Yes, for enterprise customers we offer dedicated phone support. Contact our sales team for more information."
+        },
+        "demo": {
+          "question": "Is there a demo or consultation?",
+          "answer": "Absolutely! We offer personalized demos and consultations for teams and businesses. Schedule an appointment through our sales team."
+        },
+        "subscription": {
+          "question": "How can I manage my subscription?",
+          "answer": "In your account settings, you can adjust, pause, or cancel your subscription at any time. Our support team is happy to help with any questions."
+        }
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie Policy – CastLumen",
+    "metaDescription": "Learn about how CastLumen uses cookies to improve your experience on our website.",
+    "lastUpdated": "October 2, 2025",
+    "hero": {
+      "badge": "Cookie Policy",
+      "title": "Cookie Policy",
+      "subtitle": "Learn how CastLumen uses cookies to improve your experience on our website.",
+      "lastUpdatedLabel": "Last updated:"
+    },
+    "whatAreCookies": {
+      "title": "🍪 What are Cookies?",
+      "description": "Cookies are small text files stored on your computer or mobile device when you visit our website. They help us provide you with a better experience and understand how you use our service."
+    },
+    "howWeUseCookies": {
+      "title": "How We Use Cookies",
+      "description": "We use cookies for the following purposes:",
+      "essential": {
+        "title": "🔧 Essential Cookies",
+        "description": "These cookies are necessary for the proper functioning of the website:",
+        "items": {
+          "authentication": "Authentication: Remember that you are logged in",
+          "security": "Security: Protection against Cross-Site Request Forgery",
+          "preferences": "Preferences: Store your language and theme settings"
+        }
+      },
+      "analytics": {
+        "title": "📊 Analytics Cookies",
+        "description": "We use analytics cookies to understand how visitors interact with our website:",
+        "items": {
+          "googleAnalytics": "Google Analytics: Track page views, user behavior and website performance",
+          "usageData": "Usage Data: Understand which features are most popular",
+          "performance": "Performance: Monitor and improve website speed"
+        }
+      },
+      "marketing": {
+        "title": "🎯 Marketing Cookies",
+        "description": "These cookies help us provide relevant advertising:",
+        "items": {
+          "conversionTracking": "Conversion Tracking: Measure the effectiveness of our marketing campaigns",
+          "retargeting": "Retargeting: Show relevant ads to visitors who have used our service",
+          "socialMedia": "Social Media: Integration of social media sharing and features"
+        }
+      }
+    },
+    "thirdPartyCookies": {
+      "title": "Third-Party Cookies",
+      "description": "We work with trusted third-party providers who may set cookies:",
+      "providers": {
+        "stripe": "Stripe: For secure payment processing",
+        "googleAnalytics": "Google Analytics: For website analytics",
+        "youtube": "YouTube: For embedded video content",
+        "socialMedia": "Social Media Platforms: For social media integration"
+      }
+    },
+    "cookieManagement": {
+      "title": "Cookie Management",
+      "description": "You can control cookies through your browser settings:",
+      "browserControls": {
+        "title": "Browser Controls",
+        "chrome": "Chrome: Settings → Privacy and security → Cookies and other site data",
+        "firefox": "Firefox: Settings → Privacy & Security → Cookies and Site Data",
+        "safari": "Safari: Preferences → Privacy → Manage Website Data",
+        "edge": "Edge: Settings → Cookies and site permissions"
+      }
+    },
+    "cookieConsent": {
+      "title": "Cookie Consent",
+      "description": "When you first visit our website, we ask for your consent to use non-essential cookies. You can:",
+      "options": {
+        "acceptAll": "✓ Accept all cookies",
+        "essentialOnly": "✓ Accept only essential cookies",
+        "customize": "⚙️ Customize your settings",
+        "changeAnytime": "🔄 Change settings anytime"
+      }
+    },
+    "contact": {
+      "title": "📞 Contact",
+      "description": "If you have questions about our Cookie Policy, please contact us:",
+      "sendEmail": "Send Email",
+      "phone": "01629334092"
+    },
+    "changes": {
+      "title": "⚠️ Changes to this Policy",
+      "description": "We may update this Cookie Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the last updated date."
+    }
+  },
+  "forgotPassword": {
+    "title": "Forgot Password – CastLumen",
+    "metaDescription": "Reset your CastLumen password",
+    "checkEmailTitle": "Check Your Email – CastLumen",
+    "form": {
+      "title": "Forgot your password?",
+      "subtitle": "No worries! Enter your email and we'll send you reset instructions.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "submitButton": "Send Reset Instructions",
+      "submitting": "Sending Reset Instructions...",
+      "backToLogin": "Remember your password?",
+      "signInHere": "Sign in here"
+    },
+    "success": {
+      "title": "Check your email",
+      "message": "If an account with",
+      "messageEnd": "exists, we've sent password reset instructions.",
+      "backToSignIn": "Back to Sign In",
+      "tryDifferentEmail": "Try Different Email"
+    },
+    "toast": {
+      "success": "Reset instructions sent to your email",
+      "error": "Something went wrong. Please try again."
+    }
   }
 }
