@@ -23,6 +23,7 @@
     "form-data": "^4.0.4",
     "formidable": "^3.5.4",
     "framer-motion": "^12.23.12",
+    "i18next": "^25.5.3",
     "marked": "^16.2.1",
     "next": "14.2.0",
     "next-auth": "^4.24.11",
@@ -32,7 +33,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-google-recaptcha": "^3.1.0",
-    "react-i18next": "^15.7.3",
+    "react-i18next": "^15.7.4",
     "rss-parser": "^3.13.0",
     "stripe": "^18.5.0",
     "swr": "^2.3.6"

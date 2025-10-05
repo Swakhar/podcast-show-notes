@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useToast } from "../contexts/ToastContext";
@@ -18,6 +21,7 @@ interface Template {
 }
 
 export default function Templates() {
+  const { t } = useTranslation('common');
   const { data: session, status } = useSession();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +48,7 @@ export default function Templates() {
       setTemplates(data.list || []);
     } catch (error) {
       logger.error("Failed to fetch templates:", error);
+      showToast(t('templates.toast.fetchFailed'), "error");
     } finally {
       setIsLoading(false);
     }
@@ -67,13 +72,14 @@ export default function Templates() {
       if (res.ok) {
         await fetchTemplates();
         resetForm();
+        showToast(t('templates.toast.saveSuccess'), "success");
       } else {
         const error = await res.json();
-        showToast(error.error || "Failed to save template", "error");
+        showToast(error.error || t('templates.toast.saveFailed'), "error");
       }
     } catch (error) {
       logger.error("Error saving template:", error);
-      showToast("Failed to save template", "error");
+      showToast(t('templates.toast.saveFailed'), "error");
     }
   };
 
@@ -88,7 +94,7 @@ export default function Templates() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return;
+    if (!confirm(t('templates.confirmDelete'))) return;
 
     try {
       const res = await fetch("/api/templates", {
@@ -99,13 +105,14 @@ export default function Templates() {
 
       if (res.ok) {
         await fetchTemplates();
+        showToast(t('templates.toast.deleteSuccess'), "success");
       } else {
         const error = await res.json();
-        showToast(error.error || "Failed to delete template", "error");
+        showToast(error.error || t('templates.toast.deleteFailed'), "error");
       }
     } catch (error) {
       logger.error("Error deleting template:", error);
-      showToast("Failed to delete template", "error");
+      showToast(t('templates.toast.deleteFailed'), "error");
     }
   };
 
@@ -120,17 +127,17 @@ export default function Templates() {
   };
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return <div>{t('templates.loading.general')}</div>;
   }
 
   if (status === "unauthenticated") {
     return (
       <>
-        <Head><title>Templates - Sign in required</title></Head>
+        <Head><title>{t('templates.signInRequired.title')}</title></Head>
         <SiteHeader />
         <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Sign in required</h1>
-          <p className="text-gray-600">Please sign in to manage your templates.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('templates.signInRequired.heading')}</h1>
+          <p className="text-gray-600">{t('templates.signInRequired.message')}</p>
         </main>
         <SiteFooter />
       </>
@@ -139,108 +146,111 @@ export default function Templates() {
 
   return (
     <>
-      <Head><title>Templates - AI Podcast Show Notes</title></Head>
+      <Head>
+        <title>{t('templates.title')}</title>
+        <meta name="description" content={t('templates.metaDescription')} />
+      </Head>
       <SiteHeader />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Templates</h1>
-            <p className="text-gray-600 mt-1">Create custom templates to personalize your AI-generated content</p>
+            <h1 className="text-3xl font-bold">{t('templates.header.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('templates.header.subtitle')}</p>
           </div>
           <Link 
             href="/generate" 
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            Back to Generate
+            {t('templates.header.backToGenerate')}
           </Link>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form */}
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-white border rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold mb-4">
-              {editingId ? "Edit Template" : "Create New Template"}
+              {editingId ? t('templates.form.edit.title') : t('templates.form.create.title')}
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Template Name
+                  {t('templates.form.fields.templateName.label')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="e.g., Formal Business Summary"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder={t('templates.form.fields.templateName.placeholder')}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content Type
+                  {t('templates.form.fields.contentType.label')}
                 </label>
                 <select
                   value={formData.kind}
                   onChange={(e) => setFormData({ ...formData, kind: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2"
+                  className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
-                  <option value="summary">Summary</option>
-                  <option value="show_notes">Show Notes</option>
-                  <option value="social_snippets">Social Snippets</option>
-                  <option value="seo">SEO</option>
-                  <option value="newsletter">Newsletter</option>
+                  <option value="summary">{t('templates.form.fields.contentType.options.summary')}</option>
+                  <option value="show_notes">{t('templates.form.fields.contentType.options.showNotes')}</option>
+                  <option value="social_snippets">{t('templates.form.fields.contentType.options.socialSnippets')}</option>
+                  <option value="seo">{t('templates.form.fields.contentType.options.seo')}</option>
+                  <option value="newsletter">{t('templates.form.fields.contentType.options.newsletter')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  System Prompt
+                  {t('templates.form.fields.systemPrompt.label')}
                 </label>
                 <textarea
                   value={formData.system}
                   onChange={(e) => setFormData({ ...formData, system: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 h-24"
-                  placeholder="You are a professional content writer who..."
+                  className="w-full border rounded-md px-3 py-2 h-24 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                  placeholder={t('templates.form.fields.systemPrompt.placeholder')}
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Define the AI's role and behavior
+                  {t('templates.form.fields.systemPrompt.help')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  User Instructions
+                  {t('templates.form.fields.userInstructions.label')}
                 </label>
                 <textarea
                   value={formData.user}
                   onChange={(e) => setFormData({ ...formData, user: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 h-32"
-                  placeholder="Create a professional summary with the following format..."
+                  className="w-full border rounded-md px-3 py-2 h-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+                  placeholder={t('templates.form.fields.userInstructions.placeholder')}
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Specific instructions for the content generation
+                  {t('templates.form.fields.userInstructions.help')}
                 </p>
               </div>
 
               <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium"
                 >
-                  {editingId ? "Update Template" : "Create Template"}
+                  {editingId ? t('templates.form.edit.submitButton') : t('templates.form.create.submitButton')}
                 </button>
                 {editingId && (
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors font-medium"
                   >
-                    Cancel
+                    {t('templates.form.buttons.cancel')}
                   </button>
                 )}
               </div>
@@ -248,42 +258,51 @@ export default function Templates() {
           </div>
 
           {/* Templates List */}
-          <div className="bg-white border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Your Templates</h2>
+          <div className="bg-white border rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">{t('templates.list.title')}</h2>
             
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500">Loading...</div>
+              <div className="text-center py-8 text-gray-500">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2">{t('templates.loading.templates')}</p>
+              </div>
             ) : templates.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>No templates yet.</p>
-                <p className="text-sm mt-1">Create your first template to get started!</p>
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="font-medium">{t('templates.list.empty.noTemplates')}</p>
+                <p className="text-sm mt-1">{t('templates.list.empty.getStarted')}</p>
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {templates.map((template) => (
-                  <div key={template.id} className="border rounded-md p-3 hover:bg-gray-50">
+                  <div key={template.id} className="border rounded-md p-3 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-medium">{template.name}</h3>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">
-                          {template.kind}
+                        <h3 className="font-medium text-gray-900">{template.name}</h3>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mt-1">
+                          {t(`templates.form.fields.contentType.options.${template.kind === 'show_notes' ? 'showNotes' : 
+                             template.kind === 'social_snippets' ? 'socialSnippets' : template.kind}`)}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1 truncate">
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                           {template.system}
                         </p>
                       </div>
                       <div className="flex gap-1 ml-2">
                         <button
                           onClick={() => handleEdit(template)}
-                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                          className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors font-medium"
                         >
-                          Edit
+                          {t('templates.list.actions.edit')}
                         </button>
                         <button
                           onClick={() => handleDelete(template.id)}
-                          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
+                          className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors font-medium"
                         >
-                          Delete
+                          {t('templates.list.actions.delete')}
                         </button>
                       </div>
                     </div>
@@ -299,3 +318,11 @@ export default function Templates() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

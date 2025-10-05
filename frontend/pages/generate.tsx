@@ -4,10 +4,13 @@ import axios from "axios";
 import Head from "next/head";
 import Link from "next/link";
 import useSWR from "swr";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
+
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
-import TemplatesDrawer from "../components/TemplatesDrawer";
 import JobsStatus from '../components/JobsStatus';
 import { StageTimeline } from "../components/StageTimeline";
 import { toYouTubeChapters } from "../lib/chapters";
@@ -109,6 +112,7 @@ const STAGE_PROGRESS: Record<string, number> = {
 export default function Generate() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
+  const { t } = useTranslation('common');
   
   const { data: meData, error: meError } = useSWR(
     status === "authenticated" ? "/api/me" : null,
@@ -332,8 +336,8 @@ export default function Generate() {
   return (
     <>
       <Head>
-        <title>AI Content Generator – Professional Podcast Production | CastLumen</title>
-        <meta name="description" content="Transform your podcast into professional content. Generate show notes, timestamps, SEO content, and social media snippets with enterprise-grade AI." />
+        <title>{t('generate.title')} | CastLumen</title>
+        <meta name="description" content={t('generate.metaDescription')} />
       </Head>
       <SiteHeader />
       
@@ -348,13 +352,13 @@ export default function Generate() {
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                AI-Powered Content Generation
+                {t('generate.hero.badge')}
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Transform Audio into <span className="text-[#9CEE69]">Professional Content</span>
+                {t('generate.hero.title')}
               </h1>
               <p className="text-xl text-gray-600 mt-6 max-w-2xl mx-auto leading-relaxed">
-                Upload your podcast or paste a URL. Our AI generates show notes, timestamps, SEO content, and social snippets – all optimized for maximum engagement.
+                {t('generate.hero.subtitle')}
               </p>
               
               {/* Quick Stats */}
@@ -363,19 +367,19 @@ export default function Generate() {
                   <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">95% faster workflow</span>
+                  <span className="font-medium">{t('generate.hero.stats.workflow')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">Enterprise-grade AI</span>
+                  <span className="font-medium">{t('generate.hero.stats.ai')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">Multi-format output</span>
+                  <span className="font-medium">{t('generate.hero.stats.output')}</span>
                 </div>
               </div>
             </div>
@@ -402,13 +406,13 @@ export default function Generate() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${active ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}></div>
-                    <span className="font-semibold text-gray-900">{planLabel} Plan</span>
+                    <span className="font-semibold text-gray-900">{planLabel} {t('generate.status.plan')}</span>
                   </div>
                   <div className="text-gray-600">
                     <span className="font-medium">{me.monthlyMinutesUsed}</span>
                     <span className="mx-1">/</span>
                     <span>{me.monthlyMinutesLimit === 999999 ? '∞' : me.monthlyMinutesLimit}</span>
-                    <span className="ml-1 text-sm">minutes used</span>
+                    <span className="ml-1 text-sm">{t('generate.status.minutesUsed')}</span>
                   </div>
                 </div>
                 
@@ -431,7 +435,7 @@ export default function Generate() {
                       href="/#pricing" 
                       className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-lg font-medium hover:shadow-md transition-all text-sm"
                     >
-                      Upgrade Plan
+                      {t('generate.status.upgrade')}
                     </Link>
                   )}
                 </div>
@@ -455,7 +459,7 @@ export default function Generate() {
                           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      🎵 Audio Content
+                      {t('generate.tabs.audio')}
                     </button>
                     <button
                       onClick={() => setActiveTab('guest')}
@@ -465,7 +469,7 @@ export default function Generate() {
                           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      🔍 Guest Research
+                      {t('generate.tabs.guest')}
                     </button>
                   </nav>
                 </div>
@@ -564,7 +568,7 @@ export default function Generate() {
                             }
                           </h3>
                           <p className="text-gray-600">
-                            {progress}% complete • This may take a few minutes
+                            {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
                           </p>
                         </div>
                         
@@ -590,35 +594,35 @@ export default function Generate() {
                       </>
                     ) : activeTab === 'guest' ? (
                       <>
-                        <h3 className="text-2xl font-bold text-gray-900">Ready for Guest Research</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.guest.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
-                          Fill in your guest's information in the sidebar to generate comprehensive research, interview questions, and conversation starters powered by AI.
+                          {t('generate.ready.guest.subtitle')}
                         </p>
                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                           <div className="p-4 bg-purple-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">🔍</div>
-                            <p className="text-sm font-medium text-gray-700">Deep Research</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.guest.features.research')}</p>
                           </div>
                           <div className="p-4 bg-blue-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">❓</div>
-                            <p className="text-sm font-medium text-gray-700">Smart Questions</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.guest.features.questions')}</p>
                           </div>
                         </div>
                       </>
                     ) : (
                       <>
-                        <h3 className="text-2xl font-bold text-gray-900">Ready to Generate Content</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.audio.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
-                          Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.
+                          {t('generate.ready.audio.subtitle')}
                         </p>
                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                           <div className="p-4 bg-gray-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">⚡</div>
-                            <p className="text-sm font-medium text-gray-700">Lightning Fast</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.audio.features.fast')}</p>
                           </div>
                           <div className="p-4 bg-gray-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">🎯</div>
-                            <p className="text-sm font-medium text-gray-700">Highly Accurate</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.audio.features.accurate')}</p>
                           </div>
                         </div>
                       </>
@@ -631,12 +635,12 @@ export default function Generate() {
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Generated Content</h2>
-                        <p className="text-gray-600 mt-1">Your AI-generated podcast content is ready</p>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('generate.results.title')}</h2>
+                        <p className="text-gray-600 mt-1">{t('generate.results.subtitle')}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-green-700">Complete</span>
+                        <span className="text-sm font-medium text-green-700">{t('generate.results.complete')}</span>
                       </div>
                     </div>
                   </div>
@@ -644,7 +648,7 @@ export default function Generate() {
                   {/* Results Grid */}
                   {jobStatus.result.summary && features.summary && (
                     <ProCard 
-                      title="Summary" 
+                      title={t('generate.cards.summary')} 
                       icon="📋" 
                       expanded={expandedCard === 'summary'}
                       onToggle={() => setExpandedCard(expandedCard === 'summary' ? null : 'summary')}
@@ -655,13 +659,13 @@ export default function Generate() {
 
                   {jobStatus.result.show_notes && features.show_notes && (
                     <ProCard 
-                      title="Show Notes" 
+                      title={t('generate.cards.showNotes')} 
                       icon="📝"
                       expanded={expandedCard === 'show_notes'}
                       onToggle={() => setExpandedCard(expandedCard === 'show_notes' ? null : 'show_notes')}
                       actions={[
                         {
-                          label: "Download Markdown",
+                          label: t('generate.actions.downloadMarkdown'),
                           icon: "📥",
                           onClick: () => {
                             const title = jobStatus.result?.seo?.title;
@@ -684,13 +688,13 @@ export default function Generate() {
 
                   {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
                     <ProCard 
-                      title="Timestamps" 
+                      title={t('generate.cards.timestamps')} 
                       icon="⏰"
                       expanded={expandedCard === 'timestamps'}
                       onToggle={() => setExpandedCard(expandedCard === 'timestamps' ? null : 'timestamps')}
                       actions={[
                         {
-                          label: "Copy YouTube Chapters",
+                          label: t('generate.actions.copyYouTubeChapters'),
                           icon: "📺",
                           onClick: () => {
                             const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
@@ -713,7 +717,7 @@ export default function Generate() {
 
                   {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
                     <ProCard 
-                      title="Social Snippets" 
+                      title={t('generate.cards.socialSnippets')} 
                       icon="📱"
                       expanded={expandedCard === 'social_snippets'}
                       onToggle={() => setExpandedCard(expandedCard === 'social_snippets' ? null : 'social_snippets')}
@@ -741,18 +745,18 @@ export default function Generate() {
 
                   {jobStatus.result.seo && features.seo && (
                     <ProCard 
-                      title="SEO Content" 
+                      title={t('generate.cards.seo')} 
                       icon="🔍"
                       expanded={expandedCard === 'seo'}
                       onToggle={() => setExpandedCard(expandedCard === 'seo' ? null : 'seo')}
                     >
                       <div className="space-y-4">
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <label className="block text-sm font-semibold text-green-800 mb-2">SEO Title</label>
+                          <label className="block text-sm font-semibold text-green-800 mb-2">{t('generate.seo.title')}</label>
                           <p className="text-gray-700 font-medium">{jobStatus.result.seo.title}</p>
                         </div>
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <label className="block text-sm font-semibold text-blue-800 mb-2">Keywords</label>
+                          <label className="block text-sm font-semibold text-blue-800 mb-2">{t('generate.seo.keywords')}</label>
                           <div className="flex flex-wrap gap-2">
                             {jobStatus.result.seo.keywords.split(',').map((keyword, i) => (
                               <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
@@ -767,13 +771,13 @@ export default function Generate() {
 
                   {jobStatus.result.newsletter && features.newsletter && (
                     <ProCard 
-                      title="Newsletter Draft" 
+                      title={t('generate.cards.newsletter')} 
                       icon="📧"
                       expanded={expandedCard === 'newsletter'}
                       onToggle={() => setExpandedCard(expandedCard === 'newsletter' ? null : 'newsletter')}
                       actions={[
                         {
-                          label: "Copy Markdown",
+                          label: t('generate.actions.copyMarkdown'),
                           icon: "📋",
                           onClick: () => {
                             const n = jobStatus.result!.newsletter!;
@@ -781,7 +785,7 @@ export default function Generate() {
                           }
                         },
                         {
-                          label: "Download File",
+                          label: t('generate.actions.downloadFile'),
                           icon: "📥",
                           onClick: () => {
                             const n = jobStatus.result!.newsletter!;
@@ -791,7 +795,7 @@ export default function Generate() {
                           }
                         },
                         {
-                          label: "Publish to WordPress",
+                          label: t('generate.actions.publishWordPress'),
                           icon: "🌐",
                           onClick: async () => {
                             const newsletter = jobStatus.result!.newsletter!;
@@ -806,12 +810,12 @@ export default function Generate() {
                               const j = await r.json();
                               if (!r.ok) throw new Error(j.error || "Failed to publish");
                               if (j.demo) {
-                                showToast(`📝 Demo published! ${j.message}`, "success");
+                                showToast(`${t('generate.messages.demoPublished')} ${j.message}`, "success");
                               } else {
-                                showToast(`✅ Published to WordPress! View: ${j.link}`, "success");
+                                showToast(`${t('generate.messages.publishedWordPress')} ${j.link}`, "success");
                               }
                             } catch (error: any) {
-                              showToast(`Publishing failed: ${error.message}`, "error", 5000);
+                              showToast(`${t('generate.messages.publishingFailed')} ${error.message}`, "error", 5000);
                             }
                           }
                         }
@@ -819,11 +823,11 @@ export default function Generate() {
                     >
                       <div className="space-y-4">
                         <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <label className="block text-sm font-semibold text-purple-800 mb-2">Subject Line</label>
+                          <label className="block text-sm font-semibold text-purple-800 mb-2">{t('generate.newsletter.subject')}</label>
                           <p className="text-gray-700 font-medium">{jobStatus.result.newsletter.subject}</p>
                         </div>
                         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Email Content</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">{t('generate.newsletter.content')}</label>
                           <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
                             {jobStatus.result.newsletter.body_markdown}
                           </pre>
@@ -834,7 +838,7 @@ export default function Generate() {
 
                   {jobStatus.result.transcript && (
                     <ProCard 
-                      title="Full Transcript" 
+                      title={t('generate.cards.transcript')}
                       icon="📄"
                       expanded={showTranscript}
                       onToggle={() => setShowTranscript(!showTranscript)}
@@ -850,13 +854,13 @@ export default function Generate() {
                   {/* New Guest Research Results */}
                   {jobStatus.result.guest_research && (
                     <ProCard 
-                      title="Guest Research Report" 
+                      title={t('generate.cards.guestResearch')}
                       icon="📊"
                       expanded={expandedCard === 'guest_research'}
                       onToggle={() => setExpandedCard(expandedCard === 'guest_research' ? null : 'guest_research')}
                       actions={[
                         {
-                          label: "Download Report",
+                          label: t('generate.actions.downloadReport'),
                           icon: "📥",
                           onClick: () => {
                             const guestName = jobStatus.result?.guest_name || "guest";
@@ -876,17 +880,17 @@ export default function Generate() {
 
                   {jobStatus.result.interview_questions && (
                     <ProCard 
-                      title="Interview Questions" 
+                      title={t('generate.cards.interviewQuestions')}
                       icon="❓"
                       expanded={expandedCard === 'interview_questions'}
                       onToggle={() => setExpandedCard(expandedCard === 'interview_questions' ? null : 'interview_questions')}
                       actions={[
                         {
-                          label: "Copy Questions",
+                          label: t('generate.actions.copyQuestions'),
                           icon: "📋",
                           onClick: () => {
                             navigator.clipboard.writeText(jobStatus.result!.interview_questions!);
-                            showToast("Interview questions copied to clipboard!", "info", 3000);
+                            showToast(t('generate.messages.questionsCopied'), "info", 3000);
                           }
                         }
                       ]}
@@ -901,7 +905,7 @@ export default function Generate() {
 
                   {jobStatus.result.conversation_starters && (
                     <ProCard 
-                      title="Conversation Starters" 
+                      title={t('generate.cards.conversationStarters')} 
                       icon="💬"
                       expanded={expandedCard === 'conversation_starters'}
                       onToggle={() => setExpandedCard(expandedCard === 'conversation_starters' ? null : 'conversation_starters')}
@@ -990,3 +994,12 @@ function ProCard({ title, icon, children, expanded = true, onToggle, actions }: 
     </div>
   );
 }
+
+/* ---------- i18n Support ---------- */
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

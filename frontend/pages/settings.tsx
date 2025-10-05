@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { useToast } from "../contexts/ToastContext";
@@ -23,6 +26,7 @@ interface RssFeed {
 }
 
 export default function SettingsPage() {
+  const { t } = useTranslation('common');
   const { data: session, status } = useSession();
   const [siteUrl, setSiteUrl] = useState("");
   const [username, setUsername] = useState("");
@@ -44,7 +48,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (status === "authenticated") {
       loadData();
-      loadEmailPreferences(); // Add this line
+      loadEmailPreferences();
     }
   }, [status]);
 
@@ -102,14 +106,14 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        showToast("WordPress credentials saved successfully!", "success");
+        showToast(t('settings.wordpress.toast.saved'), "success");
         setAppPass(""); // Clear password after save
       } else {
-        showToast(data.error || "Failed to save WordPress credentials", "error");
+        showToast(data.error || t('settings.wordpress.toast.saveFailed'), "error");
       }
     } catch (error) {
       logger.error("Error saving WordPress credentials:", error);
-      showToast("Failed to save WordPress credentials", "error");
+      showToast(t('settings.wordpress.toast.saveFailed'), "error");
     } finally {
       setLoading(false);
     }
@@ -117,7 +121,7 @@ export default function SettingsPage() {
 
   async function handleTestConnection() {
     if (!siteUrl || !username) {
-      showToast("Please fill in Site URL and Username first", "error");
+      showToast(t('settings.wordpress.toast.fillRequired'), "error");
       return;
     }
 
@@ -131,12 +135,12 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        showToast("Connection successful! ✅", "success");
+        showToast(t('settings.wordpress.toast.connectionSuccess'), "success");
       } else {
-        showToast(`Connection failed: ${data.error || "Unknown error"}`, "error");
+        showToast(`${t('settings.wordpress.toast.connectionFailed')} ${data.error || "Unknown error"}`, "error");
       }
     } catch (error) {
-      showToast("Connection test failed", "error");
+      showToast(t('settings.wordpress.toast.testFailed'), "error");
     } finally {
       setTestingConnection(false);
     }
@@ -156,22 +160,22 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        showToast("RSS feed added successfully!", "success");
+        showToast(t('settings.rss.toast.added'), "success");
         setRssUrl("");
         await loadData(); // Refresh the list
       } else {
-        showToast(data.error || "Failed to add RSS feed", "error");
+        showToast(data.error || t('settings.rss.toast.addFailed'), "error");
       }
     } catch (error) {
       logger.error("Error adding RSS feed:", error);
-      showToast("Failed to add RSS feed", "error");
+      showToast(t('settings.rss.toast.addFailed'), "error");
     } finally {
       setRssLoading(false);
     }
   }
 
   async function handleRemoveRss(feedId: string, feedUrl: string) {
-    if (!confirm(`Remove RSS feed: ${feedUrl}?`)) return;
+    if (!confirm(`${t('settings.rss.confirmRemove')} ${feedUrl}?`)) return;
 
     try {
       const res = await fetch("/api/rss/remove", {
@@ -181,15 +185,15 @@ export default function SettingsPage() {
       });
       
       if (res.ok) {
-        showToast("RSS feed removed successfully!", "success");
+        showToast(t('settings.rss.toast.removed'), "success");
         await loadData(); // Refresh the list
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to remove RSS feed", "error");
+        showToast(data.error || t('settings.rss.toast.removeFailed'), "error");
       }
     } catch (error) {
       logger.error("Error removing RSS feed:", error);
-      showToast("Failed to remove RSS feed", "error");
+      showToast(t('settings.rss.toast.removeFailed'), "error");
     }
   }
 
@@ -205,11 +209,11 @@ export default function SettingsPage() {
         await loadData(); // Refresh the list
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to update RSS feed", "error");
+        showToast(data.error || t('settings.rss.toast.updateFailed'), "error");
       }
     } catch (error) {
       logger.error("Error updating RSS feed:", error);
-      showToast("Failed to update RSS feed", "error");
+      showToast(t('settings.rss.toast.updateFailed'), "error");
     }
   }
 
@@ -225,14 +229,21 @@ export default function SettingsPage() {
       
       const data = await res.json();
       if (res.ok) {
-        showToast(`✅ Pulled ${data.itemCount} episodes, created ${data.jobsCreated} AI jobs for "${feedTitle}"`, "success");
+        showToast(
+          t('settings.rss.toast.pullSuccess', {
+            itemCount: data.itemCount,
+            jobsCreated: data.jobsCreated,
+            feedTitle: feedTitle
+          }),
+          "success"
+        );
         await loadData(); // Refresh the list
       } else {
-        showToast(data.message || "Failed to pull RSS feed", "error");
+        showToast(data.message || t('settings.rss.toast.pullFailed'), "error");
       }
     } catch (error) {
       logger.error("Error pulling RSS feed:", error);
-      showToast("Failed to pull RSS feed", "error");
+      showToast(t('settings.rss.toast.pullFailed'), "error");
     } finally {
       setPullingFeeds(prev => {
         const newSet = new Set(prev);
@@ -251,28 +262,28 @@ export default function SettingsPage() {
       });
       
       if (res.ok) {
-        showToast('Email preferences saved!', 'success');
+        showToast(t('settings.email.toast.saved'), 'success');
       } else {
-        showToast('Failed to save email preferences', 'error');
+        showToast(t('settings.email.toast.saveFailed'), 'error');
       }
     } catch (error) {
       logger.error('Failed to save email preferences:', error);
-      showToast('Failed to save email preferences', 'error');
+      showToast(t('settings.email.toast.saveFailed'), 'error');
     }
   }
 
   if (status === "loading") {
-    return <div>Loading...</div>;
+    return <div>{t('settings.loading.general')}</div>;
   }
 
   if (status === "unauthenticated") {
     return (
       <>
-        <Head><title>Settings - Sign in required</title></Head>
+        <Head><title>{t('settings.signInRequired.title')}</title></Head>
         <SiteHeader />
         <main className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Sign in required</h1>
-          <p className="text-gray-600">Please sign in to access your settings.</p>
+          <h1 className="text-2xl font-bold mb-4">{t('settings.signInRequired.heading')}</h1>
+          <p className="text-gray-600">{t('settings.signInRequired.message')}</p>
         </main>
         <SiteFooter />
       </>
@@ -281,7 +292,10 @@ export default function SettingsPage() {
 
   return (
     <>
-      <Head><title>Settings - AI Podcast Show Notes</title></Head>
+      <Head>
+        <title>{t('settings.title')}</title>
+        <meta name="description" content={t('settings.metaDescription')} />
+      </Head>
       <SiteHeader />
 
       {/* Add Jobs Status here - visible on settings page */}
@@ -289,15 +303,15 @@ export default function SettingsPage() {
         <JobsStatus />
         
         <div className="space-y-8">
-          <h1 className="text-3xl font-bold">Settings</h1>
+          <h1 className="text-3xl font-bold">{t('settings.header.title')}</h1>
           
-          <p className="text-gray-600 mt-1">Configure your integrations and preferences</p>
+          <p className="text-gray-600 mt-1">{t('settings.header.subtitle')}</p>
           
 
           {isLoadingData ? (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-gray-600 mt-2">Loading settings...</p>
+              <p className="text-gray-600 mt-2">{t('settings.loading.settings')}</p>
             </div>
           ) : (
             <div className="grid lg:grid-cols-2 gap-8">
@@ -310,19 +324,19 @@ export default function SettingsPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold">WordPress Integration</h2>
-                    <p className="text-sm text-gray-600">Connect your WordPress site to publish content directly</p>
+                    <h2 className="text-xl font-semibold">{t('settings.wordpress.title')}</h2>
+                    <p className="text-sm text-gray-600">{t('settings.wordpress.subtitle')}</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleSaveWp} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Site URL
+                      {t('settings.wordpress.fields.siteUrl')}
                     </label>
                     <input
                       type="url"
-                      placeholder="https://yoursite.com"
+                      placeholder={t('settings.wordpress.fields.siteUrlPlaceholder')}
                       value={siteUrl}
                       onChange={(e) => setSiteUrl(e.target.value)}
                       className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -332,11 +346,11 @@ export default function SettingsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Username
+                      {t('settings.wordpress.fields.username')}
                     </label>
                     <input
                       type="text"
-                      placeholder="Your WordPress username"
+                      placeholder={t('settings.wordpress.fields.usernamePlaceholder')}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -346,18 +360,18 @@ export default function SettingsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Application Password
+                      {t('settings.wordpress.fields.appPassword')}
                     </label>
                     <input
                       type="password"
-                      placeholder="WordPress App Password"
+                      placeholder={t('settings.wordpress.fields.appPasswordPlaceholder')}
                       value={appPass}
                       onChange={(e) => setAppPass(e.target.value)}
                       className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       disabled={loading}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Generate this in WordPress → Users → Your Profile → Application Passwords
+                      {t('settings.wordpress.fields.appPasswordHelp')}
                     </p>
                   </div>
 
@@ -367,7 +381,7 @@ export default function SettingsPage() {
                       disabled={loading || !siteUrl || !username}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? "Saving..." : "Save Credentials"}
+                      {loading ? t('settings.wordpress.buttons.saving') : t('settings.wordpress.buttons.save')}
                     </button>
                     <button
                       type="button"
@@ -375,19 +389,19 @@ export default function SettingsPage() {
                       disabled={testingConnection || !siteUrl || !username}
                       className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {testingConnection ? "Testing..." : "Test"}
+                      {testingConnection ? t('settings.wordpress.buttons.testing') : t('settings.wordpress.buttons.test')}
                     </button>
                   </div>
                 </form>
 
                 <div className="mt-4 p-3 bg-blue-50 rounded-md">
                   <p className="text-sm text-blue-800">
-                    <strong>📝 WordPress Publishing Note</strong>
+                    <strong>{t('settings.wordpress.note.title')}</strong>
                   </p>
                   <ol className="text-xs text-blue-700 mt-1 space-y-1 list-decimal list-inside">
-                    <li><strong>WordPress.com Free:</strong> Demo mode only (API limitations)</li>
-                    <li><strong>WordPress.com Business ($25/mo):</strong> Full publishing</li>
-                    <li><strong>Self-hosted WordPress:</strong> Full publishing with Application Passwords</li>
+                    <li><strong>WordPress.com Free:</strong> {t('settings.wordpress.note.free')}</li>
+                    <li><strong>WordPress.com Business:</strong> {t('settings.wordpress.note.business')}</li>
+                    <li><strong>Self-hosted WordPress:</strong> {t('settings.wordpress.note.selfHosted')}</li>
                   </ol>
                 </div>
               </div>
@@ -401,19 +415,19 @@ export default function SettingsPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold">RSS Feed Management</h2>
-                    <p className="text-sm text-gray-600">Monitor podcast feeds for automatic processing</p>
+                    <h2 className="text-xl font-semibold">{t('settings.rss.title')}</h2>
+                    <p className="text-sm text-gray-600">{t('settings.rss.subtitle')}</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleAddRss} className="space-y-4 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      RSS Feed URL
+                      {t('settings.rss.fields.feedUrl')}
                     </label>
                     <input
                       type="url"
-                      placeholder="https://feeds.example.com/podcast.xml"
+                      placeholder={t('settings.rss.fields.feedUrlPlaceholder')}
                       value={rssUrl}
                       onChange={(e) => setRssUrl(e.target.value)}
                       className="w-full border rounded-md px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
@@ -425,16 +439,16 @@ export default function SettingsPage() {
                     disabled={rssLoading || !rssUrl.trim()}
                     className="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {rssLoading ? "Adding..." : "Add RSS Feed"}
+                    {rssLoading ? t('settings.rss.buttons.adding') : t('settings.rss.buttons.add')}
                   </button>
                 </form>
 
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Your RSS Feeds</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">{t('settings.rss.feeds.title')}</h3>
                   {rssFeeds.length === 0 ? (
                     <div className="text-center py-6 text-gray-500">
-                      <p>No RSS feeds configured yet.</p>
-                      <p className="text-sm mt-1">Add your first feed to get started!</p>
+                      <p>{t('settings.rss.feeds.empty.noFeeds')}</p>
+                      <p className="text-sm mt-1">{t('settings.rss.feeds.empty.getStarted')}</p>
                     </div>
                   ) : (
                     <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -443,7 +457,7 @@ export default function SettingsPage() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">
-                                {feed.title || "Untitled Feed"}
+                                {feed.title || t('settings.rss.feeds.untitled')}
                               </p>
                               <p className="text-xs text-gray-500 truncate">{feed.url}</p>
                               <div className="flex items-center gap-2 mt-1">
@@ -452,11 +466,11 @@ export default function SettingsPage() {
                                     ? "bg-green-100 text-green-800" 
                                     : "bg-gray-100 text-gray-800"
                                 }`}>
-                                  {feed.active ? "Active" : "Inactive"}
+                                  {feed.active ? t('settings.rss.feeds.status.active') : t('settings.rss.feeds.status.inactive')}
                                 </span>
                                 {feed.lastCheckedAt && (
                                   <span className="text-xs text-gray-400">
-                                    Last checked: {new Date(feed.lastCheckedAt).toLocaleDateString()}
+                                    {t('settings.rss.feeds.lastChecked')} {new Date(feed.lastCheckedAt).toLocaleDateString()}
                                   </span>
                                 )}
                               </div>
@@ -472,10 +486,10 @@ export default function SettingsPage() {
                                   {pullingFeeds.has(feed.id) ? (
                                     <>
                                       <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
-                                      <span>Pulling...</span>
+                                      <span>{t('settings.rss.buttons.pulling')}</span>
                                     </>
                                   ) : (
-                                    "Pull Now"
+                                    t('settings.rss.buttons.pullNow')
                                   )}
                                 </button>
                               )}
@@ -487,13 +501,13 @@ export default function SettingsPage() {
                                     : "bg-green-100 text-green-700 hover:bg-green-200"
                                 }`}
                               >
-                                {feed.active ? "Pause" : "Activate"}
+                                {feed.active ? t('settings.rss.buttons.pause') : t('settings.rss.buttons.activate')}
                               </button>
                               <button
                                 onClick={() => handleRemoveRss(feed.id, feed.url)}
                                 className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                               >
-                                Remove
+                                {t('settings.rss.buttons.remove')}
                               </button>
                             </div>
                           </div>
@@ -508,7 +522,7 @@ export default function SettingsPage() {
 
           {/* Email Preferences Section */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">📧 Email Notifications</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('settings.email.title')}</h2>
             
             <div className="space-y-3">
               <label className="flex items-center">
@@ -521,7 +535,7 @@ export default function SettingsPage() {
                   }))}
                   className="mr-2"
                 />
-                <span>Email me when RSS feeds generate new content</span>
+                <span>{t('settings.email.preferences.rssNewContent')}</span>
               </label>
               
               <label className="flex items-center">
@@ -534,7 +548,7 @@ export default function SettingsPage() {
                   }))}
                   className="mr-2"
                 />
-                <span>Email me when manual uploads complete</span>
+                <span>{t('settings.email.preferences.manualJobs')}</span>
               </label>
               
               <label className="flex items-center">
@@ -547,7 +561,7 @@ export default function SettingsPage() {
                   }))}
                   className="mr-2"
                 />
-                <span>Send weekly content digest</span>
+                <span>{t('settings.email.preferences.weeklyDigest')}</span>
               </label>
             </div>
             
@@ -555,13 +569,13 @@ export default function SettingsPage() {
               onClick={saveEmailPreferences}
               className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              Save Email Preferences
+              {t('settings.email.buttons.save')}
             </button>
           </div>
 
           {/* Info Section */}
           <div className="mt-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8">
-            <h2 className="text-2xl font-bold text-center mb-6">Integration Benefits</h2>
+            <h2 className="text-2xl font-bold text-center mb-6">{t('settings.benefits.title')}</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mx-auto mb-3">
@@ -569,8 +583,8 @@ export default function SettingsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2">WordPress Integration</h3>
-                <p className="text-sm text-gray-600">Automatically publish your generated show notes, newsletters, and content directly to your WordPress site with one click.</p>
+                <h3 className="font-semibold mb-2">{t('settings.benefits.wordpress.title')}</h3>
+                <p className="text-sm text-gray-600">{t('settings.benefits.wordpress.description')}</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mx-auto mb-3">
@@ -578,8 +592,8 @@ export default function SettingsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2m-5 0v18a1 1 0 001 1h4a1 1 0 001-1V4m-5 0H5a2 2 0 00-2 2v14a2 2 0 002 2h2M9 4h6m0 0h2a2 2 0 012 2v14a2 2 0 01-2 2h-2" />
                   </svg>
                 </div>
-                <h3 className="font-semibold mb-2">RSS Monitoring</h3>
-                <p className="text-sm text-gray-600">Monitor your podcast RSS feeds and automatically process new episodes as they're published to your feed.</p>
+                <h3 className="font-semibold mb-2">{t('settings.benefits.rss.title')}</h3>
+                <p className="text-sm text-gray-600">{t('settings.benefits.rss.description')}</p>
               </div>
             </div>
           </div>
@@ -590,3 +604,11 @@ export default function SettingsPage() {
     </>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

@@ -1,8 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 
 export default function Success() {
+  const { t } = useTranslation('common');
   const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
@@ -23,8 +27,8 @@ export default function Success() {
   return (
     <>
       <Head>
-        <title>Payment Successful – CastLumen</title>
-        <meta name="description" content="Your payment was successful. Welcome aboard!" />
+        <title>{t('cancel.title')}</title>
+        <meta name="description" content={t('cancel.metaDescription')} />
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
@@ -43,15 +47,15 @@ export default function Success() {
             <div className="bg-gradient-to-r from-green-50 to-blue-50 px-8 py-12 text-center border-b border-gray-200">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.178 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               
               <h1 className="text-3xl font-black text-gray-900 mb-4">
-                Payment Successful
+                {t('cancel.hero.title')}
               </h1>
               <p className="text-lg text-gray-600 max-w-md mx-auto">
-                Welcome aboard! Your payment was successful, and your subscription is now active.
+                {t('cancel.hero.subtitle')}
               </p>
             </div>
 
@@ -66,23 +70,23 @@ export default function Success() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    Getting Started
+                    {t('cancel.gettingStarted.title')}
                   </h2>
                   <p className="text-gray-700 leading-relaxed">
-                    Here are some quick links to help you get started with your new subscription:
+                    {t('cancel.gettingStarted.description')}
                   </p>
                   <ul className="mt-3 space-y-2 text-gray-700">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 font-bold">•</span>
-                      <span>Explore our AI content generation features</span>
+                      <span>{t('cancel.gettingStarted.items.explore')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 font-bold">•</span>
-                      <span>Visit our help center for tutorials and guides</span>
+                      <span>{t('cancel.gettingStarted.items.helpCenter')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 font-bold">•</span>
-                      <span>Contact support if you have any questions</span>
+                      <span>{t('cancel.gettingStarted.items.support')}</span>
                     </li>
                   </ul>
                 </div>
@@ -94,25 +98,32 @@ export default function Success() {
                       href="/generate" 
                       className="px-6 py-3 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-lg hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-center"
                     >
-                      Start Generating Content
+                      {t('cancel.actions.startGenerating')}
                     </Link>
                     <Link 
                       href="/#pricing" 
                       className="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors text-center"
                     >
-                      View Pricing Plans
+                      {t('cancel.actions.viewPricing')}
                     </Link>
                   </div>
+                </div>
+
+                {/* Countdown */}
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    {t('cancel.countdown.redirecting')} {countdown} {countdown === 1 ? 'second' : 'seconds'}...
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="mt-8 text-center">
+            <div className="mt-8 text-center pb-8">
               <p className="text-sm text-gray-500">
-                Questions about your subscription?{" "}
+                {t('cancel.footer.questions')}{" "}
                 <Link href="/contact" className="text-blue-600 hover:text-blue-800">
-                  Contact our support team
+                  {t('cancel.footer.contactSupport')}
                 </Link>
               </p>
             </div>
@@ -122,3 +133,11 @@ export default function Success() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};
