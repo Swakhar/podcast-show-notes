@@ -1067,5 +1067,250 @@
       "deleteFailed": "Failed to delete template",
       "fetchFailed": "Failed to load templates"
     }
+  },
+  "teams": {
+    "title": "Teams – CastLumen",
+    "metaDescription": "Collaborate with your team on podcast content creation",
+    "loading": {
+      "general": "Loading...",
+      "teams": "Loading teams..."
+    },
+    "unauthorized": {
+      "banner": {
+        "title": "Unauthorized Access:",
+        "message": "You need an Agency plan subscription to access teams."
+      },
+      "content": {
+        "title": "Agency Plan Required",
+        "message": "Teams functionality is only available for Agency plan subscribers.",
+        "upgradeButton": "Upgrade to Agency",
+        "homeButton": "Go Home"
+      }
+    },
+    "header": {
+      "title": "Team Collaboration",
+      "subtitle": "Work together to create amazing podcast content"
+    },
+    "debug": {
+      "plan": "Plan:",
+      "canCreate": "Can Create:",
+      "access": "Access:",
+      "owned": "Owned:",
+      "member": "Member:",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "error": {
+      "loadFailed": "Failed to load teams. Please try again.",
+      "retry": "Retry"
+    },
+    "owned": {
+      "title": "Your Teams",
+      "subtitle": "Teams that you own and manage",
+      "ownerBadge": "Owner",
+      "memberCount": "member",
+      "memberCountPlural": "members",
+      "manageButton": "Manage Team"
+    },
+    "member": {
+      "title": "Teams You're In", 
+      "subtitle": "Teams where you're a member",
+      "memberBadge": "Member",
+      "owner": "Owner",
+      "viewButton": "View Team",
+      "unknownOwner": "Unknown"
+    },
+    "empty": {
+      "title": "No teams yet",
+      "messageCanCreate": "Create your first team to start collaborating",
+      "messageCannotCreate": "You haven't been invited to any teams yet",
+      "createButton": "Create Your First Team"
+    },
+    "createModal": {
+      "title": "Create New Team",
+      "fields": {
+        "teamName": {
+          "label": "Team Name",
+          "placeholder": "Enter team name"
+        },
+        "description": {
+          "label": "Description (Optional)",
+          "placeholder": "Describe your team's purpose"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create Team",
+        "creating": "Creating..."
+      }
+    },
+    "toast": {
+      "createSuccess": "Team created successfully!",
+      "createFailed": "Failed to create team",
+      "error": "Something went wrong"
+    },
+    "teamDetail": {
+      "title": "{teamName} – CastLumen Teams",
+      "metaDescription": "Collaborate with {teamName} team on podcast content",
+      "loading": {
+        "team": "Loading Team – CastLumen",
+        "general": "Loading...",
+        "teamData": "Loading team..."
+      },
+      "unauthorized": {
+        "title": "Team Access Restricted – CastLumen",
+        "banner": {
+          "title": "Unauthorized Access:",
+          "message": "You need an Agency plan subscription to access teams."
+        },
+        "content": {
+          "title": "Agency Plan Required",
+          "message": "Teams functionality is only available for Agency plan users.",
+          "upgradeButton": "Upgrade to Agency",
+          "backToTeams": "Back to Teams"
+        }
+      },
+      "notFound": {
+        "title": "Team Not Found – CastLumen",
+        "heading": "Team Not Found",
+        "message": "This team doesn't exist or you don't have access to it.",
+        "backButton": "Back to Teams"
+      },
+      "header": {
+        "backToTeams": "← Back to Teams",
+        "ownerBadge": "Owner",
+        "memberBadge": "Member"
+      },
+      "debug": {
+        "yourRole": "Your Role:",
+        "teamId": "Team ID:",
+        "owner": "Owner",
+        "member": "Member",
+        "noAccess": "No Access"
+      },
+      "members": {
+        "title": "Team Members",
+        "ownerBadge": "Owner",
+        "memberBadge": "Member",
+        "roleLabel": "Member",
+        "removeButton": "Remove member",
+        "noMembers": "No team members yet.",
+        "inviteMessage": "Invite colleagues to join your team!",
+        "unknown": "Unknown"
+      },
+      "invite": {
+        "title": "Invite Members",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "colleague@example.com",
+        "emailHelp": "User must already have a CastLumen account",
+        "sendButton": "Send Invitation",
+        "sending": "Sending..."
+      },
+      "teamInfo": {
+        "title": "Team Information",
+        "yourRole": "Your Role",
+        "teamOwner": "Team Owner",
+        "memberRole": "Team Member",
+        "permissionNote": "Only team owners can invite new members and manage the team."
+      },
+      "toast": {
+        "onlyOwnersCanInvite": "Only team owners can invite members",
+        "inviteSuccess": "Invitation sent successfully!",
+        "inviteFailed": "Failed to send invitation",
+        "onlyOwnersCanRemove": "Only team owners can remove members",
+        "removeMemberSuccess": "Member removed successfully",
+        "removeMemberFailed": "Failed to remove member",
+        "error": "Something went wrong"
+      },
+      "confirmRemove": "Are you sure you want to remove this member?"
+    }
+  },
+  "jobResults": {
+    "title": "Content Results – CastLumen",
+    "guestResearchTitle": "Guest Research Results – CastLumen",
+    "metaDescription": "View your generated podcast content and research results",
+    "authRequired": {
+      "title": "Authentication Required",
+      "message": "Please sign in to view your generated content.",
+      "signInButton": "Sign In"
+    },
+    "loading": {
+      "title": "Loading Your Content",
+      "message": "Retrieving your generated podcast content..."
+    },
+    "notFound": {
+      "title": "Content Not Found",
+      "message": "This content may have expired or does not exist.",
+      "createButton": "Create New Content"
+    },
+    "processing": {
+      "title": "Content Processing",
+      "stage": "Stage:",
+      "emailNotice": "We'll send you an email when it's ready!",
+      "refreshButton": "Refresh",
+      "backButton": "Back to Generate"
+    },
+    "failed": {
+      "title": "Processing Failed",
+      "message": "Something went wrong during processing.",
+      "tryAgainButton": "Try Again"
+    },
+    "noContent": {
+      "title": "No Content Available",
+      "message": "The content may not have been generated yet.",
+      "createButton": "Create New Content"
+    },
+    "header": {
+      "generatedContent": "Generated Content",
+      "guestResearchResults": "Guest Research Results",
+      "completed": "Completed",
+      "researchGenerated": "Research Report Generated",
+      "backToGenerate": "Back to Generate",
+      "copyAll": "Copy All"
+    },
+    "sections": {
+      "summary": {
+        "title": "Summary",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "showNotes": {
+        "title": "Show Notes",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "newsletter": {
+        "title": "Newsletter Content",
+        "subjectLabel": "Subject Line:",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "guestResearch": {
+        "title": "Guest Research Report",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "interviewQuestions": {
+        "title": "Interview Questions",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "conversationStarters": {
+        "title": "Conversation Starters",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "timestamps": {
+        "title": "Timestamps"
+      },
+      "socialMedia": {
+        "title": "Social Media"
+      },
+      "seoContent": {
+        "title": "SEO Content",
+        "titleLabel": "Title",
+        "descriptionLabel": "Description"
+      }
+    }
   }
 }

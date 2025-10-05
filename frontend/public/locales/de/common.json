@@ -1068,5 +1068,250 @@
       "deleteFailed": "Fehler beim Löschen der Vorlage",
       "fetchFailed": "Fehler beim Laden der Vorlagen"
     }
+  },
+  "teams": {
+    "title": "Teams – CastLumen",
+    "metaDescription": "Arbeiten Sie mit Ihrem Team an der Erstellung von Podcast-Inhalten zusammen",
+    "loading": {
+      "general": "Wird geladen...",
+      "teams": "Teams werden geladen..."
+    },
+    "unauthorized": {
+      "banner": {
+        "title": "Unbefugter Zugriff:",
+        "message": "Sie benötigen ein Agency-Plan-Abonnement, um auf Teams zuzugreifen."
+      },
+      "content": {
+        "title": "Agency-Plan erforderlich",
+        "message": "Die Teams-Funktionalität ist nur für Agency-Plan-Abonnenten verfügbar.",
+        "upgradeButton": "Auf Agency upgraden",
+        "homeButton": "Zur Startseite"
+      }
+    },
+    "header": {
+      "title": "Team-Zusammenarbeit",
+      "subtitle": "Arbeiten Sie zusammen, um großartige Podcast-Inhalte zu erstellen"
+    },
+    "debug": {
+      "plan": "Plan:",
+      "canCreate": "Kann erstellen:",
+      "access": "Zugang:",
+      "owned": "Besitzt:",
+      "member": "Mitglied:",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "error": {
+      "loadFailed": "Fehler beim Laden der Teams. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
+    },
+    "owned": {
+      "title": "Ihre Teams",
+      "subtitle": "Teams, die Sie besitzen und verwalten",
+      "ownerBadge": "Besitzer",
+      "memberCount": "Mitglied",
+      "memberCountPlural": "Mitglieder",
+      "manageButton": "Team verwalten"
+    },
+    "member": {
+      "title": "Teams, in denen Sie sind",
+      "subtitle": "Teams, in denen Sie Mitglied sind",
+      "memberBadge": "Mitglied",
+      "owner": "Besitzer",
+      "viewButton": "Team anzeigen",
+      "unknownOwner": "Unbekannt"
+    },
+    "empty": {
+      "title": "Noch keine Teams",
+      "messageCanCreate": "Erstellen Sie Ihr erstes Team, um mit der Zusammenarbeit zu beginnen",
+      "messageCannotCreate": "Sie wurden noch zu keinen Teams eingeladen",
+      "createButton": "Ihr erstes Team erstellen"
+    },
+    "createModal": {
+      "title": "Neues Team erstellen",
+      "fields": {
+        "teamName": {
+          "label": "Team-Name",
+          "placeholder": "Team-Namen eingeben"
+        },
+        "description": {
+          "label": "Beschreibung (Optional)",
+          "placeholder": "Beschreiben Sie den Zweck Ihres Teams"
+        }
+      },
+      "buttons": {
+        "cancel": "Abbrechen",
+        "create": "Team erstellen",
+        "creating": "Wird erstellt..."
+      }
+    },
+    "toast": {
+      "createSuccess": "Team erfolgreich erstellt!",
+      "createFailed": "Fehler beim Erstellen des Teams",
+      "error": "Etwas ist schiefgelaufen"
+    },
+    "teamDetail": {
+      "title": "{teamName} – CastLumen Teams",
+      "metaDescription": "Arbeiten Sie mit dem {teamName}-Team an Podcast-Inhalten zusammen",
+      "loading": {
+        "team": "Team wird geladen – CastLumen",
+        "general": "Wird geladen...",
+        "teamData": "Team wird geladen..."
+      },
+      "unauthorized": {
+        "title": "Team-Zugriff eingeschränkt – CastLumen",
+        "banner": {
+          "title": "Unbefugter Zugriff:",
+          "message": "Sie benötigen ein Agency-Plan-Abonnement, um auf Teams zuzugreifen."
+        },
+        "content": {
+          "title": "Agency-Plan erforderlich",
+          "message": "Die Teams-Funktionalität ist nur für Agency-Plan-Benutzer verfügbar.",
+          "upgradeButton": "Auf Agency upgraden",
+          "backToTeams": "Zurück zu Teams"
+        }
+      },
+      "notFound": {
+        "title": "Team nicht gefunden – CastLumen",
+        "heading": "Team nicht gefunden",
+        "message": "Dieses Team existiert nicht oder Sie haben keinen Zugriff darauf.",
+        "backButton": "Zurück zu Teams"
+      },
+      "header": {
+        "backToTeams": "← Zurück zu Teams",
+        "ownerBadge": "Besitzer",
+        "memberBadge": "Mitglied"
+      },
+      "debug": {
+        "yourRole": "Ihre Rolle:",
+        "teamId": "Team-ID:",
+        "owner": "Besitzer",
+        "member": "Mitglied",
+        "noAccess": "Kein Zugriff"
+      },
+      "members": {
+        "title": "Team-Mitglieder",
+        "ownerBadge": "Besitzer",
+        "memberBadge": "Mitglied",
+        "roleLabel": "Mitglied",
+        "removeButton": "Mitglied entfernen",
+        "noMembers": "Noch keine Team-Mitglieder.",
+        "inviteMessage": "Laden Sie Kollegen ein, Ihrem Team beizutreten!",
+        "unknown": "Unbekannt"
+      },
+      "invite": {
+        "title": "Mitglieder einladen",
+        "emailLabel": "E-Mail-Adresse",
+        "emailPlaceholder": "kollege@beispiel.de",
+        "emailHelp": "Benutzer muss bereits ein CastLumen-Konto haben",
+        "sendButton": "Einladung senden",
+        "sending": "Wird gesendet..."
+      },
+      "teamInfo": {
+        "title": "Team-Informationen",
+        "yourRole": "Ihre Rolle",
+        "teamOwner": "Team-Besitzer",
+        "memberRole": "Team-Mitglied",
+        "permissionNote": "Nur Team-Besitzer können neue Mitglieder einladen und das Team verwalten."
+      },
+      "toast": {
+        "onlyOwnersCanInvite": "Nur Team-Besitzer können Mitglieder einladen",
+        "inviteSuccess": "Einladung erfolgreich gesendet!",
+        "inviteFailed": "Fehler beim Senden der Einladung",
+        "onlyOwnersCanRemove": "Nur Team-Besitzer können Mitglieder entfernen",
+        "removeMemberSuccess": "Mitglied erfolgreich entfernt",
+        "removeMemberFailed": "Fehler beim Entfernen des Mitglieds",
+        "error": "Etwas ist schiefgelaufen"
+      },
+      "confirmRemove": "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten?"
+    }
+  },
+  "jobResults": {
+    "title": "Content-Ergebnisse – CastLumen",
+    "guestResearchTitle": "Gast-Recherche-Ergebnisse – CastLumen",
+    "metaDescription": "Zeigen Sie Ihre generierten Podcast-Inhalte und Recherche-Ergebnisse an",
+    "authRequired": {
+      "title": "Authentifizierung erforderlich",
+      "message": "Bitte melden Sie sich an, um Ihre generierten Inhalte anzuzeigen.",
+      "signInButton": "Anmelden"
+    },
+    "loading": {
+      "title": "Ihre Inhalte werden geladen",
+      "message": "Ihre generierten Podcast-Inhalte werden abgerufen..."
+    },
+    "notFound": {
+      "title": "Inhalt nicht gefunden",
+      "message": "Dieser Inhalt ist möglicherweise abgelaufen oder existiert nicht.",
+      "createButton": "Neuen Inhalt erstellen"
+    },
+    "processing": {
+      "title": "Inhalt wird verarbeitet",
+      "stage": "Stadium:",
+      "emailNotice": "Wir senden Ihnen eine E-Mail, wenn es fertig ist!",
+      "refreshButton": "Aktualisieren",
+      "backButton": "Zurück zum Generator"
+    },
+    "failed": {
+      "title": "Verarbeitung fehlgeschlagen",
+      "message": "Während der Verarbeitung ist ein Fehler aufgetreten.",
+      "tryAgainButton": "Erneut versuchen"
+    },
+    "noContent": {
+      "title": "Kein Inhalt verfügbar",
+      "message": "Der Inhalt wurde möglicherweise noch nicht generiert.",
+      "createButton": "Neuen Inhalt erstellen"
+    },
+    "header": {
+      "generatedContent": "Generierter Inhalt",
+      "guestResearchResults": "Gast-Recherche-Ergebnisse",
+      "completed": "Abgeschlossen",
+      "researchGenerated": "Recherche-Bericht generiert",
+      "backToGenerate": "Zurück zum Generator",
+      "copyAll": "Alles kopieren"
+    },
+    "sections": {
+      "summary": {
+        "title": "Zusammenfassung",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "showNotes": {
+        "title": "Show Notes",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "newsletter": {
+        "title": "Newsletter-Inhalt",
+        "subjectLabel": "Betreffzeile:",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "guestResearch": {
+        "title": "Gast-Recherche-Bericht",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "interviewQuestions": {
+        "title": "Interview-Fragen",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "conversationStarters": {
+        "title": "Gesprächseinstiege",
+        "copy": "Kopieren",
+        "copied": "Kopiert!"
+      },
+      "timestamps": {
+        "title": "Zeitstempel"
+      },
+      "socialMedia": {
+        "title": "Social Media"
+      },
+      "seoContent": {
+        "title": "SEO-Inhalt",
+        "titleLabel": "Titel",
+        "descriptionLabel": "Beschreibung"
+      }
+    }
   }
 }
