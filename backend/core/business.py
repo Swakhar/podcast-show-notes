@@ -149,3 +149,91 @@ def generate_newsletter(transcript: str, summary: str, show_notes: str, language
     body_md = "\n".join(body_lines).strip()
     return {"subject": subject or ("Neue Episoden-Highlights" if language == "de" else "New Episode Highlights"),
             "body_markdown": body_md or text}
+
+def generate_guest_research(guest_info: str, additional_context: str = "", language: str = "en", preset: Dict = None):
+    """Generate comprehensive guest research report"""
+    
+    system = "You are an expert researcher who helps podcast hosts prepare for interviews with their guests."
+    
+    task = f"""
+    Based on the following information about a podcast guest, create a comprehensive research report:
+
+    Guest Information:
+    {guest_info}
+
+    Additional Context:
+    {additional_context}
+
+    Please provide:
+    1. Executive Summary (2-3 sentences about who they are)
+    2. Key Areas of Expertise
+    3. Recent Notable Work/Achievements
+    4. Interesting Personal Details
+    5. 10 Interview Questions (mix of professional and personal)
+    6. 5 Conversation Starters
+    7. Potential Follow-up Topics
+    8. Social Media Talking Points
+
+    Format as structured markdown with clear sections.
+    """
+    
+    # Use your existing pattern for merging prompts
+    system, task = _merge_prompts(system, task, preset)
+    
+    # Use your existing call_openai_chat method
+    return call_openai_chat(system, _wrap_user(task, "", language))
+
+def generate_interview_questions(guest_background: str, show_focus: str = "", language: str = "en", preset: Dict = None):
+    """Generate targeted interview questions"""
+    
+    system = "You are an expert interview coach who creates engaging questions for podcast hosts."
+    
+    task = f"""
+    Create 15 engaging interview questions for a podcast guest based on:
+
+    Guest Background:
+    {guest_background}
+
+    Show Focus/Theme:
+    {show_focus}
+
+    Create questions that are:
+    - Open-ended and conversational
+    - Mix of professional and personal
+    - Build upon each other naturally
+    - Include follow-up question suggestions
+    - Avoid yes/no questions
+
+    Format as numbered list with brief explanation for each question's purpose.
+    """
+    
+    # Use your existing pattern for merging prompts
+    system, task = _merge_prompts(system, task, preset)
+    
+    # Use your existing call_openai_chat method
+    return call_openai_chat(system, _wrap_user(task, "", language))
+
+def generate_conversation_starters(guest_info: str, language: str = "en", preset: Dict = None):
+    """Generate natural conversation starters and ice breakers"""
+    
+    system = "You are an expert conversation coach who helps create natural, engaging dialogue for podcast interviews."
+    
+    task = f"""
+    Based on this guest information, create natural conversation starters and ice breakers:
+
+    {guest_info}
+
+    Provide:
+    1. 5 Warm-up Questions (to build rapport)
+    2. 5 Transition Phrases (to move between topics)  
+    3. 5 Deep-dive Prompts (to get detailed stories)
+    4. 3 Closing Questions (memorable endings)
+
+    Make them feel natural and conversational, not formal interview questions.
+    """
+    
+    # Use your existing pattern for merging prompts
+    system, task = _merge_prompts(system, task, preset)
+    
+    # Use your existing call_openai_chat method
+    return call_openai_chat(system, _wrap_user(task, "", language))

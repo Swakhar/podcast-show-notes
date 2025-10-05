@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 
 interface Job {
   id: string;
@@ -10,6 +11,7 @@ interface Job {
 }
 
 export default function JobsStatus() {
+  const { t } = useTranslation('common');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false); // Changed to false initially
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +41,15 @@ export default function JobsStatus() {
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium text-yellow-900">⚠️ Jobs Status Unavailable</h3>
-            <p className="text-sm text-yellow-700">Job tracking is being set up</p>
+            <h3 className="font-medium text-yellow-900">{t('jobsStatus.error.title')}</h3>
+            <p className="text-sm text-yellow-700">{t('jobsStatus.error.message')}</p>
           </div>
           <button 
             onClick={fetchJobs}
             disabled={loading}
             className="px-3 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-sm"
           >
-            {loading ? 'Loading...' : 'Retry'}
+            {loading ? t('jobsStatus.error.loading') : t('jobsStatus.error.retryButton')}
           </button>
         </div>
       </div>
@@ -57,7 +59,7 @@ export default function JobsStatus() {
   if (loading) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <div className="animate-pulse">Loading jobs...</div>
+        <div className="animate-pulse">{t('jobsStatus.loading')}</div>
       </div>
     );
   }
@@ -70,7 +72,9 @@ export default function JobsStatus() {
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-      <h3 className="font-medium text-blue-900 mb-2">🔄 Processing Jobs ({activeJobs.length})</h3>
+      <h3 className="font-medium text-blue-900 mb-2">
+        {t('jobsStatus.processing.title', { count: activeJobs.length })}
+      </h3>
       <div className="space-y-2">
         {activeJobs.map(job => (
           <div key={job.id} className="flex items-center justify-between text-sm">
@@ -87,7 +91,7 @@ export default function JobsStatus() {
               <span className={`px-2 py-1 rounded text-xs ${
                 job.status === 'processing' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
               }`}>
-                {job.status}
+                {t(`jobsStatus.processing.statusLabels.${job.status}`)}
               </span>
             </div>
           </div>

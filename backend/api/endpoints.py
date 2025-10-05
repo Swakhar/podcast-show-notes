@@ -11,7 +11,15 @@ from core.yt_utils import (
     get_youtube_duration_seconds,
 )
 from core.audio_utils import trim_audio, get_audio_duration_seconds
-from jobs import JOBS, TEMPLATES_CACHE, set_stage, process_audio_job, process_text_job
+from jobs import (
+  JOBS,
+  TEMPLATES_CACHE,
+  set_stage,
+  process_audio_job,
+  process_text_job,
+  process_guest_research_job,
+  save_job
+)
 from models.schemas import EstimateRequest
 from services.youtube_service import YouTubeService
 from services.transcript_service import get_youtube_transcript
@@ -273,3 +281,50 @@ async def get_user_jobs(user_email: str):
     except Exception as e:
         print(f"Error fetching jobs for {user_email}: {e}")
         return {"jobs": []}
+
+@router.post("/jobs/guest-research")
+async def create_guest_research_job(
+    background: BackgroundTasks,
+    guest_name: str = Form(...),
+    guest_info: str = Form(...),
+    additional_context: Optional[str] = Form(""),
+    show_focus: Optional[str] = Form(""),
+    features: Optional[str] = Form("guest_research,interview_questions,conversation_starters"),
+    language: Optional[str] = Form("en"),
+    template_ids: Optional[str] = Form(None),
+    user_email: Optional[str] = Form(None),
+):
+    """Create a guest research job"""
+    
+    feature_set = set((features or "").split(","))
+    job_id = str(os.urandom(8).hex())
+    
+    JOBS[job_id] = {
+        "status": "pending", 
+        "stage": "queued", 
+        "features": list(feature_set),
+        "guest_name": guest_name,
+        "guest_info": guest_info,
+        "additional_context": additional_context,
+        "show_focus": show_focus,
+        "billed_minutes": 1  # Guest research = 1 minute billing
+    }
+    
+    JOBS[job_id]["templates"] = (template_ids or "").split(",") if template_ids else []
+    
+    if user_email:
+        JOBS[job_id]["user_email"] = user_email
+        JOBS[job_id]["source_type"] = "guest research"
+        print(f"👤 Stored user_email in guest research job {job_id}: {user_email}")
+    
+    save_job(job_id)
+    
+    # Start processing
+    background.add_task(process_guest_research_job, job_id, guest_name, guest_info, additional_context, show_focus, feature_set, language, user_email)
+    
+    return {
+        "id": job_id, 
+        "status": "pending", 
+        "stage": "queued",
+        "billed_minutes": 1
+    }

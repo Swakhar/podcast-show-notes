@@ -1,9 +1,13 @@
 import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 import { useToast } from "../contexts/ToastContext";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,13 +26,13 @@ export default function ForgotPassword() {
 
       if (response.ok) {
         setSent(true);
-        showToast("Reset instructions sent to your email", "success");
+        showToast(t('forgotPassword.toast.success'), "success");
       } else {
         const error = await response.json();
-        showToast(error.error || "Something went wrong", "error");
+        showToast(error.error || t('forgotPassword.toast.error'), "error");
       }
     } catch (error) {
-      showToast("Something went wrong. Please try again.", "error");
+      showToast(t('forgotPassword.toast.error'), "error");
     } finally {
       setLoading(false);
     }
@@ -38,7 +42,7 @@ export default function ForgotPassword() {
     return (
       <>
         <Head>
-          <title>Check Your Email – CastLumen</title>
+          <title>{t('forgotPassword.checkEmailTitle')}</title>
         </Head>
 
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -57,9 +61,9 @@ export default function ForgotPassword() {
                   </svg>
                 </div>
                 
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Check your email</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('forgotPassword.success.title')}</h1>
                 <p className="text-gray-600 mb-6">
-                  If an account with <strong>{email}</strong> exists, we've sent password reset instructions.
+                  {t('forgotPassword.success.message')} <strong>{email}</strong> {t('forgotPassword.success.messageEnd')}
                 </p>
                 
                 <div className="space-y-4">
@@ -67,7 +71,7 @@ export default function ForgotPassword() {
                     href="/login"
                     className="w-full block px-4 py-3 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
                   >
-                    Back to Sign In
+                    {t('forgotPassword.success.backToSignIn')}
                   </Link>
                   
                   <button
@@ -77,7 +81,7 @@ export default function ForgotPassword() {
                     }}
                     className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Try Different Email
+                    {t('forgotPassword.success.tryDifferentEmail')}
                   </button>
                 </div>
               </div>
@@ -91,8 +95,8 @@ export default function ForgotPassword() {
   return (
     <>
       <Head>
-        <title>Forgot Password – CastLumen</title>
-        <meta name="description" content="Reset your CastLumen password" />
+        <title>{t('forgotPassword.title')}</title>
+        <meta name="description" content={t('forgotPassword.metaDescription')} />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -101,8 +105,8 @@ export default function ForgotPassword() {
             <Link href="/" className="inline-block mb-6">
               <img src="/castlumen-wordmark.svg" alt="CastLumen" className="h-10 w-auto" />
             </Link>
-            <h1 className="text-3xl font-black text-gray-900 mb-2">Forgot your password?</h1>
-            <p className="text-gray-600">No worries! Enter your email and we'll send you reset instructions.</p>
+            <h1 className="text-3xl font-black text-gray-900 mb-2">{t('forgotPassword.form.title')}</h1>
+            <p className="text-gray-600">{t('forgotPassword.form.subtitle')}</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -110,14 +114,14 @@ export default function ForgotPassword() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address
+                    {t('forgotPassword.form.emailLabel')}
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Enter your email address"
+                    placeholder={t('forgotPassword.form.emailPlaceholder')}
                     required
                   />
                 </div>
@@ -130,10 +134,10 @@ export default function ForgotPassword() {
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                      Sending Reset Instructions...
+                      {t('forgotPassword.form.submitting')}
                     </div>
                   ) : (
-                    "Send Reset Instructions"
+                    t('forgotPassword.form.submitButton')
                   )}
                 </button>
               </form>
@@ -141,9 +145,9 @@ export default function ForgotPassword() {
 
             <div className="border-t border-gray-200 p-6 bg-gray-50 text-center">
               <p className="text-sm text-gray-600">
-                Remember your password?{" "}
+                {t('forgotPassword.form.backToLogin')}{" "}
                 <Link href="/login" className="text-blue-600 hover:text-blue-800 font-semibold">
-                  Sign in here
+                  {t('forgotPassword.form.signInHere')}
                 </Link>
               </p>
             </div>
@@ -153,3 +157,11 @@ export default function ForgotPassword() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

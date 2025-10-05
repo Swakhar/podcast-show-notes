@@ -4,14 +4,19 @@ import axios from "axios";
 import Head from "next/head";
 import Link from "next/link";
 import useSWR from "swr";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetServerSideProps } from 'next';
+
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Skeleton from "../components/Skeleton";
-import TemplatesDrawer from "../components/TemplatesDrawer";
 import JobsStatus from '../components/JobsStatus';
 import { StageTimeline } from "../components/StageTimeline";
 import { toYouTubeChapters } from "../lib/chapters";
 import { useToast } from "../contexts/ToastContext";
+import GuestResearchForm from '../components/GuestResearchForm';
+import AudioUploadForm from '../components/AudioUploadForm';
 
 /* ---------- Small helpers ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -47,6 +52,11 @@ interface JobResult {
   social_snippets?: string[];
   seo?: { title: string; keywords: string };
   newsletter?: { subject: string; body_markdown: string };
+  guest_name?: string;
+  guest_info?: string;
+  guest_research?: string;
+  interview_questions?: string;
+  conversation_starters?: string;
 }
 interface JobStatus {
   id: string;
@@ -99,18 +109,10 @@ const STAGE_PROGRESS: Record<string, number> = {
   finished: 100,
 };
 
-const SUPPORTED_FORMATS = [
-  { ext: "mp3", icon: "🎵" },
-  { ext: "wav", icon: "🔊" },
-  { ext: "m4a", icon: "📱" },
-  { ext: "mp4", icon: "📹" },
-  { ext: "youtube", icon: "📺" },
-  { ext: "spotify", icon: "🎧" }
-];
-
 export default function Generate() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
+  const { t } = useTranslation('common');
   
   const { data: meData, error: meError } = useSWR(
     status === "authenticated" ? "/api/me" : null,
@@ -166,6 +168,9 @@ export default function Generate() {
   const [language, setLanguage] = useState<"auto"|"en"|"de">("auto");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
+  // New state for tab navigation
+  const [activeTab, setActiveTab] = useState<'audio' | 'guest'>('audio');
+
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
     if (isSubmitting) return 12;
@@ -177,31 +182,6 @@ export default function Generate() {
 
   const usagePercent = me ? Math.round((me.monthlyMinutesUsed / me.monthlyMinutesLimit) * 100) : 0;
   const isNearLimit = usagePercent > 80;
-
-  // Drag and drop handlers
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type.startsWith('audio/') || droppedFile.type.startsWith('video/')) {
-        setFile(droppedFile);
-        setUrl("");
-      }
-    }
-  };
 
   // fetch templates
   useEffect(() => {
@@ -218,93 +198,31 @@ export default function Generate() {
     return () => { cancel = true; };
   }, [status]);
 
-  // handlers
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    setFile(f);
-    if (f) setUrl("");
-  };
-  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value;
-    setUrl(v);
-    if (v) setFile(null);
-    if (/youtu\.be|youtube\.com/i.test(v) && previewMinutes === "") setPreviewMinutes(2);
-  };
-  const handlePreviewChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value === "" ? "" : Number(e.target.value);
-    setPreviewMinutes(isFree && typeof v === "number" && v > 3 ? 3 : v);
-  };
-  const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    setCoverImage(f);
-    if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
-    setCoverPreviewUrl(f ? URL.createObjectURL(f) : null);
-  };
   const toggleFeature = (key: keyof typeof features) => setFeatures((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  async function submitUrlJob(url: string, pm: number | "" , selected: string[], language: string, templateIds: string[]) {
-    // Cache templates if any selected
-    if (templateIds.length) {
-      const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
-      await fetch(`${API_BASE_URL}/templates/cache`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selectedTemplates),
-      });
-    }
-
-    const res = await fetch("/api/jobs/url", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        url, 
-        preview_minutes: pm || null, 
-        features: selected.join(","), 
-        language,
-        template_ids: templateIds.join(",")
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `URL job failed (${res.status})`);
-    if (!data?.id) throw new Error("Backend did not return a job id.");
-    return data as JobStatus;
-  }
-
-  async function submitUploadJob(file: File, pm: number | "", selected: string[], language: string, templateIds: string[]) {
-    // ✅ 1. Authentication check (moved from upload.ts)
+  async function submitGuestResearchJob(data: any) {
+    // ✅ Authentication check
     if (!me?.email) {
       throw new Error("Sign in required");
     }
 
-    // ✅ 3. Business logic checks (moved from upload.ts)
-    const features = selected.join(",");
+    // ✅ Business logic checks
+    const features = data.features.join(",");
     
     // Gate paid features on FREE plan
-    if (isFree && /\b(seo|newsletter)\b/i.test(features)) {
+    if (isFree && /\b(conversation_starters)\b/i.test(features)) {
       throw new Error("Feature requires upgrade.");
     }
 
-    // Preview minutes with free cap
-    const FREE_PREVIEW_CAP = 3;
-    const reqPreview = Number(pm) || 0;
-    const effectivePreview = reqPreview ? (isFree ? Math.min(reqPreview, FREE_PREVIEW_CAP) : reqPreview) : 0;
-
-    // ✅ 4. File size validation
-    const maxSize = 200 * 1024 * 1024; // 200MB
-    if (file.size > maxSize) {
-      throw new Error(`File too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB`);
-    }
-
-    // ✅ 5. Quota pre-check (moved from upload.ts)
-    // Estimate billed minutes conservatively
-    const estimatedMinutes = effectivePreview || 2;
+    // ✅ Quota pre-check - guest research costs 1 minute
+    const estimatedMinutes = 1;
     if (me.monthlyMinutesUsed + estimatedMinutes > me.monthlyMinutesLimit) {
       throw new Error("Quota exceeded. Please upgrade.");
     }
 
-    // ✅ 6. Keep existing template caching logic
-    if (templateIds.length) {
-      const selectedTemplates = templates.filter(t => templateIds.includes(t.id));
+    // ✅ Template caching
+    if (data.templateIds.length) {
+      const selectedTemplates = templates.filter(t => data.templateIds.includes(t.id));
       await fetch(`${API_BASE_URL}/templates/cache`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -312,23 +230,32 @@ export default function Generate() {
       });
     }
 
-    // ✅ 7. Prepare upload with validated data
+    // ✅ Prepare guest research request
     const formData = new FormData();
-    formData.append("file", file);
-    if (effectivePreview) formData.append("preview_minutes", String(effectivePreview));
+    formData.append("guest_name", data.guestName);
+    formData.append("guest_info", data.guestInfo);
+    formData.append("additional_context", data.additionalContext);
+    formData.append("show_focus", data.showFocus);
     formData.append("features", features);
-    formData.append("language", language);
-    formData.append("template_ids", templateIds.join(","));
+    formData.append("language", data.language);
+    formData.append("template_ids", data.templateIds.join(","));
     formData.append("user_email", me.email);
 
-    // ✅ 8. Upload directly to Railway backend
-    const response = await fetch(`${API_BASE_URL}/jobs/upload`, {
+    console.log("🔍 Direct guest research to backend:", {
+      guestName: data.guestName,
+      features: data.features,
+      userEmail: me.email,
+      backend: API_BASE_URL
+    });
+
+    // ✅ Submit directly to Railway backend
+    const response = await fetch(`${API_BASE_URL}/jobs/guest-research`, {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
-      let errorMessage = `Upload failed (${response.status})`;
+      let errorMessage = `Guest research failed (${response.status})`;
       try {
         const errorData = await response.json();
         errorMessage = errorData.detail || errorData.error || errorMessage;
@@ -338,59 +265,14 @@ export default function Generate() {
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
+    const result = await response.json();
     
-    if (!data?.id) {
+    if (!result?.id) {
       throw new Error("Backend did not return a job id.");
     }
-    return data as JobStatus;
-  }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setErrorMessage(null);
-    setJobStatus({ id: "pending", status: "pending", stage: "submitting…", result: {} });
-    setJobId(null);
-    setIsSubmitting(true);
-    
-    try {
-      // ✅ Filter features based on user's plan and selections
-      const allSelected = Object.entries(features).filter(([, v]) => v).map(([k]) => k);
-      
-      // ✅ Remove premium features for FREE users (unless they have team access)
-      const selected = allSelected.filter(feature => {
-        // If user has PRO/AGENCY plan or team access, allow all features
-        if (!isFree || me?.isTeamMember) {
-          return true;
-        }
-        
-        // For FREE users, exclude premium features
-        const premiumFeatures = ['seo', 'newsletter'];
-        return !premiumFeatures.includes(feature);
-      });
-      
-      let data: JobStatus;
-      if (file) {
-        data = await submitUploadJob(file, previewMinutes, selected, language, selectedTemplateIds);
-      } else if (url) {
-        data = await submitUrlJob(url, previewMinutes, selected, language, selectedTemplateIds);
-      } else {
-        throw new Error("Please upload a file or enter a URL.");
-      }
-      
-      setJobId(data.id);
-      setJobStatus({ 
-        id: data.id, 
-        status: data.status || "pending", 
-        stage: data.stage, 
-        billed_minutes: data.billed_minutes, 
-        result: {} 
-      });
-    } catch (err: any) {
-      setErrorMessage(err.message || "Failed to create job");
-      setIsSubmitting(false);
-      setJobStatus(null);
-    }
+    console.log("✅ Guest research request successful:", result);
+    return result as JobStatus;
   }
 
   // polling + usage booking/rollback
@@ -451,13 +333,11 @@ export default function Generate() {
 
   useEffect(() => () => { if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl); }, [coverPreviewUrl]);
 
-  const selectedFeatureCount = Object.values(features).filter(Boolean).length;
-
   return (
     <>
       <Head>
-        <title>AI Content Generator – Professional Podcast Production | CastLumen</title>
-        <meta name="description" content="Transform your podcast into professional content. Generate show notes, timestamps, SEO content, and social media snippets with enterprise-grade AI." />
+        <title>{t('generate.title')} | CastLumen</title>
+        <meta name="description" content={t('generate.metaDescription')} />
       </Head>
       <SiteHeader />
       
@@ -472,13 +352,13 @@ export default function Generate() {
             <div className="text-center max-w-4xl mx-auto">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                AI-Powered Content Generation
+                {t('generate.hero.badge')}
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Transform Audio into <span className="text-[#9CEE69]">Professional Content</span>
+                {t('generate.hero.title')}
               </h1>
               <p className="text-xl text-gray-600 mt-6 max-w-2xl mx-auto leading-relaxed">
-                Upload your podcast or paste a URL. Our AI generates show notes, timestamps, SEO content, and social snippets – all optimized for maximum engagement.
+                {t('generate.hero.subtitle')}
               </p>
               
               {/* Quick Stats */}
@@ -487,19 +367,19 @@ export default function Generate() {
                   <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">95% faster workflow</span>
+                  <span className="font-medium">{t('generate.hero.stats.workflow')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">Enterprise-grade AI</span>
+                  <span className="font-medium">{t('generate.hero.stats.ai')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-medium">Multi-format output</span>
+                  <span className="font-medium">{t('generate.hero.stats.output')}</span>
                 </div>
               </div>
             </div>
@@ -526,13 +406,13 @@ export default function Generate() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${active ? 'bg-green-500' : 'bg-yellow-500'} animate-pulse`}></div>
-                    <span className="font-semibold text-gray-900">{planLabel} Plan</span>
+                    <span className="font-semibold text-gray-900">{planLabel} {t('generate.status.plan')}</span>
                   </div>
                   <div className="text-gray-600">
                     <span className="font-medium">{me.monthlyMinutesUsed}</span>
                     <span className="mx-1">/</span>
                     <span>{me.monthlyMinutesLimit === 999999 ? '∞' : me.monthlyMinutesLimit}</span>
-                    <span className="ml-1 text-sm">minutes used</span>
+                    <span className="ml-1 text-sm">{t('generate.status.minutesUsed')}</span>
                   </div>
                 </div>
                 
@@ -555,7 +435,7 @@ export default function Generate() {
                       href="/#pricing" 
                       className="px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-lg font-medium hover:shadow-md transition-all text-sm"
                     >
-                      Upgrade Plan
+                      {t('generate.status.upgrade')}
                     </Link>
                   )}
                 </div>
@@ -568,370 +448,88 @@ export default function Generate() {
             <section className="lg:col-span-2 space-y-6">
               {/* Input Section */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50">
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Content Input</h2>
-                  <p className="text-sm text-gray-600">Upload audio or provide a URL to get started</p>
-                </div>
-                
-                <div className="p-6 space-y-6">
-                  {/* Enhanced File Upload */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Audio File Upload</label>
-                    <div
-                      className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-                        dragActive 
-                          ? 'border-[#9CEE69] bg-green-50' 
-                          : file 
-                          ? 'border-green-500 bg-green-50' 
-                          : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                      }`}
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                    >
-                      {file ? (
-                        <div className="space-y-3">
-                          <div className="text-3xl">📁</div>
-                          <div>
-                            <p className="font-medium text-gray-900">{file.name}</p>
-                            <p className="text-sm text-gray-500">
-                              {(file.size / (1024 * 1024)).toFixed(1)} MB
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setFile(null)}
-                            className="text-sm text-red-600 hover:text-red-700 font-medium"
-                          >
-                            Remove file
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="text-3xl">☁️</div>
-                          <div>
-                            <p className="font-medium text-gray-900">Drop your audio file here</p>
-                            <p className="text-sm text-gray-500">or click to browse</p>
-                          </div>
-                          <input
-                            type="file"
-                            accept="audio/*,video/*"
-                            onChange={handleFileChange}
-                            disabled={isBusy}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Supported Formats */}
-                    <div className="mt-3">
-                      <p className="text-xs text-gray-500 mb-2">Supported formats:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {SUPPORTED_FORMATS.map((format) => (
-                          <span 
-                            key={format.ext}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
-                          >
-                            <span>{format.icon}</span>
-                            <span className="uppercase">{format.ext}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-center text-gray-400 font-medium">OR</div>
-
-                  {/* Enhanced URL Input */}
-                  <div>
-                    <label htmlFor="url" className="block text-sm font-semibold text-gray-700 mb-3">
-                      Podcast URL
-                    </label>
-                    <div className="relative">
-                      <input
-                        id="url"
-                        type="url"
-                        placeholder="https://example.com/podcast.mp3 or YouTube URL"
-                        value={url}
-                        onChange={handleUrlChange}
-                        disabled={isBusy}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69] transition-colors"
-                      />
-                      {url && (
-                        <button
-                          onClick={() => setUrl("")}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                    {url && /youtu\.be|youtube\.com/i.test(url) && previewMinutes === 2 && (
-                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <span className="font-medium">YouTube detected:</span> Using 2-minute preview for faster results
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Enhanced Cover Upload */}
-                  <div>
-                    <label htmlFor="cover" className="block text-sm font-semibold text-gray-700 mb-3">
-                      Episode Cover <span className="text-gray-500 font-normal">(optional)</span>
-                    </label>
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1">
-                        <input
-                          id="cover"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleCoverChange}
-                          disabled={isBusy}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Added to downloaded files only (not uploaded to server)
-                        </p>
-                      </div>
-                      {coverPreviewUrl && (
-                        <div className="relative group">
-                          <img
-                            src={coverPreviewUrl}
-                            alt="Cover preview"
-                            className="w-16 h-16 rounded-lg border border-gray-200 object-cover"
-                          />
-                          <button
-                            onClick={() => {
-                              setCoverImage(null);
-                              if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
-                              setCoverPreviewUrl(null);
-                            }}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Configuration Section */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Configuration</h2>
-                  <p className="text-sm text-gray-600">Customize your content generation</p>
-                </div>
-                
-                <div className="p-6 space-y-6">
-                  {/* Preview Duration */}
-                  <div>
-                    <label htmlFor="preview" className="block text-sm font-semibold text-gray-700 mb-3">
-                      Processing Duration
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        id="preview"
-                        type="number"
-                        min={1}
-                        max={isFree ? 3 : 60}
-                        step={1}
-                        value={previewMinutes}
-                        onChange={handlePreviewChange}
-                        disabled={isBusy}
-                        className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-center focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
-                        placeholder="Full"
-                      />
-                      <span className="text-sm text-gray-600">minutes</span>
-                      {!previewMinutes && (
-                        <span className="text-sm text-green-600 font-medium">Process entire file</span>
-                      )}
-                    </div>
-                    {isFree && (
-                      <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <p className="text-sm text-orange-800">
-                          <span className="font-medium">Free plan:</span> Maximum 3 minutes per job
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Language Selection */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Output Language</label>
-                    <select
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#9CEE69] focus:border-[#9CEE69]"
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value as any)}
-                      disabled={isBusy}
-                    >
-                      <option value="auto">🌐 Auto-detect source language</option>
-                      <option value="en">🇺🇸 English</option>
-                      <option value="de">🇩🇪 Deutsch (German)</option>
-                    </select>
-                  </div>
-
-                  {/* Feature Selection */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-semibold text-gray-700">Content to Generate</label>
-                      <span className="text-xs text-gray-500">
-                        {selectedFeatureCount} of {Object.keys(features).length} selected
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      {[
-                        { key: "summary", label: "Summary", desc: "Key points and overview", icon: "📋", free: true },
-                        { key: "show_notes", label: "Show Notes", desc: "Detailed episode notes", icon: "📝", free: true },
-                        { key: "timestamps", label: "Timestamps", desc: "Chapter markers & timing", icon: "⏰", free: true },
-                        { key: "social_snippets", label: "Social Snippets", desc: "Ready-to-post content", icon: "📱", free: true },
-                        { key: "seo", label: "SEO Content", desc: "Titles & meta descriptions", icon: "🔍", free: false },
-                        { key: "newsletter", label: "Newsletter", desc: "Email-ready content", icon: "📧", free: false },
-                      ].map(({ key, label, desc, icon, free }) => {
-                        const disabled = !free && isFree && !me?.isTeamMember;
-                        const featureKey = key as keyof typeof features;
-                        return (
-                          <label
-                            key={key}
-                            className={`relative flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                              disabled
-                                ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50'
-                                : features[featureKey]
-                                ? 'border-[#9CEE69] bg-green-50'
-                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={features[featureKey] && (free || !isFree || me?.isTeamMember)}
-                              onChange={() => !disabled && toggleFeature(featureKey)}
-                              disabled={disabled || (isBusy)}
-                              className="mt-1 w-4 h-4 text-[#9CEE69] border-gray-300 rounded focus:ring-[#9CEE69]"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-lg">{icon}</span>
-                                <span className="font-medium text-gray-900">{label}</span>
-                                {!free && (
-                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                                    Pro
-                                  </span>
-                                )}
-                                {!free && me?.isTeamMember && (
-                                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                                    Team Access
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">{desc}</p>
-                            </div>
-                            {features[featureKey] && !disabled && (
-                              <svg className="w-5 h-5 text-[#9CEE69] mt-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Template Selection */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Custom Templates
-                      {selectedTemplateIds.length > 0 && (
-                        <span className="ml-2 text-xs text-gray-500">
-                          ({selectedTemplateIds.length} selected)
-                        </span>
-                      )}
-                    </label>
-                    <TemplatesDrawer 
-                      onSelect={setSelectedTemplateIds} 
-                      selectedIds={selectedTemplateIds}
-                    />
-                    {selectedTemplateIds.length > 0 && (
-                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <span className="font-medium">{selectedTemplateIds.length}</span> custom template
-                          {selectedTemplateIds.length !== 1 ? 's' : ''} will be applied to enhance your content
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Error Display */}
-                  {errorMessage && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <svg className="w-5 h-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-medium text-red-800">Generation Failed</p>
-                          <p className="text-sm text-red-600 mt-1">{errorMessage}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Enhanced Submit Button */}
-                  <div className="pt-4">
+                {/* Tab Navigation */}
+                <div className="border-b border-gray-200">
+                  <nav className="flex">
                     <button
-                      onClick={handleSubmit}
-                      disabled={isBusy || (!file && !url)}
-                      className="w-full px-6 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all duration-200"
+                      onClick={() => setActiveTab('audio')}
+                      className={`px-6 py-4 text-sm font-semibold ${
+                        activeTab === 'audio'
+                          ? 'border-b-2 border-[#9CEE69] text-[#9CEE69] bg-green-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
                     >
-                      {isSubmitting ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Starting Generation...
-                        </span>
-                      ) : isBusy ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Processing... {progress}%
-                        </span>
-                      ) : (
-                        "🚀 Generate Content"
-                      )}
+                      {t('generate.tabs.audio')}
                     </button>
-
-                    <p className="text-xs text-gray-500 mt-3 text-center">
-                      Results appear progressively as they're generated
-                    </p>
-                  </div>
-
-                  {/* Processing Status */}
-                  {isBusy && jobStatus?.stage && (
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <div>
-                          <p className="text-sm font-medium text-blue-900">
-                            {jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1)}...
-                          </p>
-                          <div className="w-48 h-1.5 bg-blue-200 rounded-full mt-2 overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    <button
+                      onClick={() => setActiveTab('guest')}
+                      className={`px-6 py-4 text-sm font-semibold ${
+                        activeTab === 'guest'
+                          ? 'border-b-2 border-purple-500 text-purple-600 bg-purple-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {t('generate.tabs.guest')}
+                    </button>
+                  </nav>
                 </div>
+
+                {/* Tab Content */}
+                {activeTab === 'audio' ? (
+                  <AudioUploadForm
+                    isSubmitting={isSubmitting}
+                    setIsSubmitting={setIsSubmitting}
+                    templates={templates}
+                    me={me}
+                    file={file}
+                    setFile={setFile}
+                    url={url}
+                    setUrl={setUrl}
+                    previewMinutes={previewMinutes}
+                    setPreviewMinutes={setPreviewMinutes}
+                    language={language}
+                    setLanguage={setLanguage}
+                    features={features}
+                    toggleFeature={toggleFeature}
+                    selectedTemplateIds={selectedTemplateIds}
+                    setSelectedTemplateIds={setSelectedTemplateIds}
+                    coverImage={coverImage}
+                    setCoverImage={setCoverImage}
+                    coverPreviewUrl={coverPreviewUrl}
+                    setCoverPreviewUrl={setCoverPreviewUrl}
+                    errorMessage={errorMessage}
+                    dragActive={dragActive}
+                    setDragActive={setDragActive}
+                    progress={progress}
+                    jobStatus={jobStatus}
+                    setJobId={setJobId}
+                    setJobStatus={setJobStatus}
+                    setErrorMessage={setErrorMessage}
+                  />
+                ) : (
+                  <GuestResearchForm
+                    onSubmit={async (data) => {
+                      try {
+                        setIsSubmitting(true);
+                        const result = await submitGuestResearchJob(data);
+                        setJobId(result.id);
+                        setJobStatus({
+                          id: result.id,
+                          status: result.status || "pending",
+                          stage: result.stage,
+                          billed_minutes: result.billed_minutes,
+                          result: {}
+                        });
+                      } catch (err: any) {
+                        setErrorMessage(err.message || "Failed to create guest research job");
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    isSubmitting={isSubmitting}
+                    templates={templates}
+                    me={me}
+                  />
+                )}
               </div>
             </section>
 
@@ -940,35 +538,91 @@ export default function Generate() {
               {!jobStatus?.result ? (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
                   <div className="text-center space-y-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-[#9CEE69] to-green-400 rounded-full flex items-center justify-center mx-auto">
-                      <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                      activeTab === 'guest' 
+                        ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                        : 'bg-gradient-to-br from-[#9CEE69] to-green-400'
+                    }`}>
+                      {activeTab === 'guest' ? (
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
                     </div>
                     
                     {isBusy ? (
                       <>
-                        <StageTimeline stage={jobStatus?.stage} />
+                        {/* Show stage timeline with current stage */}
+                        <StageTimeline stage={jobStatus?.stage || "queued"} />
+                        
+                        {/* Show current stage text */}
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {jobStatus?.stage ? 
+                              jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
+                              "Starting..."
+                            }
+                          </h3>
+                          <p className="text-gray-600">
+                            {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
+                          </p>
+                        </div>
+                        
+                        {/* Progress bar */}
+                        <div className="w-full max-w-md mx-auto">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-500 ${
+                                activeTab === 'guest' 
+                                  ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                                  : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
+                              }`}
+                              style={{ width: `${Math.max(5, progress)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        
                         <div className="space-y-4 max-w-md mx-auto">
                           <Skeleton className="h-6 w-full" />
                           <Skeleton className="h-4 w-5/6" />
                           <Skeleton className="h-4 w-4/6" />
                         </div>
                       </>
+                    ) : activeTab === 'guest' ? (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.guest.title')}</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">
+                          {t('generate.ready.guest.subtitle')}
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                          <div className="p-4 bg-purple-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">🔍</div>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.guest.features.research')}</p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">❓</div>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.guest.features.questions')}</p>
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <>
-                        <h3 className="text-2xl font-bold text-gray-900">Ready to Generate Content</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.audio.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
-                          Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.
+                          {t('generate.ready.audio.subtitle')}
                         </p>
                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                           <div className="p-4 bg-gray-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">⚡</div>
-                            <p className="text-sm font-medium text-gray-700">Lightning Fast</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.audio.features.fast')}</p>
                           </div>
                           <div className="p-4 bg-gray-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">🎯</div>
-                            <p className="text-sm font-medium text-gray-700">Highly Accurate</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.audio.features.accurate')}</p>
                           </div>
                         </div>
                       </>
@@ -981,12 +635,12 @@ export default function Generate() {
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Generated Content</h2>
-                        <p className="text-gray-600 mt-1">Your AI-generated podcast content is ready</p>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('generate.results.title')}</h2>
+                        <p className="text-gray-600 mt-1">{t('generate.results.subtitle')}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-green-700">Complete</span>
+                        <span className="text-sm font-medium text-green-700">{t('generate.results.complete')}</span>
                       </div>
                     </div>
                   </div>
@@ -994,7 +648,7 @@ export default function Generate() {
                   {/* Results Grid */}
                   {jobStatus.result.summary && features.summary && (
                     <ProCard 
-                      title="Summary" 
+                      title={t('generate.cards.summary')} 
                       icon="📋" 
                       expanded={expandedCard === 'summary'}
                       onToggle={() => setExpandedCard(expandedCard === 'summary' ? null : 'summary')}
@@ -1005,13 +659,13 @@ export default function Generate() {
 
                   {jobStatus.result.show_notes && features.show_notes && (
                     <ProCard 
-                      title="Show Notes" 
+                      title={t('generate.cards.showNotes')} 
                       icon="📝"
                       expanded={expandedCard === 'show_notes'}
                       onToggle={() => setExpandedCard(expandedCard === 'show_notes' ? null : 'show_notes')}
                       actions={[
                         {
-                          label: "Download Markdown",
+                          label: t('generate.actions.downloadMarkdown'),
                           icon: "📥",
                           onClick: () => {
                             const title = jobStatus.result?.seo?.title;
@@ -1034,13 +688,13 @@ export default function Generate() {
 
                   {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
                     <ProCard 
-                      title="Timestamps" 
+                      title={t('generate.cards.timestamps')} 
                       icon="⏰"
                       expanded={expandedCard === 'timestamps'}
                       onToggle={() => setExpandedCard(expandedCard === 'timestamps' ? null : 'timestamps')}
                       actions={[
                         {
-                          label: "Copy YouTube Chapters",
+                          label: t('generate.actions.copyYouTubeChapters'),
                           icon: "📺",
                           onClick: () => {
                             const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
@@ -1063,7 +717,7 @@ export default function Generate() {
 
                   {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
                     <ProCard 
-                      title="Social Snippets" 
+                      title={t('generate.cards.socialSnippets')} 
                       icon="📱"
                       expanded={expandedCard === 'social_snippets'}
                       onToggle={() => setExpandedCard(expandedCard === 'social_snippets' ? null : 'social_snippets')}
@@ -1091,18 +745,18 @@ export default function Generate() {
 
                   {jobStatus.result.seo && features.seo && (
                     <ProCard 
-                      title="SEO Content" 
+                      title={t('generate.cards.seo')} 
                       icon="🔍"
                       expanded={expandedCard === 'seo'}
                       onToggle={() => setExpandedCard(expandedCard === 'seo' ? null : 'seo')}
                     >
                       <div className="space-y-4">
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <label className="block text-sm font-semibold text-green-800 mb-2">SEO Title</label>
+                          <label className="block text-sm font-semibold text-green-800 mb-2">{t('generate.seo.title')}</label>
                           <p className="text-gray-700 font-medium">{jobStatus.result.seo.title}</p>
                         </div>
                         <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <label className="block text-sm font-semibold text-blue-800 mb-2">Keywords</label>
+                          <label className="block text-sm font-semibold text-blue-800 mb-2">{t('generate.seo.keywords')}</label>
                           <div className="flex flex-wrap gap-2">
                             {jobStatus.result.seo.keywords.split(',').map((keyword, i) => (
                               <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
@@ -1117,13 +771,13 @@ export default function Generate() {
 
                   {jobStatus.result.newsletter && features.newsletter && (
                     <ProCard 
-                      title="Newsletter Draft" 
+                      title={t('generate.cards.newsletter')} 
                       icon="📧"
                       expanded={expandedCard === 'newsletter'}
                       onToggle={() => setExpandedCard(expandedCard === 'newsletter' ? null : 'newsletter')}
                       actions={[
                         {
-                          label: "Copy Markdown",
+                          label: t('generate.actions.copyMarkdown'),
                           icon: "📋",
                           onClick: () => {
                             const n = jobStatus.result!.newsletter!;
@@ -1131,7 +785,7 @@ export default function Generate() {
                           }
                         },
                         {
-                          label: "Download File",
+                          label: t('generate.actions.downloadFile'),
                           icon: "📥",
                           onClick: () => {
                             const n = jobStatus.result!.newsletter!;
@@ -1141,7 +795,7 @@ export default function Generate() {
                           }
                         },
                         {
-                          label: "Publish to WordPress",
+                          label: t('generate.actions.publishWordPress'),
                           icon: "🌐",
                           onClick: async () => {
                             const newsletter = jobStatus.result!.newsletter!;
@@ -1156,12 +810,12 @@ export default function Generate() {
                               const j = await r.json();
                               if (!r.ok) throw new Error(j.error || "Failed to publish");
                               if (j.demo) {
-                                showToast(`📝 Demo published! ${j.message}`, "success");
+                                showToast(`${t('generate.messages.demoPublished')} ${j.message}`, "success");
                               } else {
-                                showToast(`✅ Published to WordPress! View: ${j.link}`, "success");
+                                showToast(`${t('generate.messages.publishedWordPress')} ${j.link}`, "success");
                               }
                             } catch (error: any) {
-                              showToast(`Publishing failed: ${error.message}`, "error", 5000);
+                              showToast(`${t('generate.messages.publishingFailed')} ${error.message}`, "error", 5000);
                             }
                           }
                         }
@@ -1169,11 +823,11 @@ export default function Generate() {
                     >
                       <div className="space-y-4">
                         <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <label className="block text-sm font-semibold text-purple-800 mb-2">Subject Line</label>
+                          <label className="block text-sm font-semibold text-purple-800 mb-2">{t('generate.newsletter.subject')}</label>
                           <p className="text-gray-700 font-medium">{jobStatus.result.newsletter.subject}</p>
                         </div>
                         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Email Content</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">{t('generate.newsletter.content')}</label>
                           <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
                             {jobStatus.result.newsletter.body_markdown}
                           </pre>
@@ -1184,7 +838,7 @@ export default function Generate() {
 
                   {jobStatus.result.transcript && (
                     <ProCard 
-                      title="Full Transcript" 
+                      title={t('generate.cards.transcript')}
                       icon="📄"
                       expanded={showTranscript}
                       onToggle={() => setShowTranscript(!showTranscript)}
@@ -1192,6 +846,73 @@ export default function Generate() {
                       <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
                         <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
                           {jobStatus.result.transcript}
+                        </pre>
+                      </div>
+                    </ProCard>
+                  )}
+
+                  {/* New Guest Research Results */}
+                  {jobStatus.result.guest_research && (
+                    <ProCard 
+                      title={t('generate.cards.guestResearch')}
+                      icon="📊"
+                      expanded={expandedCard === 'guest_research'}
+                      onToggle={() => setExpandedCard(expandedCard === 'guest_research' ? null : 'guest_research')}
+                      actions={[
+                        {
+                          label: t('generate.actions.downloadReport'),
+                          icon: "📥",
+                          onClick: () => {
+                            const guestName = jobStatus.result?.guest_name || "guest";
+                            const content = `# Guest Research: ${guestName}\n\n${jobStatus.result!.guest_research}`;
+                            downloadTextAsFile(`${safeSlug(guestName)}-research.md`, content);
+                          }
+                        }
+                      ]}
+                    >
+                      <div className="prose prose-sm max-w-none">
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                          {jobStatus.result.guest_research}
+                        </pre>
+                      </div>
+                    </ProCard>
+                  )}
+
+                  {jobStatus.result.interview_questions && (
+                    <ProCard 
+                      title={t('generate.cards.interviewQuestions')}
+                      icon="❓"
+                      expanded={expandedCard === 'interview_questions'}
+                      onToggle={() => setExpandedCard(expandedCard === 'interview_questions' ? null : 'interview_questions')}
+                      actions={[
+                        {
+                          label: t('generate.actions.copyQuestions'),
+                          icon: "📋",
+                          onClick: () => {
+                            navigator.clipboard.writeText(jobStatus.result!.interview_questions!);
+                            showToast(t('generate.messages.questionsCopied'), "info", 3000);
+                          }
+                        }
+                      ]}
+                    >
+                      <div className="prose prose-sm max-w-none">
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                          {jobStatus.result.interview_questions}
+                        </pre>
+                      </div>
+                    </ProCard>
+                  )}
+
+                  {jobStatus.result.conversation_starters && (
+                    <ProCard 
+                      title={t('generate.cards.conversationStarters')} 
+                      icon="💬"
+                      expanded={expandedCard === 'conversation_starters'}
+                      onToggle={() => setExpandedCard(expandedCard === 'conversation_starters' ? null : 'conversation_starters')}
+                    >
+                      <div className="prose prose-sm max-w-none">
+                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                          {jobStatus.result.conversation_starters}
                         </pre>
                       </div>
                     </ProCard>
@@ -1273,3 +994,12 @@ function ProCard({ title, icon, children, expanded = true, onToggle, actions }: 
     </div>
   );
 }
+
+/* ---------- i18n Support ---------- */
+export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

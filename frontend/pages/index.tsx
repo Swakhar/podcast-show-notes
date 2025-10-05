@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 import SiteHeader from "../components/SiteHeader";
 import LogoBumper from "../components/LogoBumper";
 import SiteFooter from "../components/SiteFooter";
@@ -37,6 +40,7 @@ function useReveal() {
 export default function Landing() {
   useReveal();
   const router = useRouter();
+  const { t, i18n } = useTranslation('common');
   const { showToast } = useToast();
   const [me, setMe] = useState<Me | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -53,133 +57,67 @@ export default function Landing() {
   const cards = [
     { 
       key: "FREE", 
-      name: "Free", 
+      name: t('pricing.plans.free.name'), 
       price: "€0", 
       period: "forever",
       priceNet: 0,
       vatAmount: 0,
-      bullets: [
-        "30 minutes/month", 
-        "Manual uploads only", 
-        "Basic content generation", 
-        "Email support"
-      ], 
+      bullets: t('pricing.plans.free.features', { returnObjects: true }) as string[], 
       priceId: "",
       popular: false,
-      description: "Perfect for trying out CastLumen"
+      description: t('pricing.plans.free.description')
     },
     { 
       key: "PRO", 
-      name: "Pro", 
+      name: t('pricing.plans.pro.name'), 
       price: "€19", 
       period: "month",
       priceNet: 15.97, // €19 / 1.19
       vatAmount: 3.03,
-      bullets: [
-        "300 minutes/month",
-        "RSS feed automation",
-        "WordPress integration", 
-        "Email notifications",
-        "All content types",
-        "Priority support"
-      ],
+      bullets: t('pricing.plans.pro.features', { returnObjects: true }) as string[],
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO || "",
       popular: true,
-      description: "Everything you need to scale your podcast"
+      description: t('pricing.plans.pro.description')
     },
     { 
       key: "AGENCY", 
-      name: "Agency", 
+      name: t('pricing.plans.agency.name'), 
       price: "€49", 
       period: "month",
       priceNet: 41.18, // €49 / 1.19
       vatAmount: 7.82,
-      bullets: [
-        "1000+ minutes/month",
-        "Everything in Pro",
-        "Team management",
-        "Unlimited RSS feeds",
-        "White-label options",
-        "API access (coming soon)"
-      ],
+      bullets: t('pricing.plans.agency.features', { returnObjects: true }) as string[],
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY || "",
       popular: false,
-      description: "For agencies and power users"
+      description: t('pricing.plans.agency.description')
     },
   ] as const;
 
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Podcast Host at TechTalks",
-      company: "TechTalks Media",
-      quote: "CastLumen transformed our workflow. What used to take 3 hours now takes 15 minutes. The AI-generated show notes are incredibly accurate.",
-      avatar: "👩‍💼",
-      rating: 5
-    },
-    {
-      name: "Marcus Rodriguez",
-      role: "Content Director",
-      company: "StartupStories",
-      quote: "The SEO optimization alone increased our podcast discovery by 40%. The social snippets save us hours of content creation.",
-      avatar: "👨‍💻",
-      rating: 5
-    },
-    {
-      name: "Emma Thompson",
-      role: "Marketing Lead",
-      company: "Business Insights Podcast",
-      quote: "Game-changer for our team. The WordPress integration and custom templates make publishing seamless.",
-      avatar: "👩‍🚀",
-      rating: 5
-    }
-  ];
+  const testimonials = t('testimonials.items', { returnObjects: true }) as Array<{
+    name: string;
+    role: string;
+    company: string;
+    quote: string;
+  }>;
 
-  const features = [
-    {
-      icon: "📝",
-      title: "AI-Powered Show Notes",
-      description: "Generate comprehensive, well-structured show notes with key points, quotes, and action items.",
-      benefits: ["90% time savings", "SEO optimized", "Multiple formats"]
-    },
-    {
-      icon: "⏱️",
-      title: "Smart Timestamps",
-      description: "Automatic chapter markers and timestamps for better navigation and engagement.",
-      benefits: ["Increase engagement", "YouTube ready", "Custom chapters"]
-    },
-    {
-      icon: "📱",
-      title: "Social Media Ready",
-      description: "Platform-optimized snippets for Twitter, LinkedIn, Instagram, and TikTok.",
-      benefits: ["Multiple platforms", "Trending hashtags", "Visual quotes"]
-    },
-    {
-      icon: "🔍",
-      title: "SEO Optimization",
-      description: "Meta descriptions, keywords, and titles that help your content rank higher.",
-      benefits: ["Better rankings", "More traffic", "Keyword research"]
-    },
-    {
-      icon: "📧",
-      title: "Newsletter Integration",
-      description: "Ready-to-send newsletter drafts with episode highlights and CTAs.",
-      benefits: ["Email templates", "Subscriber growth", "Automation ready"]
-    },
-    {
-      icon: "🔗",
-      title: "WordPress Publishing",
-      description: "One-click publishing directly to your WordPress site with proper formatting.",
-      benefits: ["Direct publishing", "Custom themes", "Auto-scheduling"]
-    }
-  ];
+  const features = t('features.items', { returnObjects: true }) as Array<{
+    icon: string;
+    title: string;
+    description: string;
+    benefits: string[];
+  }>;
 
   const stats = [
-    { value: "50,000+", label: "Episodes Processed" },
-    { value: "2,400+", label: "Happy Creators" },
-    { value: "95%", label: "Time Saved" },
-    { value: "4.9★", label: "User Rating" }
+    { value: t('stats.episodes'), label: t('stats.episodesLabel') },
+    { value: t('stats.creators'), label: t('stats.creatorsLabel') },
+    { value: t('stats.timeSaved'), label: t('stats.timeSavedLabel') },
+    { value: t('stats.rating'), label: t('stats.ratingLabel') }
   ];
+
+  const faqItems = t('faq.items', { returnObjects: true }) as Array<{
+    question: string;
+    answer: string;
+  }>;
 
   useEffect(() => {
     (async () => {
@@ -198,7 +136,7 @@ export default function Landing() {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [testimonials.length]);
 
   const handleCheckout = async (priceId: string, planKey: string) => {
     try {
@@ -271,10 +209,10 @@ export default function Landing() {
     try {
       // Add your newsletter signup API call here
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      showToast("Thanks for subscribing! Check your email for updates.", "success");
+      showToast(t('newsletter.success'), "success");
       setEmail("");
     } catch (error) {
-      showToast("Something went wrong. Please try again.", "error");
+      showToast(t('newsletter.error'), "error");
     } finally {
       setNewsletterLoading(false);
     }
@@ -283,14 +221,14 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>AI Podcast Show Notes Generator – CastLumen</title>
-        <meta name="description" content="Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes, not hours." />
+        <title>{t('meta.title')}</title>
+        <meta name="description" content={t('meta.description')} />
 
         {/* Enhanced Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="CastLumen" />
-        <meta property="og:title" content="AI Podcast Show Notes Generator – CastLumen" />
-        <meta property="og:description" content="Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes, not hours." />
+        <meta property="og:title" content={t('meta.title')} />
+        <meta property="og:description" content={t('meta.description')} />
         <meta property="og:url" content={process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com/"} />
         <meta property="og:image" content={`${process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com"}/castlumen-og.png`} />
         <meta property="og:image:width" content="1200" />
@@ -298,11 +236,11 @@ export default function Landing() {
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AI Podcast Show Notes Generator – CastLumen" />
-        <meta name="twitter:description" content="Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes, not hours." />
+        <meta name="twitter:title" content={t('meta.title')} />
+        <meta name="twitter:description" content={t('meta.description')} />
 
         {/* Additional SEO */}
-        <meta name="keywords" content="podcast, show notes, AI, transcription, SEO, social media, content creation" />
+        <meta name="keywords" content={t('meta.keywords')} />
         <link rel="canonical" href={process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com/"} />
         <meta name="theme-color" content="#9CEE69" />
         
@@ -314,7 +252,7 @@ export default function Landing() {
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "CastLumen",
-              "description": "AI-powered podcast show notes generator",
+              "description": t('meta.description'),
               "url": process.env.NEXT_PUBLIC_BASE_URL || "https://castlumen.com/",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
@@ -344,24 +282,24 @@ export default function Landing() {
                 {/* Social Proof Badge */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
                   <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Trusted by 2,400+ podcast creators
+                  {t('hero.socialProof')}
                 </div>
 
                 <h1 className="text-5xl lg:text-6xl font-black leading-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  Ship <span className="text-[#9CEE69]">perfect show notes</span> in minutes, not hours
+                  {t('hero.title')}
                 </h1>
                 
                 <p className="mt-6 text-xl text-gray-600 leading-relaxed">
-                  Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets from any audio file or URL.
+                  {t('hero.subtitle')}
                 </p>
 
                 {/* Key Benefits */}
                 <div className="mt-8 grid grid-cols-2 gap-4">
                   {[
-                    "🚀 95% faster workflow",
-                    "🎯 SEO optimized content", 
-                    "📱 Social media ready",
-                    "🔗 WordPress integration"
+                    `🚀 ${t('hero.benefits.faster')}`,
+                    `🎯 ${t('hero.benefits.seo')}`, 
+                    `📱 ${t('hero.benefits.social')}`,
+                    `🔗 ${t('hero.benefits.wordpress')}`
                   ].map((benefit, i) => (
                     <div key={i} className="flex items-center gap-2 text-gray-700">
                       <span className="text-lg">{benefit.split(' ')[0]}</span>
@@ -378,7 +316,7 @@ export default function Landing() {
                         href="/generate" 
                         className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
                       >
-                        Open Generator →
+                        {t('hero.ctaGenerate')}
                       </Link>
                       <button
                         onClick={async () => {
@@ -389,10 +327,14 @@ export default function Landing() {
                         }}
                         className="px-6 py-4 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-gray-400 transition-colors"
                       >
-                        Manage Billing
+                        {t('hero.ctaBilling')}
                       </button>
                       <div className="text-sm text-gray-600 font-medium">
-                        Current: {planText(me?.plan)} • {me?.monthlyMinutesUsed}/{me?.monthlyMinutesLimit} min used
+                        {t('hero.currentPlan', { 
+                          plan: planText(me?.plan), 
+                          used: me?.monthlyMinutesUsed, 
+                          limit: me?.monthlyMinutesLimit 
+                        })}
                       </div>
                     </>
                   ) : (
@@ -401,7 +343,7 @@ export default function Landing() {
                         href="/generate" 
                         className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
                       >
-                        Try Free Demo 
+                        {t('hero.cta')}
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h12a2 2 0 002-2V8a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
                         </svg>
@@ -413,13 +355,13 @@ export default function Landing() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h12a2 2 0 002-2V8a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
                         </svg>
-                        Watch Demo
+                        {t('hero.ctaSecondary')}
                       </a>
                       <div className="w-full text-sm text-gray-500 flex items-center gap-2">
                         <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
-                        Free plan available • No credit card required
+                        {t('hero.freeNotice')}
                       </div>
                     </>
                   )}
@@ -438,10 +380,10 @@ export default function Landing() {
                   </div>
                   {/* Floating Elements */}
                   <div className="absolute -top-4 -right-4 bg-green-500 text-white p-3 rounded-xl shadow-lg animate-bounce">
-                    <span className="text-sm font-bold">95% Time Saved!</span>
+                    <span className="text-sm font-bold">{t('common.timeSaved')}</span>
                   </div>
                   <div className="absolute -bottom-4 -left-4 bg-blue-500 text-white p-3 rounded-xl shadow-lg">
-                    <span className="text-sm font-bold">AI Powered</span>
+                    <span className="text-sm font-bold">{t('common.aiPowered')}</span>
                   </div>
                 </div>
               </div>
@@ -468,10 +410,10 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-16" data-reveal>
               <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
-                Everything you need to <span className="text-[#9CEE69]">scale your podcast</span>
+                {t('features.title')}
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                From audio upload to published content - our AI handles the heavy lifting so you can focus on creating amazing content.
+                {t('features.subtitle')}
               </p>
             </div>
 
@@ -479,7 +421,6 @@ export default function Landing() {
               {features.map((feature, i) => (
                 <div
                   key={feature.title}
-                  data-reveal
                   style={{ transitionDelay: `${i * 100}ms` }}
                   className="group relative p-8 rounded-2xl border border-gray-200 hover:border-[#9CEE69] hover:shadow-xl transition-all duration-300 bg-white"
                 >
@@ -506,28 +447,28 @@ export default function Landing() {
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center mb-16" data-reveal>
-              <h2 className="text-4xl font-black text-gray-900 mb-6">Loved by podcast creators worldwide</h2>
-              <p className="text-xl text-gray-600">Join thousands of creators who've transformed their workflow</p>
+              <h2 className="text-4xl font-black text-gray-900 mb-6">{t('testimonials.title')}</h2>
+              <p className="text-xl text-gray-600">{t('testimonials.subtitle')}</p>
             </div>
 
             {/* Featured Testimonial Carousel */}
             <div className="relative mb-16" data-reveal>
               <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-3xl p-8 lg:p-12 text-center max-w-4xl mx-auto">
-                <div className="text-6xl mb-6">{testimonials[currentTestimonial].avatar}</div>
+                <div className="text-6xl mb-6">👩‍💼</div>
                 <blockquote className="text-2xl lg:text-3xl font-medium text-gray-900 mb-6 leading-relaxed">
-                  "{testimonials[currentTestimonial].quote}"
+                  "{testimonials[currentTestimonial]?.quote}"
                 </blockquote>
                 <div className="flex justify-center mb-4">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                  {[...Array(5)].map((_, i) => (
                     <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
                 </div>
                 <cite className="text-gray-600">
-                  <div className="font-semibold text-gray-900">{testimonials[currentTestimonial].name}</div>
-                  <div>{testimonials[currentTestimonial].role}</div>
-                  <div className="text-sm">{testimonials[currentTestimonial].company}</div>
+                  <div className="font-semibold text-gray-900">{testimonials[currentTestimonial]?.name}</div>
+                  <div>{testimonials[currentTestimonial]?.role}</div>
+                  <div className="text-sm">{testimonials[currentTestimonial]?.company}</div>
                 </cite>
               </div>
               
@@ -555,7 +496,7 @@ export default function Landing() {
                   className="p-6 rounded-2xl bg-gray-50 border border-gray-200"
                 >
                   <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, j) => (
+                    {[...Array(5)].map((_, j) => (
                       <svg key={j} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
@@ -577,10 +518,10 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-16" data-reveal>
               <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
-                Simple, transparent pricing
+                {t('pricing.title')}
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Choose the plan that fits your needs. Upgrade or downgrade anytime. No hidden fees.
+                {t('pricing.subtitle')}
               </p>
             </div>
 
@@ -616,10 +557,10 @@ export default function Landing() {
                         )}
                       </div>
                       {plan.period === "forever" ? (
-                        <p className="text-gray-600 font-medium">No credit card required</p>
+                        <p className="text-gray-600 font-medium">{t('pricing.noCardRequired')}</p>
                       ) : (
                         <div className="text-center">
-                          <p className="text-gray-600">Billed monthly • Cancel anytime</p>
+                          <p className="text-gray-600">{t('pricing.billedMonthly')}</p>
                         </div>
                       )}
                     </div>
@@ -639,10 +580,13 @@ export default function Landing() {
                       {isCurrent ? (
                         <div className="text-center">
                           <button disabled className="w-full px-6 py-4 rounded-xl bg-gray-100 text-gray-500 border font-semibold mb-2">
-                            ✅ Current Plan
+                            {t('pricing.currentPlan')}
                           </button>
                           <p className="text-xs text-gray-500">
-                            {me?.monthlyMinutesUsed}/{me?.monthlyMinutesLimit} minutes used this month
+                            {t('pricing.minutesUsed', { 
+                              used: me?.monthlyMinutesUsed, 
+                              limit: me?.monthlyMinutesLimit 
+                            })}
                           </p>
                         </div>
                       ) : active ? (
@@ -657,9 +601,9 @@ export default function Landing() {
                               : "bg-gray-900 text-white hover:bg-gray-800"
                           }`}
                         >
-                          {plan.key === "FREE" ? "Downgrade to Free" : 
-                           current === "FREE" ? `Upgrade to ${plan.name}` : 
-                           `Switch to ${plan.name}`}
+                          {plan.key === "FREE" ? t('pricing.downgrade') : 
+                           current === "FREE" ? t('pricing.upgrade', { plan: plan.name }) : 
+                           t('pricing.switch', { plan: plan.name })}
                         </button>
                       ) : (
                         <button
@@ -673,7 +617,7 @@ export default function Landing() {
                               : "bg-gray-900 text-white hover:bg-gray-800"
                           }`}
                         >
-                          {plan.key === "FREE" ? "Start Free" : `Get ${plan.name}`}
+                          {plan.key === "FREE" ? t('pricing.startFree') : t('pricing.get', { plan: plan.name })}
                         </button>
                       )}
                     </div>
@@ -683,25 +627,25 @@ export default function Landing() {
             </div>
 
             <div className="text-center mt-12" data-reveal>
-              <p className="text-gray-600 mb-4">*Fair-use policy applies to unlimited plans</p>
+              <p className="text-gray-600 mb-4">{t('pricing.fairUse')}</p>
               <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Cancel anytime
+                  {t('pricing.guarantees.cancel')}
                 </span>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  30-day money back
+                  {t('pricing.guarantees.moneyBack')}
                 </span>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  No setup fees
+                  {t('pricing.guarantees.noFees')}
                 </span>
               </div>
             </div>
@@ -712,37 +656,12 @@ export default function Landing() {
         <section className="py-20 bg-white">
           <div className="max-w-4xl mx-auto px-4">
             <div className="text-center mb-16" data-reveal>
-              <h2 className="text-4xl font-black text-gray-900 mb-6">Frequently Asked Questions</h2>
-              <p className="text-xl text-gray-600">Everything you need to know about CastLumen</p>
+              <h2 className="text-4xl font-black text-gray-900 mb-6">{t('faq.title')}</h2>
+              <p className="text-xl text-gray-600">{t('faq.subtitle')}</p>
             </div>
 
             <div className="space-y-8">
-              {[
-                {
-                  q: "How accurate are the AI-generated show notes?",
-                  a: "Our AI achieves 95%+ accuracy on most podcasts. The system is trained specifically on podcast content and continuously improves. You can always edit and customize the output to match your style."
-                },
-                {
-                  q: "What audio formats do you support?",
-                  a: "We support MP3, WAV, M4A, and most common audio formats. You can also provide YouTube URLs, podcast RSS feeds, or direct audio links."
-                },
-                {
-                  q: "Can I customize the output format?",
-                  a: "Yes! You can create custom templates, adjust tone and style, and even white-label the output for your brand. Pro and Agency plans include advanced customization options."
-                },
-                {
-                  q: "How does the WordPress integration work?",
-                  a: "Simply connect your WordPress site with your credentials, and you can publish show notes directly from CastLumen with one click. It handles formatting, images, and SEO automatically."
-                },
-                {
-                  q: "Is there a free trial?",
-                  a: "Yes! You can try our demo without signing up, and all paid plans come with a 30-day money-back guarantee. The Free plan includes limited processing time each month."
-                },
-                {
-                  q: "How secure is my content?",
-                  a: "Very secure. We use enterprise-grade encryption, never store your audio files permanently, and are GDPR compliant. Your content is processed and then securely deleted."
-                }
-              ].map((faq, i) => (
+              {faqItems.map((faq, i) => (
                 <details 
                   key={i}
                   data-reveal
@@ -750,12 +669,12 @@ export default function Landing() {
                   className="group p-6 bg-gray-50 rounded-2xl border border-gray-200 hover:border-gray-300 transition-colors"
                 >
                   <summary className="flex items-center justify-between cursor-pointer list-none">
-                    <h3 className="text-lg font-semibold text-gray-900">{faq.q}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
                     <svg className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </summary>
-                  <p className="mt-4 text-gray-600 leading-relaxed">{faq.a}</p>
+                  <p className="mt-4 text-gray-600 leading-relaxed">{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -766,9 +685,9 @@ export default function Landing() {
         <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <div data-reveal>
-              <h2 className="text-4xl font-black mb-6">Stay ahead of the curve</h2>
+              <h2 className="text-4xl font-black mb-6">{t('newsletter.title')}</h2>
               <p className="text-xl text-blue-100 mb-8">
-                Get the latest podcast marketing tips, AI updates, and exclusive early access to new features.
+                {t('newsletter.subtitle')}
               </p>
               
               <form onSubmit={handleNewsletterSignup} className="max-w-md mx-auto flex gap-3">
@@ -776,7 +695,7 @@ export default function Landing() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('newsletter.placeholder')}
                   className="flex-1 px-4 py-3 rounded-xl border-0 text-gray-900 placeholder-gray-500"
                   required
                 />
@@ -785,65 +704,60 @@ export default function Landing() {
                   disabled={newsletterLoading}
                   className="px-6 py-3 bg-[#9CEE69] text-gray-900 font-semibold rounded-xl hover:bg-green-400 transition-colors disabled:opacity-50"
                 >
-                  {newsletterLoading ? "..." : "Subscribe"}
+                  {newsletterLoading ? "..." : t('newsletter.cta')}
                 </button>
               </form>
               
               <p className="text-sm text-blue-200 mt-4">
-                Join 5,000+ creators. Unsubscribe anytime.
+                {t('newsletter.disclaimer')}
               </p>
             </div>
           </div>
         </section>
 
         {/* FINAL CTA */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <div data-reveal>
-              <h2 className="text-4xl lg:text-5xl font-black text-gray-900 mb-6">
-                Ready to transform your podcast workflow?
-              </h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Join thousands of creators who've already saved hundreds of hours with CastLumen.
-              </p>
-              
-              <div className="flex flex-wrap justify-center items-center gap-4">
-                <Link 
-                  href="/generate" 
-                  className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 flex items-center gap-2"
-                >
-                  Start Free Demo
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <a 
-                  href="#pricing" 
-                  className="px-6 py-4 text-gray-700 font-semibold hover:text-gray-900 transition-colors"
-                >
-                  View Pricing
-                </a>
+            <h2 className="text-4xl lg:text-5xl font-black mb-6">
+              {t('cta.title')}
+            </h2>
+            <p className="text-xl lg:text-2xl text-blue-100 mb-8 leading-relaxed">
+              {t('cta.subtitle')}
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+              <Link 
+                href="/generate" 
+                className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
+              >
+                {t('cta.primary')}
+              </Link>
+              <Link 
+                href="/#pricing" 
+                className="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-xl hover:border-white/50 transition-colors"
+              >
+                {t('cta.secondary')}
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-blue-200">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                {t('cta.features.freeStart')}
               </div>
-              
-              <div className="flex justify-center items-center gap-6 mt-8 text-sm text-gray-500">
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Free to start
-                </span>
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  No credit card required
-                </span>
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Setup in 2 minutes
-                </span>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                {t('cta.features.noCard')}
+              </div>
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                {t('cta.features.quickSetup')}
               </div>
             </div>
           </div>
@@ -872,3 +786,12 @@ export default function Landing() {
     </>
   );
 }
+
+// Add this at the bottom:
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

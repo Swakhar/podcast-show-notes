@@ -2,9 +2,13 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 import { useToast } from "../contexts/ToastContext";
 
 export default function ResetPassword() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const { token } = router.query;
   const { showToast } = useToast();
@@ -19,12 +23,12 @@ export default function ResetPassword() {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      showToast("Passwords don't match", "error");
+      showToast(t('resetPassword.errors.passwordMismatch'), "error");
       return;
     }
 
     if (password.length < 8) {
-      showToast("Password must be at least 8 characters", "error");
+      showToast(t('resetPassword.errors.passwordTooShort'), "error");
       return;
     }
 
@@ -38,14 +42,14 @@ export default function ResetPassword() {
       });
 
       if (response.ok) {
-        showToast("Password reset successfully!", "success");
+        showToast(t('resetPassword.toast.success'), "success");
         setSuccess(true);
       } else {
         const error = await response.json();
-        showToast(error.error || "Something went wrong", "error");
+        showToast(error.error || t('resetPassword.errors.resetFailed'), "error");
       }
     } catch (error) {
-      showToast("Something went wrong. Please try again.", "error");
+      showToast(t('resetPassword.errors.genericError'), "error");
     } finally {
       setLoading(false);
     }
@@ -55,10 +59,10 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid Reset Link</h1>
-          <p className="text-gray-600 mb-6">This password reset link is invalid or has expired.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('resetPassword.invalidLink.title')}</h1>
+          <p className="text-gray-600 mb-6">{t('resetPassword.invalidLink.message')}</p>
           <Link href="/forgot-password" className="text-blue-600 hover:text-blue-800">
-            Request a new reset link
+            {t('resetPassword.invalidLink.requestNew')}
           </Link>
         </div>
       </div>
@@ -69,7 +73,7 @@ export default function ResetPassword() {
     return (
       <>
         <Head>
-          <title>Password Reset Successful – CastLumen</title>
+          <title>{t('resetPassword.successTitle')}</title>
         </Head>
 
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -88,16 +92,16 @@ export default function ResetPassword() {
                   </svg>
                 </div>
                 
-                <h1 className="text-2xl font-bold text-gray-900 mb-4">Password Reset Successful!</h1>
+                <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('resetPassword.success.title')}</h1>
                 <p className="text-gray-600 mb-6">
-                  Your password has been reset successfully. You can now sign in with your new password.
+                  {t('resetPassword.success.message')}
                 </p>
                 
                 <Link 
                   href="/login"
                   className="w-full block px-4 py-3 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
                 >
-                  Sign In Now
+                  {t('resetPassword.success.signInNow')}
                 </Link>
               </div>
             </div>
@@ -110,8 +114,8 @@ export default function ResetPassword() {
   return (
     <>
       <Head>
-        <title>Reset Password – CastLumen</title>
-        <meta name="description" content="Create a new password for your CastLumen account" />
+        <title>{t('resetPassword.title')}</title>
+        <meta name="description" content={t('resetPassword.metaDescription')} />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -120,8 +124,8 @@ export default function ResetPassword() {
             <Link href="/" className="inline-block mb-6">
               <img src="/castlumen-wordmark.svg" alt="CastLumen" className="h-10 w-auto" />
             </Link>
-            <h1 className="text-3xl font-black text-gray-900 mb-2">Reset your password</h1>
-            <p className="text-gray-600">Enter your new password below</p>
+            <h1 className="text-3xl font-black text-gray-900 mb-2">{t('resetPassword.form.title')}</h1>
+            <p className="text-gray-600">{t('resetPassword.form.subtitle')}</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -129,7 +133,7 @@ export default function ResetPassword() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    New Password
+                    {t('resetPassword.form.fields.newPassword')}
                   </label>
                   <div className="relative">
                     <input
@@ -137,7 +141,7 @@ export default function ResetPassword() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="Enter new password"
+                      placeholder={t('resetPassword.form.fields.newPasswordPlaceholder')}
                       required
                       minLength={8}
                     />
@@ -155,19 +159,19 @@ export default function ResetPassword() {
                       </svg>
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('resetPassword.form.fields.passwordRequirement')}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Confirm New Password
+                    {t('resetPassword.form.fields.confirmPassword')}
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    placeholder="Confirm new password"
+                    placeholder={t('resetPassword.form.fields.confirmPasswordPlaceholder')}
                     required
                     minLength={8}
                   />
@@ -181,10 +185,10 @@ export default function ResetPassword() {
                   {loading ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                      Resetting Password...
+                      {t('resetPassword.form.buttons.resettingPassword')}
                     </div>
                   ) : (
-                    "Reset Password"
+                    t('resetPassword.form.buttons.resetPassword')
                   )}
                 </button>
               </form>
@@ -192,9 +196,9 @@ export default function ResetPassword() {
 
             <div className="border-t border-gray-200 p-6 bg-gray-50 text-center">
               <p className="text-sm text-gray-600">
-                Remember your password?{" "}
+                {t('resetPassword.form.footer.rememberPassword')}{" "}
                 <Link href="/login" className="text-blue-600 hover:text-blue-800 font-semibold">
-                  Sign in here
+                  {t('resetPassword.form.footer.signInHere')}
                 </Link>
               </p>
             </div>
@@ -204,3 +208,11 @@ export default function ResetPassword() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

@@ -3,11 +3,15 @@ import { signIn } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 import { useToast } from "../contexts/ToastContext";
 
 const SITE_KEY = process.env.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY;
 
 export default function Login() {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [mode, setMode] = useState<"login"|"register">("login");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -21,7 +25,7 @@ export default function Login() {
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) {
-      showToast("Passwords don't match", "error");
+      showToast(t('login.errors.passwordMismatch'), "error");
       return;
     }
     
@@ -35,7 +39,7 @@ export default function Login() {
     
     if (!res.ok) {
       const errorData = await res.json();
-      showToast(errorData.error || "Registration failed", "error");
+      showToast(errorData.error || t('login.errors.registrationFailed'), "error");
       return;
     }
 
@@ -63,8 +67,8 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>{mode === "login" ? "Sign In" : "Create Account"} – CastLumen</title>
-        <meta name="description" content={mode === "login" ? "Sign in to your CastLumen account" : "Create a new CastLumen account"} />
+        <title>{mode === "login" ? t('login.signIn.title') : t('login.register.title')}</title>
+        <meta name="description" content={mode === "login" ? t('login.signIn.metaDescription') : t('login.register.metaDescription')} />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
@@ -75,12 +79,12 @@ export default function Login() {
               <img src="/castlumen-wordmark.svg" alt="CastLumen" className="h-10 w-auto" />
             </Link>
             <h1 className="text-3xl font-black text-gray-900 mb-2">
-              {mode === "login" ? "Welcome back" : "Create your account"}
+              {mode === "login" ? t('login.header.welcomeBack') : t('login.header.createAccount')}
             </h1>
             <p className="text-gray-600">
               {mode === "login" 
-                ? "Sign in to continue generating amazing content" 
-                : "Join thousands of creators using AI-powered content generation"
+                ? t('login.header.signInSubtitle')
+                : t('login.header.registerSubtitle')
               }
             </p>
           </div>
@@ -98,7 +102,7 @@ export default function Login() {
                   }`}
                   onClick={() => setMode("login")}
                 >
-                  Sign In
+                  {t('login.tabs.signIn')}
                 </button>
                 <button 
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
@@ -108,7 +112,7 @@ export default function Login() {
                   }`}
                   onClick={() => setMode("register")}
                 >
-                  Sign Up
+                  {t('login.tabs.signUp')}
                 </button>
               </div>
             </div>
@@ -119,11 +123,11 @@ export default function Login() {
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name
+                      {t('login.form.fields.fullName')}
                     </label>
                     <input 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
-                      placeholder="Enter your full name" 
+                      placeholder={t('login.form.fields.fullNamePlaceholder')}
                       value={name} 
                       onChange={(e) => setName(e.target.value)} 
                       required 
@@ -132,12 +136,12 @@ export default function Login() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email Address
+                      {t('login.form.fields.email')}
                     </label>
                     <input 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                       type="email" 
-                      placeholder="Enter your email" 
+                      placeholder={t('login.form.fields.emailPlaceholder')}
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
@@ -146,13 +150,13 @@ export default function Login() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Password
+                      {t('login.form.fields.password')}
                     </label>
                     <div className="relative">
                       <input 
                         className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                         type={showPassword ? "text" : "password"} 
-                        placeholder="Create a strong password" 
+                        placeholder={t('login.form.fields.createPasswordPlaceholder')}
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
                         required 
@@ -171,17 +175,17 @@ export default function Login() {
                         </svg>
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('login.form.fields.passwordRequirement')}</p>
                   </div>
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Confirm Password
+                      {t('login.form.fields.confirmPassword')}
                     </label>
                     <input 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                       type="password" 
-                      placeholder="Confirm your password" 
+                      placeholder={t('login.form.fields.confirmPasswordPlaceholder')}
                       value={confirm} 
                       onChange={(e) => setConfirm(e.target.value)} 
                       required 
@@ -205,30 +209,30 @@ export default function Login() {
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                        Creating Account...
+                        {t('login.form.buttons.creatingAccount')}
                       </div>
                     ) : (
-                      "Create Account"
+                      t('login.form.buttons.createAccount')
                     )}
                   </button>
 
                   <p className="text-xs text-gray-500 text-center mt-4">
-                    By creating an account, you agree to our{" "}
-                    <Link href="/terms" className="text-blue-600 hover:text-blue-800">Terms of Service</Link>
-                    {" "}and{" "}
-                    <Link href="/privacy" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
+                    {t('login.form.legal.agreement')}{" "}
+                    <Link href="/terms" className="text-blue-600 hover:text-blue-800">{t('login.form.legal.termsOfService')}</Link>
+                    {" "}{t('login.form.legal.and')}{" "}
+                    <Link href="/privacy" className="text-blue-600 hover:text-blue-800">{t('login.form.legal.privacyPolicy')}</Link>
                   </p>
                 </form>
               ) : (
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email Address
+                      {t('login.form.fields.email')}
                     </label>
                     <input 
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                       type="email" 
-                      placeholder="Enter your email" 
+                      placeholder={t('login.form.fields.emailPlaceholder')}
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       required 
@@ -237,13 +241,13 @@ export default function Login() {
                   
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Password
+                      {t('login.form.fields.password')}
                     </label>
                     <div className="relative">
                       <input 
                         className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" 
                         type={showPassword ? "text" : "password"} 
-                        placeholder="Enter your password" 
+                        placeholder={t('login.form.fields.passwordPlaceholder')}
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
                         required 
@@ -267,10 +271,10 @@ export default function Login() {
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
                       <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                      <span className="ml-2 text-sm text-gray-600">{t('login.form.fields.rememberMe')}</span>
                     </label>
                     <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800">
-                      Forgot password?
+                      {t('login.form.buttons.forgotPassword')}
                     </Link>
                   </div>
 
@@ -281,10 +285,10 @@ export default function Login() {
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-4 h-4 border-2 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
-                        Signing In...
+                        {t('login.form.buttons.signingIn')}
                       </div>
                     ) : (
-                      "Sign In"
+                      t('login.form.buttons.signIn')
                     )}
                   </button>
                 </form>
@@ -294,7 +298,7 @@ export default function Login() {
             {/* Demo Link */}
             <div className="border-t border-gray-200 p-6 bg-gray-50 text-center">
               <p className="text-sm text-gray-600 mb-3">
-                Want to try before signing up?
+                {t('login.demo.tryBefore')}
               </p>
               <Link 
                 href="/generate" 
@@ -303,7 +307,7 @@ export default function Login() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h12a2 2 0 002-2V8a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
                 </svg>
-                Try Free Demo
+                {t('login.demo.tryFreeDemo')}
               </Link>
             </div>
           </div>
@@ -311,9 +315,9 @@ export default function Login() {
           {/* Alternative Login Methods */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              Need help?{" "}
+              {t('login.support.needHelp')}{" "}
               <Link href="/contact" className="text-blue-600 hover:text-blue-800">
-                Contact Support
+                {t('login.support.contactSupport')}
               </Link>
             </p>
           </div>
@@ -322,3 +326,11 @@ export default function Login() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

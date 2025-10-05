@@ -1,29 +1,1419 @@
 {
-  "navigation": {
+  "nav": {
     "features": "Features",
-    "pricing": "Pricing", 
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "contact": "Contact",
     "generate": "Generate",
     "templates": "Templates",
     "settings": "Settings",
-    "signIn": "Sign in",
-    "signOut": "Sign out",
-    "billing": "Billing"
+    "teams": "Teams",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "dashboard": "Dashboard",
+    "accountSettings": "Account Settings",
+    "rssFeeds": "RSS Feeds",
+    "billing": "Billing",
+    "manageBilling": "Manage Billing",
+    "teamMember": "Team Member",
+    "billingManagedByTeam": "Billing managed by team owner",
+    "tryDemo": "Try Demo",
+    "language": "Language"
   },
   "hero": {
-    "title": "Transform Podcasts into Engaging Content",
-    "subtitle": "Generate show notes, summaries, social media posts, and more from your podcast episodes in minutes.",
-    "cta": "Try Free"
+    "title": "Ship perfect show notes in minutes, not hours",
+    "subtitle": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets from any audio file or URL.",
+    "socialProof": "Trusted by 2,400+ podcast creators",
+    "cta": "Try Free Demo",
+    "ctaSecondary": "Watch Demo",
+    "ctaGenerate": "Open Generator →",
+    "ctaBilling": "Manage Billing",
+    "currentPlan": "Current: {{plan}} • {{used}}/{{limit}} min used",
+    "freeNotice": "Free plan available • No credit card required",
+    "benefits": {
+      "faster": "95% faster workflow",
+      "seo": "SEO optimized content",
+      "social": "Social media ready",
+      "wordpress": "WordPress integration"
+    }
+  },
+  "stats": {
+    "episodes": "50,000+",
+    "episodesLabel": "Episodes Processed",
+    "creators": "2,400+",
+    "creatorsLabel": "Happy Creators", 
+    "timeSaved": "95%",
+    "timeSavedLabel": "Time Saved",
+    "rating": "4.9★",
+    "ratingLabel": "User Rating"
+  },
+  "features": {
+    "title": "Everything you need to scale your podcast",
+    "subtitle": "From audio upload to published content - our AI handles the heavy lifting so you can focus on creating great content.",
+    "items": [
+      {
+        "icon": "📝",
+        "title": "AI-Powered Show Notes",
+        "description": "Generate comprehensive, well-structured show notes with key points, quotes, and actionable takeaways.",
+        "benefits": ["90% time saved", "SEO optimized", "Multiple formats"]
+      },
+      {
+        "icon": "⏱️",
+        "title": "Smart Timestamps",
+        "description": "Automatic chapter marks and timestamps for better navigation and engagement.",
+        "benefits": ["Higher engagement", "YouTube ready", "Custom chapters"]
+      },
+      {
+        "icon": "📱",
+        "title": "Social Media Ready",
+        "description": "Platform-optimized snippets for Twitter, LinkedIn, Instagram, and TikTok.",
+        "benefits": ["Multiple platforms", "Trending hashtags", "Visual quotes"]
+      },
+      {
+        "icon": "🔍",
+        "title": "SEO Optimization",
+        "description": "Meta descriptions, keywords, and titles that help your content rank better.",
+        "benefits": ["Better rankings", "More traffic", "Keyword research"]
+      },
+      {
+        "icon": "📧",
+        "title": "Newsletter Integration",
+        "description": "Ready-to-send newsletter drafts with episode highlights and CTAs.",
+        "benefits": ["Email templates", "Subscriber growth", "Automation"]
+      },
+      {
+        "icon": "🔗",
+        "title": "WordPress Publishing",
+        "description": "One-click publishing directly to your WordPress site with proper formatting.",
+        "benefits": ["Direct publishing", "Custom themes", "Auto-scheduling"]
+      }
+    ]
+  },
+  "testimonials": {
+    "title": "Loved by podcast creators worldwide",
+    "subtitle": "Join thousands of creators who've transformed their workflow",
+    "items": [
+      {
+        "name": "Sarah Chen",
+        "role": "Podcast Host at TechTalks",
+        "company": "TechTalks Media",
+        "quote": "CastLumen transformed our workflow. What used to take 3 hours now takes 15 minutes. The AI-generated show notes are incredibly accurate."
+      },
+      {
+        "name": "Marcus Rodriguez", 
+        "role": "Content Director",
+        "company": "StartupStories",
+        "quote": "The SEO optimization alone increased our podcast discovery by 40%. The social snippets save us hours of content creation."
+      },
+      {
+        "name": "Emma Thompson",
+        "role": "Marketing Lead", 
+        "company": "Business Insights Podcast",
+        "quote": "Game-changer for our team. The WordPress integration and custom templates make publishing seamless."
+      }
+    ]
   },
   "pricing": {
-    "free": {
-      "name": "Free",
-      "description": "Perfect for trying out CastLumen",
-      "features": ["30 minutes/month", "Manual uploads only", "Basic content generation"]
+    "title": "Simple, transparent pricing",
+    "subtitle": "Choose the plan that fits your needs. Upgrade or downgrade anytime. No hidden fees.",
+    "billedMonthly": "Billed monthly • Cancel anytime",
+    "noCardRequired": "No credit card required",
+    "currentPlan": "✅ Current Plan",
+    "minutesUsed": "{{used}}/{{limit}} minutes used this month",
+    "startFree": "Start Free",
+    "downgrade": "Downgrade to Free",
+    "upgrade": "Upgrade to {{plan}}",
+    "switch": "Switch to {{plan}}",
+    "get": "Get {{plan}}",
+    "fairUse": "*Fair-use policy applies to unlimited plans",
+    "guarantees": {
+      "cancel": "Cancel anytime",
+      "moneyBack": "30-day money back", 
+      "noSetup": "No setup fees"
     },
-    "pro": {
-      "name": "Pro", 
-      "description": "Everything you need to scale your podcast",
-      "features": ["300 minutes/month", "RSS feed automation", "WordPress integration"]
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "Perfect for trying out CastLumen",
+        "features": [
+          "30 minutes/month",
+          "Manual uploads only",
+          "Basic content generation", 
+          "Email support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Everything you need to scale your podcast",
+        "features": [
+          "300 minutes/month",
+          "RSS feed automation",
+          "WordPress integration",
+          "Email notifications", 
+          "All content types",
+          "Priority support"
+        ]
+      },
+      "agency": {
+        "name": "Agency",
+        "description": "For agencies and power users", 
+        "features": [
+          "1000+ minutes/month",
+          "Everything in Pro",
+          "Team management",
+          "Unlimited RSS feeds",
+          "White-label options",
+          "API access (coming soon)"
+        ]
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about CastLumen",
+    "items": [
+      {
+        "question": "How accurate are the AI-generated show notes?",
+        "answer": "Our AI achieves 95%+ accuracy on most podcasts. The system is trained specifically on podcast content and continuously improves. You can always edit and customize the output to match your style."
+      },
+      {
+        "question": "What audio formats do you support?",
+        "answer": "We support MP3, WAV, M4A, and most common audio formats. You can also provide YouTube URLs, podcast RSS feeds, or direct audio links."
+      },
+      {
+        "question": "Can I customize the output format?",
+        "answer": "Yes! You can create custom templates, adjust tone and style, and even white-label the output for your brand. Pro and Agency plans include advanced customization options."
+      },
+      {
+        "question": "How does the WordPress integration work?",
+        "answer": "Simply connect your WordPress site with your credentials, and you can publish show notes directly from CastLumen with one click. It handles formatting, images, and SEO automatically."
+      },
+      {
+        "question": "Is there a free trial?",
+        "answer": "Yes! You can try our demo without signing up, and all paid plans come with a 30-day money-back guarantee. The Free plan includes limited processing time each month."
+      },
+      {
+        "question": "How secure is my content?",
+        "answer": "Very secure. We use enterprise-grade encryption, never store your audio files permanently, and are GDPR compliant. Your content is processed and then securely deleted."
+      }
+    ]
+  },
+  "newsletter": {
+    "title": "Stay ahead of the curve",
+    "subtitle": "Get the latest podcast marketing tips, AI updates, and exclusive early access to new features.",
+    "placeholder": "Enter your email",
+    "button": "Subscribe",
+    "loading": "...",
+    "disclaimer": "Join 5,000+ creators. Unsubscribe anytime.",
+    "success": "Thanks for subscribing! Check your email for updates.",
+    "error": "Something went wrong. Please try again."
+  },
+  "finalCta": {
+    "title": "Ready to transform your podcast workflow?",
+    "subtitle": "Join thousands of creators who've already saved hundreds of hours with CastLumen.",
+    "cta": "Start Free Demo",
+    "viewPricing": "View Pricing",
+    "features": {
+      "freeStart": "Free to start",
+      "noCard": "No credit card required", 
+      "quickSetup": "Setup in 2 minutes"
+    }
+  },
+  "meta": {
+    "title": "AI Podcast Show Notes Generator – CastLumen",
+    "description": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes, not hours.",
+    "keywords": "podcast, show notes, AI, transcription, SEO, social media, content creation"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "back": "Back",
+    "continue": "Continue", 
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "timeSaved": "95% Time Saved!",
+    "aiPowered": "AI Powered"
+  },
+  "generate": {
+    "title": "AI Content Generator – Professional Podcast Production",
+    "metaDescription": "Transform your podcast into professional content. Generate show notes, timestamps, SEO content, and social media snippets with enterprise-grade AI.",
+    "hero": {
+      "badge": "AI-Powered Content Generation",
+      "title": "Transform Audio into Professional Content",
+      "subtitle": "Upload your podcast or paste a URL. Our AI generates show notes, timestamps, SEO content, and social snippets – all optimized for maximum engagement.",
+      "stats": {
+        "workflow": "95% faster workflow",
+        "ai": "Enterprise-grade AI",
+        "output": "Multi-format output"
+      }
+    },
+    "status": {
+      "plan": "Plan",
+      "minutesUsed": "minutes used",
+      "upgrade": "Upgrade Plan"
+    },
+    "tabs": {
+      "audio": "🎵 Audio Content",
+      "guest": "🔍 Guest Research"
+    },
+    "ready": {
+      "audio": {
+        "title": "Ready to Generate Content",
+        "subtitle": "Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.",
+        "features": {
+          "fast": "Lightning Fast",
+          "accurate": "Highly Accurate"
+        }
+      },
+      "guest": {
+        "title": "Ready for Guest Research",
+        "subtitle": "Fill in your guest's information in the sidebar to generate comprehensive research, interview questions, and conversation starters powered by AI.",
+        "features": {
+          "research": "Deep Research",
+          "questions": "Smart Questions"
+        }
+      }
+    },
+    "processing": {
+      "complete": "complete",
+      "takesTime": "This may take a few minutes"
+    },
+    "results": {
+      "title": "Generated Content",
+      "subtitle": "Your AI-generated podcast content is ready",
+      "complete": "Complete"
+    },
+    "cards": {
+      "summary": "Summary",
+      "showNotes": "Show Notes",
+      "timestamps": "Timestamps",
+      "socialSnippets": "Social Snippets",
+      "seo": "SEO Content",
+      "newsletter": "Newsletter Draft",
+      "transcript": "Full Transcript",
+      "guestResearch": "Guest Research Report",
+      "interviewQuestions": "Interview Questions",
+      "conversationStarters": "Conversation Starters"
+    },
+    "actions": {
+      "downloadMarkdown": "Download Markdown",
+      "copyYouTubeChapters": "Copy YouTube Chapters",
+      "copyMarkdown": "Copy Markdown",
+      "downloadFile": "Download File",
+      "publishWordPress": "Publish to WordPress",
+      "downloadReport": "Download Report",
+      "copyQuestions": "Copy Questions",
+      "copyClipboard": "Copy to clipboard"
+    },
+    "seo": {
+      "title": "SEO Title",
+      "keywords": "Keywords"
+    },
+    "newsletter": {
+      "subject": "Subject Line",
+      "content": "Email Content"
+    },
+    "messages": {
+      "youtubeCopied": "YouTube chapters copied to clipboard!",
+      "questionsCopied": "Interview questions copied to clipboard!",
+      "demoPublished": "📝 Demo published!",
+      "publishedWordPress": "✅ Published to WordPress! View:",
+      "publishingFailed": "Publishing failed:"
+    }
+  },
+  "audioUpload": {
+    "title": "Content Input",
+    "subtitle": "Upload audio or provide a URL to get started",
+    "fileUpload": {
+      "label": "Audio File Upload",
+      "dropHere": "Drop your audio file here",
+      "orClick": "or click to browse",
+      "removeFile": "Remove file",
+      "supportedFormats": "Supported formats:"
+    },
+    "url": {
+      "label": "Podcast URL",
+      "placeholder": "https://example.com/podcast.mp3 or YouTube URL",
+      "youtubeDetected": "YouTube detected:",
+      "youtubePreview": "Using 2-minute preview for faster results"
+    },
+    "cover": {
+      "label": "Episode Cover",
+      "optional": "(optional)",
+      "disclaimer": "Added to downloaded files only (not uploaded to server)"
+    },
+    "duration": {
+      "label": "Processing Duration",
+      "minutes": "minutes",
+      "processEntire": "Process entire file",
+      "freeLimit": "Free plan:",
+      "maxMinutes": "Maximum 3 minutes per job"
+    },
+    "language": {
+      "label": "Output Language",
+      "autoDetect": "🌐 Auto-detect source language",
+      "english": "🇺🇸 English",
+      "german": "🇩🇪 Deutsch (German)"
+    },
+    "features": {
+      "label": "Content to Generate",
+      "selected": "selected",
+      "of": "of",
+      "summary": {
+        "label": "Summary",
+        "desc": "Key points and overview"
+      },
+      "show_notes": {
+        "label": "Show Notes",
+        "desc": "Detailed episode notes"
+      },
+      "timestamps": {
+        "label": "Timestamps",
+        "desc": "Chapter markers & timing"
+      },
+      "social_snippets": {
+        "label": "Social Snippets",
+        "desc": "Ready-to-post content"
+      },
+      "seo": {
+        "label": "SEO Content",
+        "desc": "Titles & meta descriptions"
+      },
+      "newsletter": {
+        "label": "Newsletter",
+        "desc": "Email-ready content"
+      },
+      "pro": "Pro",
+      "teamAccess": "Team Access"
+    },
+    "templates": {
+      "label": "Custom Templates",
+      "selected": "selected",
+      "applied": "custom template",
+      "applied_plural": "custom templates",
+      "willApply": "will be applied to enhance your content"
+    },
+    "submit": {
+      "generate": "🚀 Generate Content",
+      "starting": "Starting Generation...",
+      "processing": "Processing...",
+      "disclaimer": "Results appear progressively as they're generated"
+    },
+    "or": "OR"
+  },
+  "guestResearch": {
+    "title": "Guest Research Assistant",
+    "subtitle": "Get AI-powered insights and interview prep for your guests",
+    "form": {
+      "guestName": {
+        "label": "Guest Name",
+        "required": "*",
+        "placeholder": "e.g., John Doe, CEO of TechCorp"
+      },
+      "guestInfo": {
+        "label": "Guest Background & Information",
+        "required": "*",
+        "modes": {
+          "guided": "📋 Guided",
+          "freeText": "✏️ Free Text"
+        },
+        "fields": {
+          "linkedin": "🔗 LinkedIn Profile",
+          "linkedinPlaceholder": "https://linkedin.com/in/guest-name",
+          "twitter": "🐦 Twitter/X Profile",
+          "twitterPlaceholder": "https://twitter.com/username",
+          "facebook": "📘 Facebook Profile/Page",
+          "facebookPlaceholder": "https://facebook.com/username",
+          "instagram": "📸 Instagram Profile",
+          "instagramPlaceholder": "https://instagram.com/username",
+          "website": "🌐 Website/Blog",
+          "websitePlaceholder": "https://website.com",
+          "company": "🏢 Company & Role",
+          "companyPlaceholder": "CEO at TechCorp, Former Google PM",
+          "recentWork": "🚀 Recent Work & Achievements",
+          "recentWorkPlaceholder": "Recent funding, new product launch, awards, speaking engagements, publications...",
+          "personalBio": "👤 Personal Background & Interests",
+          "personalBioPlaceholder": "Education, personal interests, unique background, fun facts..."
+        },
+        "tip": "💡 Tip: Fill in any fields you have information for. URLs will be automatically included in the research. The more details you provide, the better the AI research results!",
+        "freeTextPlaceholder": "Paste LinkedIn profile, bio, website content, recent interviews, articles, or any information about your guest...",
+        "freeTextTip": "💡 Tip: Include their LinkedIn, recent work, articles, or social media to get better research"
+      },
+      "additionalContext": {
+        "label": "Additional Context",
+        "optional": "(optional)",
+        "placeholder": "Any specific topics you want to explore, mutual connections, recent news about them..."
+      },
+      "showFocus": {
+        "label": "Show Focus/Theme",
+        "optional": "(optional)",
+        "placeholder": "e.g., Entrepreneurship, Tech Innovation, Marketing Strategies..."
+      },
+      "language": {
+        "label": "Output Language",
+        "english": "🇺🇸 English",
+        "german": "🇩🇪 Deutsch (German)"
+      },
+      "features": {
+        "label": "Research Components",
+        "guestResearch": {
+          "label": "Complete Research Report",
+          "desc": "Executive summary, expertise, achievements"
+        },
+        "interviewQuestions": {
+          "label": "Interview Questions",
+          "desc": "15 targeted questions for your interview"
+        },
+        "conversationStarters": {
+          "label": "Conversation Starters",
+          "desc": "Ice breakers and natural transitions"
+        },
+        "pro": "Pro"
+      },
+      "submit": {
+        "button": "🔍 Start Guest Research",
+        "submitting": "Researching Guest...",
+        "disclaimer": "Research typically takes 30-60 seconds"
+      }
+    }
+  },
+  "about": {
+    "title": "About CastLumen – AI-Powered Podcast Workflow Automation",
+    "metaDescription": "Learn about CastLumen's mission to help podcasters create better content faster with AI automation.",
+    "hero": {
+      "title": "Empowering Podcasters",
+      "titleHighlight": "with AI Automation",
+      "subtitle": "We believe every podcaster deserves professional-quality content without the hours of manual work. That's why we built CastLumen."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "paragraph1": "CastLumen transforms the podcast production workflow by automating time-consuming tasks like show note creation, timestamp generation, and content optimization.",
+      "paragraph2": "We're passionate about helping content creators focus on what they do best – creating amazing content – while we handle the rest with cutting-edge AI technology."
+    },
+    "stats": {
+      "episodes": "10,000+",
+      "episodesLabel": "Episodes Processed"
+    },
+    "creators": {
+      "title": "Built for Creators, by Creators",
+      "description": "As podcasters ourselves, we understand the challenges of maintaining consistent, high-quality content. CastLumen is our solution to help you scale your podcast without sacrificing quality.",
+      "cta": "Get in Touch"
+    }
+  },
+  "cancel": {
+    "title": "Payment Successful – CastLumen",
+    "metaDescription": "Your payment was successful. Welcome aboard!",
+    "hero": {
+      "title": "Payment Successful",
+      "subtitle": "Welcome aboard! Your payment was successful, and your subscription is now active."
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "description": "Here are some quick links to help you get started with your new subscription:",
+      "items": {
+        "explore": "Explore our AI content generation features",
+        "helpCenter": "Visit our help center for tutorials and guides",
+        "support": "Contact support if you have any questions"
+      }
+    },
+    "actions": {
+      "startGenerating": "Start Generating Content",
+      "viewPricing": "View Pricing Plans"
+    },
+    "footer": {
+      "questions": "Questions about your subscription?",
+      "contactSupport": "Contact our support team"
+    },
+    "countdown": {
+      "redirecting": "Redirecting to homepage in"
+    }
+  },
+  "success": {
+    "title": "Payment Successful – CastLumen",
+    "metaDescription": "Your CastLumen subscription is now active. Start generating AI-powered podcast content.",
+    "status": {
+      "activating": "Activating your subscription…",
+      "missingSession": "Missing session id. Redirecting…",
+      "activationFailed": "Activation failed. Redirecting…",
+      "active": "Subscription active! Redirecting…"
+    },
+    "header": {
+      "settingUp": "Setting Up Your Account",
+      "welcome": "🎉 Welcome to CastLumen!",
+      "error": "⚠️ Something Went Wrong"
+    },
+    "content": {
+      "whatsNext": {
+        "title": "What's Next?",
+        "steps": {
+          "upload": "✨ Upload your first podcast",
+          "generate": "🚀 Generate professional show notes",
+          "social": "📱 Create social media content",
+          "seo": "🔍 Optimize for SEO"
+        }
+      }
+    },
+    "buttons": {
+      "startCreating": "Start Creating Content",
+      "goToDashboard": "Go to Dashboard",
+      "tryGenerator": "Try the Generator"
+    },
+    "support": {
+      "needHelp": "Need help getting started?",
+      "contactSupport": "Contact our support team →"
+    },
+    "confirmation": {
+      "emailSent": "A confirmation email has been sent to your inbox"
+    }
+  },
+  "contact": {
+    "title": "Contact – CastLumen | Support & Sales",
+    "metaDescription": "Contact the CastLumen team. Professional support, sales and general inquiries. Response within 24 hours.",
+    "keywords": "CastLumen contact, support, sales, podcast tools, help",
+    "hero": {
+      "badge": "Support & Contact",
+      "title": "We're here for you",
+      "subtitle": "Have questions about CastLumen? Need support or want to learn more about our enterprise solutions?",
+      "responseTime": "Response within 24 hours"
+    },
+    "company": {
+      "title": "📋 Contact",
+      "name": "DataFiora IT - Pratyushi Roy Oishee",
+      "address": "Falltorstraße 2, 63486 Bruchköbel, Germany",
+      "email": "roy302156@gmail.com",
+      "phone": "01629334092"
+    },
+    "support": {
+      "title": "Support",
+      "subtitle": "Technical Help",
+      "responseTime": "Response within 24 hours"
+    },
+    "sales": {
+      "title": "Sales",
+      "subtitle": "Enterprise & Consulting"
+    },
+    "form": {
+      "title": "Send Message",
+      "subtitle": "Describe your concern and we'll get back to you as soon as possible.",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "Your full name",
+        "email": "Email",
+        "emailPlaceholder": "your.email@example.com",
+        "subject": "Subject",
+        "message": "Message",
+        "messagePlaceholder": "Describe your concern in as much detail as possible...",
+        "required": "*"
+      },
+      "subjects": {
+        "general": "General Inquiry",
+        "support": "Technical Support",
+        "sales": "Sales & Pricing",
+        "enterprise": "Enterprise Inquiry",
+        "billing": "Invoice & Billing",
+        "partnership": "Partnership",
+        "press": "Press & Media",
+        "privacy": "Privacy"
+      },
+      "submit": {
+        "button": "Send Message",
+        "sending": "Sending...",
+        "privacy": "By submitting, you agree to our",
+        "privacyPolicy": "Privacy Policy",
+        "success": "Message sent successfully! We'll get back to you within 24 hours.",
+        "error": "Error sending message. Please try again."
+      },
+      "success": {
+        "title": "Message sent!",
+        "subtitle": "Thank you for your message. We'll get back to you within 24 hours.",
+        "sendAnother": "Send another message"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Quick answers to the most important questions",
+      "questions": {
+        "supportSpeed": {
+          "question": "How quickly do I receive support?",
+          "answer": "Our support team responds to all inquiries within 24 hours. Critical technical issues are prioritized."
+        },
+        "phoneSupport": {
+          "question": "Do you offer phone support?",
+          "answer": "Yes, for enterprise customers we offer dedicated phone support. Contact our sales team for more information."
+        },
+        "demo": {
+          "question": "Is there a demo or consultation?",
+          "answer": "Absolutely! We offer personalized demos and consultations for teams and businesses. Schedule an appointment through our sales team."
+        },
+        "subscription": {
+          "question": "How can I manage my subscription?",
+          "answer": "In your account settings, you can adjust, pause, or cancel your subscription at any time. Our support team is happy to help with any questions."
+        }
+      }
+    }
+  },
+  "cookies": {
+    "title": "Cookie Policy – CastLumen",
+    "metaDescription": "Learn about how CastLumen uses cookies to improve your experience on our website.",
+    "lastUpdated": "October 2, 2025",
+    "hero": {
+      "badge": "Cookie Policy",
+      "title": "Cookie Policy",
+      "subtitle": "Learn how CastLumen uses cookies to improve your experience on our website.",
+      "lastUpdatedLabel": "Last updated:"
+    },
+    "whatAreCookies": {
+      "title": "🍪 What are Cookies?",
+      "description": "Cookies are small text files stored on your computer or mobile device when you visit our website. They help us provide you with a better experience and understand how you use our service."
+    },
+    "howWeUseCookies": {
+      "title": "How We Use Cookies",
+      "description": "We use cookies for the following purposes:",
+      "essential": {
+        "title": "🔧 Essential Cookies",
+        "description": "These cookies are necessary for the proper functioning of the website:",
+        "items": {
+          "authentication": "Authentication: Remember that you are logged in",
+          "security": "Security: Protection against Cross-Site Request Forgery",
+          "preferences": "Preferences: Store your language and theme settings"
+        }
+      },
+      "analytics": {
+        "title": "📊 Analytics Cookies",
+        "description": "We use analytics cookies to understand how visitors interact with our website:",
+        "items": {
+          "googleAnalytics": "Google Analytics: Track page views, user behavior and website performance",
+          "usageData": "Usage Data: Understand which features are most popular",
+          "performance": "Performance: Monitor and improve website speed"
+        }
+      },
+      "marketing": {
+        "title": "🎯 Marketing Cookies",
+        "description": "These cookies help us provide relevant advertising:",
+        "items": {
+          "conversionTracking": "Conversion Tracking: Measure the effectiveness of our marketing campaigns",
+          "retargeting": "Retargeting: Show relevant ads to visitors who have used our service",
+          "socialMedia": "Social Media: Integration of social media sharing and features"
+        }
+      }
+    },
+    "thirdPartyCookies": {
+      "title": "Third-Party Cookies",
+      "description": "We work with trusted third-party providers who may set cookies:",
+      "providers": {
+        "stripe": "Stripe: For secure payment processing",
+        "googleAnalytics": "Google Analytics: For website analytics",
+        "youtube": "YouTube: For embedded video content",
+        "socialMedia": "Social Media Platforms: For social media integration"
+      }
+    },
+    "cookieManagement": {
+      "title": "Cookie Management",
+      "description": "You can control cookies through your browser settings:",
+      "browserControls": {
+        "title": "Browser Controls",
+        "chrome": "Chrome: Settings → Privacy and security → Cookies and other site data",
+        "firefox": "Firefox: Settings → Privacy & Security → Cookies and Site Data",
+        "safari": "Safari: Preferences → Privacy → Manage Website Data",
+        "edge": "Edge: Settings → Cookies and site permissions"
+      }
+    },
+    "cookieConsent": {
+      "title": "Cookie Consent",
+      "description": "When you first visit our website, we ask for your consent to use non-essential cookies. You can:",
+      "options": {
+        "acceptAll": "✓ Accept all cookies",
+        "essentialOnly": "✓ Accept only essential cookies",
+        "customize": "⚙️ Customize your settings",
+        "changeAnytime": "🔄 Change settings anytime"
+      }
+    },
+    "contact": {
+      "title": "📞 Contact",
+      "description": "If you have questions about our Cookie Policy, please contact us:",
+      "sendEmail": "Send Email",
+      "phone": "01629334092"
+    },
+    "changes": {
+      "title": "⚠️ Changes to this Policy",
+      "description": "We may update this Cookie Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the last updated date."
+    }
+  },
+  "cookieConsent": {
+    "message": "We use essential cookies to run the site. No tracking cookies are set unless you accept.",
+    "buttons": {
+      "decline": "Decline",
+      "accept": "Accept"
+    }
+  },
+  "forgotPassword": {
+    "title": "Forgot Password – CastLumen",
+    "metaDescription": "Reset your CastLumen password",
+    "checkEmailTitle": "Check Your Email – CastLumen",
+    "form": {
+      "title": "Forgot your password?",
+      "subtitle": "No worries! Enter your email and we'll send you reset instructions.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "submitButton": "Send Reset Instructions",
+      "submitting": "Sending Reset Instructions...",
+      "backToLogin": "Remember your password?",
+      "signInHere": "Sign in here"
+    },
+    "success": {
+      "title": "Check your email",
+      "message": "If an account with",
+      "messageEnd": "exists, we've sent password reset instructions.",
+      "backToSignIn": "Back to Sign In",
+      "tryDifferentEmail": "Try Different Email"
+    },
+    "toast": {
+      "success": "Reset instructions sent to your email",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "login": {
+    "signIn": {
+      "title": "Sign In – CastLumen",
+      "metaDescription": "Sign in to your CastLumen account"
+    },
+    "register": {
+      "title": "Create Account – CastLumen",
+      "metaDescription": "Create a new CastLumen account"
+    },
+    "header": {
+      "welcomeBack": "Welcome back",
+      "createAccount": "Create your account",
+      "signInSubtitle": "Sign in to continue generating amazing content",
+      "registerSubtitle": "Join thousands of creators using AI-powered content generation"
+    },
+    "tabs": {
+      "signIn": "Sign In",
+      "signUp": "Sign Up"
+    },
+    "form": {
+      "fields": {
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "Enter your full name",
+        "email": "Email Address",
+        "emailPlaceholder": "Enter your email",
+        "password": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "createPasswordPlaceholder": "Create a strong password",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "passwordRequirement": "Must be at least 8 characters",
+        "rememberMe": "Remember me"
+      },
+      "buttons": {
+        "signIn": "Sign In",
+        "signingIn": "Signing In...",
+        "createAccount": "Create Account",
+        "creatingAccount": "Creating Account...",
+        "forgotPassword": "Forgot password?"
+      },
+      "legal": {
+        "agreement": "By creating an account, you agree to our",
+        "termsOfService": "Terms of Service",
+        "and": "and",
+        "privacyPolicy": "Privacy Policy"
+      }
+    },
+    "demo": {
+      "tryBefore": "Want to try before signing up?",
+      "tryFreeDemo": "Try Free Demo"
+    },
+    "support": {
+      "needHelp": "Need help?",
+      "contactSupport": "Contact Support"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords don't match",
+      "registrationFailed": "Registration failed"
+    }
+  },
+  "resetPassword": {
+    "title": "Reset Password – CastLumen",
+    "metaDescription": "Create a new password for your CastLumen account",
+    "successTitle": "Password Reset Successful – CastLumen",
+    "form": {
+      "title": "Reset your password",
+      "subtitle": "Enter your new password below",
+      "fields": {
+        "newPassword": "New Password",
+        "newPasswordPlaceholder": "Enter new password",
+        "confirmPassword": "Confirm New Password",
+        "confirmPasswordPlaceholder": "Confirm new password",
+        "passwordRequirement": "Must be at least 8 characters"
+      },
+      "buttons": {
+        "resetPassword": "Reset Password",
+        "resettingPassword": "Resetting Password..."
+      },
+      "footer": {
+        "rememberPassword": "Remember your password?",
+        "signInHere": "Sign in here"
+      }
+    },
+    "success": {
+      "title": "Password Reset Successful!",
+      "message": "Your password has been reset successfully. You can now sign in with your new password.",
+      "signInNow": "Sign In Now"
+    },
+    "invalidLink": {
+      "title": "Invalid Reset Link",
+      "message": "This password reset link is invalid or has expired.",
+      "requestNew": "Request a new reset link"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords don't match",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "resetFailed": "Something went wrong",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "toast": {
+      "success": "Password reset successfully!"
+    }
+  },
+  "settings": {
+    "title": "Settings – CastLumen",
+    "metaDescription": "Configure your CastLumen settings and integrations",
+    "signInRequired": {
+      "title": "Settings - Sign in required",
+      "heading": "Sign in required",
+      "message": "Please sign in to access your settings."
+    },
+    "header": {
+      "title": "Settings",
+      "subtitle": "Configure your integrations and preferences"
+    },
+    "loading": {
+      "settings": "Loading settings...",
+      "general": "Loading..."
+    },
+    "wordpress": {
+      "title": "WordPress Integration",
+      "subtitle": "Connect your WordPress site to publish content directly",
+      "fields": {
+        "siteUrl": "Site URL",
+        "siteUrlPlaceholder": "https://yoursite.com",
+        "username": "Username",
+        "usernamePlaceholder": "Your WordPress username",
+        "appPassword": "Application Password",
+        "appPasswordPlaceholder": "WordPress App Password",
+        "appPasswordHelp": "Generate this in WordPress → Users → Your Profile → Application Passwords"
+      },
+      "buttons": {
+        "save": "Save Credentials",
+        "saving": "Saving...",
+        "test": "Test",
+        "testing": "Testing..."
+      },
+      "note": {
+        "title": "📝 WordPress Publishing Note",
+        "free": "WordPress.com Free: Demo mode only (API limitations)",
+        "business": "WordPress.com Business ($25/mo): Full publishing",
+        "selfHosted": "Self-hosted WordPress: Full publishing with Application Passwords"
+      },
+      "toast": {
+        "saved": "WordPress credentials saved successfully!",
+        "connectionSuccess": "Connection successful! ✅",
+        "connectionFailed": "Connection failed:",
+        "testFailed": "Connection test failed",
+        "saveFailed": "Failed to save WordPress credentials",
+        "fillRequired": "Please fill in Site URL and Username first"
+      }
+    },
+    "rss": {
+      "title": "RSS Feed Management",
+      "subtitle": "Monitor podcast feeds for automatic processing",
+      "fields": {
+        "feedUrl": "RSS Feed URL",
+        "feedUrlPlaceholder": "https://feeds.example.com/podcast.xml"
+      },
+      "buttons": {
+        "add": "Add RSS Feed",
+        "adding": "Adding...",
+        "pullNow": "Pull Now",
+        "pulling": "Pulling...",
+        "pause": "Pause",
+        "activate": "Activate",
+        "remove": "Remove"
+      },
+      "feeds": {
+        "title": "Your RSS Feeds",
+        "empty": {
+          "noFeeds": "No RSS feeds configured yet.",
+          "getStarted": "Add your first feed to get started!"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "lastChecked": "Last checked:",
+        "untitled": "Untitled Feed"
+      },
+      "confirmRemove": "Remove RSS feed:",
+      "toast": {
+        "added": "RSS feed added successfully!",
+        "removed": "RSS feed removed successfully!",
+        "pullSuccess": "✅ Pulled {itemCount} episodes, created {jobsCreated} AI jobs for \"{feedTitle}\"",
+        "addFailed": "Failed to add RSS feed",
+        "removeFailed": "Failed to remove RSS feed",
+        "updateFailed": "Failed to update RSS feed",
+        "pullFailed": "Failed to pull RSS feed"
+      }
+    },
+    "email": {
+      "title": "📧 Email Notifications",
+      "preferences": {
+        "rssNewContent": "Email me when RSS feeds generate new content",
+        "manualJobs": "Email me when manual uploads complete",
+        "weeklyDigest": "Send weekly content digest"
+      },
+      "buttons": {
+        "save": "Save Email Preferences"
+      },
+      "toast": {
+        "saved": "Email preferences saved!",
+        "saveFailed": "Failed to save email preferences"
+      }
+    },
+    "benefits": {
+      "title": "Integration Benefits",
+      "wordpress": {
+        "title": "WordPress Integration",
+        "description": "Automatically publish your generated show notes, newsletters, and content directly to your WordPress site with one click."
+      },
+      "rss": {
+        "title": "RSS Monitoring",
+        "description": "Monitor your podcast RSS feeds and automatically process new episodes as they're published to your feed."
+      }
+    }
+  },
+  "templates": {
+    "title": "Templates – CastLumen",
+    "metaDescription": "Create and manage custom AI templates for personalized podcast content generation",
+    "signInRequired": {
+      "title": "Templates - Sign in required",
+      "heading": "Sign in required",
+      "message": "Please sign in to manage your templates."
+    },
+    "header": {
+      "title": "Templates",
+      "subtitle": "Create custom templates to personalize your AI-generated content",
+      "backToGenerate": "Back to Generate"
+    },
+    "loading": {
+      "general": "Loading...",
+      "templates": "Loading templates..."
+    },
+    "form": {
+      "create": {
+        "title": "Create New Template",
+        "submitButton": "Create Template"
+      },
+      "edit": {
+        "title": "Edit Template",
+        "submitButton": "Update Template"
+      },
+      "fields": {
+        "templateName": {
+          "label": "Template Name",
+          "placeholder": "e.g., Formal Business Summary"
+        },
+        "contentType": {
+          "label": "Content Type",
+          "options": {
+            "summary": "Summary",
+            "showNotes": "Show Notes",
+            "socialSnippets": "Social Snippets",
+            "seo": "SEO",
+            "newsletter": "Newsletter"
+          }
+        },
+        "systemPrompt": {
+          "label": "System Prompt",
+          "placeholder": "You are a professional content writer who...",
+          "help": "Define the AI's role and behavior"
+        },
+        "userInstructions": {
+          "label": "User Instructions",
+          "placeholder": "Create a professional summary with the following format...",
+          "help": "Specific instructions for the content generation"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel"
+      }
+    },
+    "list": {
+      "title": "Your Templates",
+      "empty": {
+        "noTemplates": "No templates yet.",
+        "getStarted": "Create your first template to get started!"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      }
+    },
+    "confirmDelete": "Are you sure you want to delete this template?",
+    "toast": {
+      "saveSuccess": "Template saved successfully!",
+      "saveFailed": "Failed to save template",
+      "deleteSuccess": "Template deleted successfully!",
+      "deleteFailed": "Failed to delete template",
+      "fetchFailed": "Failed to load templates"
+    }
+  },
+  "teams": {
+    "title": "Teams – CastLumen",
+    "metaDescription": "Collaborate with your team on podcast content creation",
+    "loading": {
+      "general": "Loading...",
+      "teams": "Loading teams..."
+    },
+    "unauthorized": {
+      "banner": {
+        "title": "Unauthorized Access:",
+        "message": "You need an Agency plan subscription to access teams."
+      },
+      "content": {
+        "title": "Agency Plan Required",
+        "message": "Teams functionality is only available for Agency plan subscribers.",
+        "upgradeButton": "Upgrade to Agency",
+        "homeButton": "Go Home"
+      }
+    },
+    "header": {
+      "title": "Team Collaboration",
+      "subtitle": "Work together to create amazing podcast content"
+    },
+    "debug": {
+      "plan": "Plan:",
+      "canCreate": "Can Create:",
+      "access": "Access:",
+      "owned": "Owned:",
+      "member": "Member:",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "error": {
+      "loadFailed": "Failed to load teams. Please try again.",
+      "retry": "Retry"
+    },
+    "owned": {
+      "title": "Your Teams",
+      "subtitle": "Teams that you own and manage",
+      "ownerBadge": "Owner",
+      "memberCount": "member",
+      "memberCountPlural": "members",
+      "manageButton": "Manage Team"
+    },
+    "member": {
+      "title": "Teams You're In", 
+      "subtitle": "Teams where you're a member",
+      "memberBadge": "Member",
+      "owner": "Owner",
+      "viewButton": "View Team",
+      "unknownOwner": "Unknown"
+    },
+    "empty": {
+      "title": "No teams yet",
+      "messageCanCreate": "Create your first team to start collaborating",
+      "messageCannotCreate": "You haven't been invited to any teams yet",
+      "createButton": "Create Your First Team"
+    },
+    "createModal": {
+      "title": "Create New Team",
+      "fields": {
+        "teamName": {
+          "label": "Team Name",
+          "placeholder": "Enter team name"
+        },
+        "description": {
+          "label": "Description (Optional)",
+          "placeholder": "Describe your team's purpose"
+        }
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create Team",
+        "creating": "Creating..."
+      }
+    },
+    "toast": {
+      "createSuccess": "Team created successfully!",
+      "createFailed": "Failed to create team",
+      "error": "Something went wrong"
+    },
+    "teamDetail": {
+      "title": "{{teamName}} – CastLumen Teams",
+      "metaDescription": "Collaborate with {{teamName}} team on podcast content",
+      "loading": {
+        "team": "Loading Team – CastLumen",
+        "general": "Loading...",
+        "teamData": "Loading team..."
+      },
+      "unauthorized": {
+        "title": "Team Access Restricted – CastLumen",
+        "banner": {
+          "title": "Unauthorized Access:",
+          "message": "You need an Agency plan subscription to access teams."
+        },
+        "content": {
+          "title": "Agency Plan Required",
+          "message": "Teams functionality is only available for Agency plan users.",
+          "upgradeButton": "Upgrade to Agency",
+          "backToTeams": "Back to Teams"
+        }
+      },
+      "notFound": {
+        "title": "Team Not Found – CastLumen",
+        "heading": "Team Not Found",
+        "message": "This team doesn't exist or you don't have access to it.",
+        "backButton": "Back to Teams"
+      },
+      "header": {
+        "backToTeams": "← Back to Teams",
+        "ownerBadge": "Owner",
+        "memberBadge": "Member"
+      },
+      "debug": {
+        "yourRole": "Your Role:",
+        "teamId": "Team ID:",
+        "owner": "Owner",
+        "member": "Member",
+        "noAccess": "No Access"
+      },
+      "members": {
+        "title": "Team Members",
+        "ownerBadge": "Owner",
+        "memberBadge": "Member",
+        "roleLabel": "Member",
+        "removeButton": "Remove member",
+        "noMembers": "No team members yet.",
+        "inviteMessage": "Invite colleagues to join your team!",
+        "unknown": "Unknown"
+      },
+      "invite": {
+        "title": "Invite Members",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "colleague@example.com",
+        "emailHelp": "User must already have a CastLumen account",
+        "sendButton": "Send Invitation",
+        "sending": "Sending..."
+      },
+      "teamInfo": {
+        "title": "Team Information",
+        "yourRole": "Your Role",
+        "teamOwner": "Team Owner",
+        "memberRole": "Team Member",
+        "permissionNote": "Only team owners can invite new members and manage the team."
+      },
+      "toast": {
+        "onlyOwnersCanInvite": "Only team owners can invite members",
+        "inviteSuccess": "Invitation sent successfully!",
+        "inviteFailed": "Failed to send invitation",
+        "onlyOwnersCanRemove": "Only team owners can remove members",
+        "removeMemberSuccess": "Member removed successfully",
+        "removeMemberFailed": "Failed to remove member",
+        "error": "Something went wrong"
+      },
+      "confirmRemove": "Are you sure you want to remove this member?"
+    }
+  },
+  "jobResults": {
+    "title": "Content Results – CastLumen",
+    "guestResearchTitle": "Guest Research Results – CastLumen",
+    "metaDescription": "View your generated podcast content and research results",
+    "authRequired": {
+      "title": "Authentication Required",
+      "message": "Please sign in to view your generated content.",
+      "signInButton": "Sign In"
+    },
+    "loading": {
+      "title": "Loading Your Content",
+      "message": "Retrieving your generated podcast content..."
+    },
+    "notFound": {
+      "title": "Content Not Found",
+      "message": "This content may have expired or does not exist.",
+      "createButton": "Create New Content"
+    },
+    "processing": {
+      "title": "Content Processing",
+      "stage": "Stage:",
+      "emailNotice": "We'll send you an email when it's ready!",
+      "refreshButton": "Refresh",
+      "backButton": "Back to Generate"
+    },
+    "failed": {
+      "title": "Processing Failed",
+      "message": "Something went wrong during processing.",
+      "tryAgainButton": "Try Again"
+    },
+    "noContent": {
+      "title": "No Content Available",
+      "message": "The content may not have been generated yet.",
+      "createButton": "Create New Content"
+    },
+    "header": {
+      "generatedContent": "Generated Content",
+      "guestResearchResults": "Guest Research Results",
+      "completed": "Completed",
+      "researchGenerated": "Research Report Generated",
+      "backToGenerate": "Back to Generate",
+      "copyAll": "Copy All"
+    },
+    "sections": {
+      "summary": {
+        "title": "Summary",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "showNotes": {
+        "title": "Show Notes",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "newsletter": {
+        "title": "Newsletter Content",
+        "subjectLabel": "Subject Line:",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "guestResearch": {
+        "title": "Guest Research Report",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "interviewQuestions": {
+        "title": "Interview Questions",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "conversationStarters": {
+        "title": "Conversation Starters",
+        "copy": "Copy",
+        "copied": "Copied!"
+      },
+      "timestamps": {
+        "title": "Timestamps"
+      },
+      "socialMedia": {
+        "title": "Social Media"
+      },
+      "seoContent": {
+        "title": "SEO Content",
+        "titleLabel": "Title",
+        "descriptionLabel": "Description"
+      }
+    }
+  },
+  "jobsStatus": {
+    "error": {
+      "title": "⚠️ Jobs Status Unavailable",
+      "message": "Job tracking is being set up",
+      "retryButton": "Retry",
+      "loading": "Loading..."
+    },
+    "loading": "Loading jobs...",
+    "processing": {
+      "title": "🔄 Processing Jobs ({count})",
+      "statusLabels": {
+        "pending": "pending",
+        "processing": "processing",
+        "completed": "completed",
+        "failed": "failed"
+      }
+    }
+  },
+  "footer": {
+    "company": {
+      "description": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes.",
+      "socialLabels": {
+        "twitter": "Follow us on Twitter",
+        "linkedin": "Follow us on LinkedIn", 
+        "youtube": "Subscribe to our YouTube channel",
+        "github": "View our GitHub"
+      }
+    },
+    "navigation": {
+      "product": {
+        "title": "Product",
+        "features": "Features",
+        "pricing": "Pricing",
+        "tryDemo": "Try Demo",
+        "freeBadge": "FREE",
+        "templates": "Templates"
+      },
+      "company": {
+        "title": "Company",
+        "aboutUs": "About Us",
+        "blog": "Blog",
+        "contact": "Contact"
+      }
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Get the latest podcast marketing tips and product updates delivered to your inbox.",
+      "emailPlaceholder": "Enter your email",
+      "subscribeButton": "Subscribe"
+    },
+    "bottom": {
+      "copyright": "© {{year}} CastLumen. All rights reserved.",
+      "legal": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "impressum": "Impressum",
+        "cookies": "Cookie Policy"
+      },
+      "tagline": {
+        "madeWith": "Made with",
+        "forCreators": "for podcast creators"
+      }
+    }
+  },
+  "templatesDrawer": {
+    "trigger": {
+      "label": "Templates"
+    },
+    "header": {
+      "title": "Custom Templates",
+      "subtitle": "Select templates to customize your content generation",
+      "manageButton": "Manage Templates",
+      "clearButton": "Clear all"
+    },
+    "loading": "Loading templates...",
+    "empty": {
+      "title": "No templates yet",
+      "description": "Create custom templates to personalize your AI-generated content",
+      "createButton": "Create your first template"
+    },
+    "footer": {
+      "selectedCount": "{{count}} template selected",
+      "selectedCountPlural": "{{count}} templates selected", 
+      "noSelection": "No templates selected",
+      "applyButton": "Apply Selection"
+    }
+  },
+  "planBadge": {
+    "currentPlan": "Current plan",
+    "plans": {
+      "AGENCY": "Agency",
+      "PRO": "Pro", 
+      "STARTER": "Starter",
+      "FREE": "Free"
     }
   }
 }

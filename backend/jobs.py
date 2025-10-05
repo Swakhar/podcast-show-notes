@@ -13,6 +13,9 @@ from core.business import (
     generate_social_snippets,
     generate_seo,
     generate_newsletter,
+    generate_guest_research,
+    generate_interview_questions,
+    generate_conversation_starters
 )
 
 # ✅ Import email utilities
@@ -470,6 +473,67 @@ def process_text_job(job_id: str, transcript: str, feature_set: Set[str], langua
     except Exception as e:
         error_msg = f"Text processing failed: {str(e)}"
         print(f"❌ {error_msg}")
+        mark_job_failed(job_id, error_msg, user_email)
+
+def process_guest_research_job(job_id: str, guest_name: str, guest_info: str, additional_context: str, show_focus: str, feature_set: Set[str], language: str = "en", user_email: str = None) -> None:
+    """Process guest research job"""
+    try:
+        print(f"🔍 Starting guest research for job {job_id}: {guest_name}")
+        
+        # Store user info in job for notifications
+        if user_email:
+            JOBS[job_id]["user_email"] = user_email
+            JOBS[job_id]["source_type"] = "guest research"
+            save_job(job_id)
+        
+        res = _ensure_result(job_id)
+        res["guest_name"] = guest_name
+        res["guest_info"] = guest_info
+        
+        # Get custom templates
+        presets = _pull_templates(job_id)
+        print(f"📋 Using {len(presets)} custom templates for guest research {job_id}")
+        
+        JOBS[job_id]["status"] = "processing"
+        save_job(job_id)
+
+        # Generate guest research components
+        if "guest_research" in feature_set:
+            set_stage(job_id, "analyzing guest background")
+            preset = presets.get("guest_research")
+            full_context = f"Guest: {guest_name}\n\nBackground:\n{guest_info}"
+            if additional_context:
+                full_context += f"\n\nAdditional Context:\n{additional_context}"
+            res["guest_research"] = generate_guest_research(full_context, additional_context, language=language, preset=preset)
+            save_job(job_id)
+
+        if "interview_questions" in feature_set:
+            set_stage(job_id, "generating interview questions")
+            preset = presets.get("interview_questions")
+            background_text = f"{guest_info}\n{additional_context}".strip()
+            res["interview_questions"] = generate_interview_questions(background_text, show_focus, language=language, preset=preset)
+            save_job(job_id)
+
+        if "conversation_starters" in feature_set:
+            set_stage(job_id, "creating conversation starters")
+            preset = presets.get("conversation_starters")
+            full_info = f"Guest: {guest_name}\n{guest_info}\nShow Focus: {show_focus}".strip()
+            res["conversation_starters"] = generate_conversation_starters(full_info, language=language, preset=preset)
+            save_job(job_id)
+
+        # Mark as complete
+        set_stage(job_id, "finished")
+        JOBS[job_id]["status"] = "complete"
+        save_job(job_id)
+        
+        # Send notifications
+        mark_job_completed(job_id)
+        
+    except Exception as e:
+        error_msg = f"Guest research failed: {str(e)}"
+        print(f"❌ {error_msg}")
+        JOBS[job_id]["status"] = "failed"
+        save_job(job_id)
         mark_job_failed(job_id, error_msg, user_email)
 
 # ✅ Initialize on startup
