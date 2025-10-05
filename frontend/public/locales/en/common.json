@@ -747,6 +747,13 @@
       "description": "We may update this Cookie Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the last updated date."
     }
   },
+  "cookieConsent": {
+    "message": "We use essential cookies to run the site. No tracking cookies are set unless you accept.",
+    "buttons": {
+      "decline": "Decline",
+      "accept": "Accept"
+    }
+  },
   "forgotPassword": {
     "title": "Forgot Password – CastLumen",
     "metaDescription": "Reset your CastLumen password",
@@ -1311,6 +1318,102 @@
         "titleLabel": "Title",
         "descriptionLabel": "Description"
       }
+    }
+  },
+  "jobsStatus": {
+    "error": {
+      "title": "⚠️ Jobs Status Unavailable",
+      "message": "Job tracking is being set up",
+      "retryButton": "Retry",
+      "loading": "Loading..."
+    },
+    "loading": "Loading jobs...",
+    "processing": {
+      "title": "🔄 Processing Jobs ({count})",
+      "statusLabels": {
+        "pending": "pending",
+        "processing": "processing",
+        "completed": "completed",
+        "failed": "failed"
+      }
+    }
+  },
+  "footer": {
+    "company": {
+      "description": "Transform your podcast workflow with AI. Generate professional show notes, timestamps, SEO content, and social snippets in minutes.",
+      "socialLabels": {
+        "twitter": "Follow us on Twitter",
+        "linkedin": "Follow us on LinkedIn", 
+        "youtube": "Subscribe to our YouTube channel",
+        "github": "View our GitHub"
+      }
+    },
+    "navigation": {
+      "product": {
+        "title": "Product",
+        "features": "Features",
+        "pricing": "Pricing",
+        "tryDemo": "Try Demo",
+        "freeBadge": "FREE",
+        "templates": "Templates"
+      },
+      "company": {
+        "title": "Company",
+        "aboutUs": "About Us",
+        "blog": "Blog",
+        "contact": "Contact"
+      }
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Get the latest podcast marketing tips and product updates delivered to your inbox.",
+      "emailPlaceholder": "Enter your email",
+      "subscribeButton": "Subscribe"
+    },
+    "bottom": {
+      "copyright": "© {year} CastLumen. All rights reserved.",
+      "legal": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
+        "impressum": "Impressum",
+        "cookies": "Cookie Policy"
+      },
+      "tagline": {
+        "madeWith": "Made with",
+        "forCreators": "for podcast creators"
+      }
+    }
+  },
+  "templatesDrawer": {
+    "trigger": {
+      "label": "Templates"
+    },
+    "header": {
+      "title": "Custom Templates",
+      "subtitle": "Select templates to customize your content generation",
+      "manageButton": "Manage Templates",
+      "clearButton": "Clear all"
+    },
+    "loading": "Loading templates...",
+    "empty": {
+      "title": "No templates yet",
+      "description": "Create custom templates to personalize your AI-generated content",
+      "createButton": "Create your first template"
+    },
+    "footer": {
+      "selectedCount": "{count} template selected",
+      "selectedCountPlural": "{count} templates selected", 
+      "noSelection": "No templates selected",
+      "applyButton": "Apply Selection"
+    }
+  },
+  "planBadge": {
+    "currentPlan": "Current plan",
+    "plans": {
+      "AGENCY": "Agency",
+      "PRO": "Pro", 
+      "STARTER": "Starter",
+      "FREE": "Free"
     }
   }
 }

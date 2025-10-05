@@ -748,6 +748,13 @@
       "description": "Wir können diese Cookie-Richtlinie von Zeit zu Zeit aktualisieren. Wir werden Sie über wesentliche Änderungen informieren, indem wir die neue Richtlinie auf dieser Seite veröffentlichen und das Datum der letzten Aktualisierung ändern."
     }
   },
+  "cookieConsent": {
+    "message": "Wir verwenden wesentliche Cookies, um die Website zu betreiben. Tracking-Cookies werden nur gesetzt, wenn Sie zustimmen.",
+    "buttons": {
+      "decline": "Ablehnen",
+      "accept": "Akzeptieren"
+    }
+  },
   "forgotPassword": {
     "title": "Passwort vergessen – CastLumen",
     "metaDescription": "Setzen Sie Ihr CastLumen-Passwort zurück",
@@ -1312,6 +1319,102 @@
         "titleLabel": "Titel",
         "descriptionLabel": "Beschreibung"
       }
+    }
+  },
+  "jobsStatus": {
+    "error": {
+      "title": "⚠️ Job-Status nicht verfügbar",
+      "message": "Job-Tracking wird eingerichtet",
+      "retryButton": "Erneut versuchen",
+      "loading": "Wird geladen..."
+    },
+    "loading": "Jobs werden geladen...",
+    "processing": {
+      "title": "🔄 Jobs werden verarbeitet ({count})",
+      "statusLabels": {
+        "pending": "wartend",
+        "processing": "verarbeitung",
+        "completed": "abgeschlossen",
+        "failed": "fehlgeschlagen"
+      }
+    }
+  },
+  "footer": {
+    "company": {
+      "description": "Transformieren Sie Ihren Podcast-Workflow mit KI. Erstellen Sie professionelle Show Notes, Zeitstempel, SEO-Inhalte und Social Snippets in Minuten.",
+      "socialLabels": {
+        "twitter": "Folgen Sie uns auf Twitter",
+        "linkedin": "Folgen Sie uns auf LinkedIn",
+        "youtube": "Abonnieren Sie unseren YouTube-Kanal",
+        "github": "Besuchen Sie unser GitHub"
+      }
+    },
+    "navigation": {
+      "product": {
+        "title": "Produkt",
+        "features": "Funktionen",
+        "pricing": "Preise",
+        "tryDemo": "Demo testen",
+        "freeBadge": "KOSTENLOS",
+        "templates": "Vorlagen"
+      },
+      "company": {
+        "title": "Unternehmen",
+        "aboutUs": "Über uns",
+        "blog": "Blog",
+        "contact": "Kontakt"
+      }
+    },
+    "newsletter": {
+      "title": "Bleiben Sie auf dem Laufenden",
+      "description": "Erhalten Sie die neuesten Podcast-Marketing-Tipps und Produkt-Updates in Ihrem Posteingang.",
+      "emailPlaceholder": "E-Mail-Adresse eingeben",
+      "subscribeButton": "Abonnieren"
+    },
+    "bottom": {
+      "copyright": "© {year} CastLumen. Alle Rechte vorbehalten.",
+      "legal": {
+        "privacy": "Datenschutz",
+        "terms": "Nutzungsbedingungen",
+        "impressum": "Impressum",
+        "cookies": "Cookie-Richtlinie"
+      },
+      "tagline": {
+        "madeWith": "Gemacht mit",
+        "forCreators": "für Podcast-Ersteller"
+      }
+    }
+  },
+  "templatesDrawer": {
+    "trigger": {
+      "label": "Vorlagen"
+    },
+    "header": {
+      "title": "Benutzerdefinierte Vorlagen",
+      "subtitle": "Wählen Sie Vorlagen aus, um Ihre Inhaltsgenerierung anzupassen",
+      "manageButton": "Vorlagen verwalten",
+      "clearButton": "Alle löschen"
+    },
+    "loading": "Vorlagen werden geladen...",
+    "empty": {
+      "title": "Noch keine Vorlagen",
+      "description": "Erstellen Sie benutzerdefinierte Vorlagen, um Ihre KI-generierten Inhalte zu personalisieren",
+      "createButton": "Ihre erste Vorlage erstellen"
+    },
+    "footer": {
+      "selectedCount": "{count} Vorlage ausgewählt",
+      "selectedCountPlural": "{count} Vorlagen ausgewählt",
+      "noSelection": "Keine Vorlagen ausgewählt",
+      "applyButton": "Auswahl anwenden"
+    }
+  },
+  "planBadge": {
+    "currentPlan": "Aktueller Plan",
+    "plans": {
+      "AGENCY": "Agency",
+      "PRO": "Pro",
+      "STARTER": "Starter",
+      "FREE": "Kostenlos"
     }
   }
 }

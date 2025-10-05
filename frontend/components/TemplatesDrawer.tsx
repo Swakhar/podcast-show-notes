@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslation } from 'next-i18next';
 
 interface Template {
   id: string;
@@ -16,6 +17,7 @@ export default function TemplatesDrawer({
   onSelect: (ids: string[]) => void;
   selectedIds?: string[];
 }) {
+  const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selected, setSelected] = useState<string[]>(selectedIds);
@@ -38,6 +40,7 @@ export default function TemplatesDrawer({
       const j = await r.json();
       setTemplates(j.list || []);
     } catch (e) {
+      console.error('Failed to fetch templates:', e);
     } finally {
       setLoading(false);
     }
@@ -69,7 +72,7 @@ export default function TemplatesDrawer({
         <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <span>Templates</span>
+        <span>{t('templatesDrawer.trigger.label')}</span>
         {selectedCount > 0 && (
           <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
             {selectedCount}
@@ -85,9 +88,9 @@ export default function TemplatesDrawer({
             <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Custom Templates</h2>
+                  <h2 className="text-xl font-bold text-gray-900">{t('templatesDrawer.header.title')}</h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    Select templates to customize your content generation
+                    {t('templatesDrawer.header.subtitle')}
                   </p>
                 </div>
                 <button
@@ -110,7 +113,7 @@ export default function TemplatesDrawer({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
-                  Manage Templates
+                  {t('templatesDrawer.header.manageButton')}
                 </Link>
                 {selected.length > 0 && (
                   <button
@@ -120,7 +123,7 @@ export default function TemplatesDrawer({
                     }}
                     className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-white rounded-md transition-colors"
                   >
-                    Clear all
+                    {t('templatesDrawer.header.clearButton')}
                   </button>
                 )}
               </div>
@@ -131,15 +134,15 @@ export default function TemplatesDrawer({
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading templates...</span>
+                  <span className="ml-3 text-gray-600">{t('templatesDrawer.loading')}</span>
                 </div>
               ) : templates.length === 0 ? (
                 <div className="text-center py-12">
                   <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <p className="text-gray-500 font-medium mb-2">No templates yet</p>
-                  <p className="text-sm text-gray-400 mb-4">Create custom templates to personalize your AI-generated content</p>
+                  <p className="text-gray-500 font-medium mb-2">{t('templatesDrawer.empty.title')}</p>
+                  <p className="text-sm text-gray-400 mb-4">{t('templatesDrawer.empty.description')}</p>
                   <Link 
                     href="/templates" 
                     className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -148,7 +151,7 @@ export default function TemplatesDrawer({
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Create your first template
+                    {t('templatesDrawer.empty.createButton')}
                   </Link>
                 </div>
               ) : (
@@ -209,16 +212,21 @@ export default function TemplatesDrawer({
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   {selectedCount > 0 ? (
-                    <span className="font-medium">{selectedCount} template{selectedCount !== 1 ? 's' : ''} selected</span>
+                    <span className="font-medium">
+                      {selectedCount === 1 
+                        ? t('templatesDrawer.footer.selectedCount', { count: selectedCount })
+                        : t('templatesDrawer.footer.selectedCountPlural', { count: selectedCount })
+                      }
+                    </span>
                   ) : (
-                    <span>No templates selected</span>
+                    <span>{t('templatesDrawer.footer.noSelection')}</span>
                   )}
                 </div>
                 <button
                   onClick={() => setOpen(false)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  Apply Selection
+                  {t('templatesDrawer.footer.applyButton')}
                 </button>
               </div>
             </div>
