@@ -1157,8 +1157,8 @@
       "error": "Something went wrong"
     },
     "teamDetail": {
-      "title": "{teamName} – CastLumen Teams",
-      "metaDescription": "Collaborate with {teamName} team on podcast content",
+      "title": "{{teamName}} – CastLumen Teams",
+      "metaDescription": "Collaborate with {{teamName}} team on podcast content",
       "loading": {
         "team": "Loading Team – CastLumen",
         "general": "Loading...",
@@ -1371,7 +1371,7 @@
       "subscribeButton": "Subscribe"
     },
     "bottom": {
-      "copyright": "© {year} CastLumen. All rights reserved.",
+      "copyright": "© {{year}} CastLumen. All rights reserved.",
       "legal": {
         "privacy": "Privacy Policy",
         "terms": "Terms of Service",
@@ -1401,8 +1401,8 @@
       "createButton": "Create your first template"
     },
     "footer": {
-      "selectedCount": "{count} template selected",
-      "selectedCountPlural": "{count} templates selected", 
+      "selectedCount": "{{count}} template selected",
+      "selectedCountPlural": "{{count}} templates selected", 
       "noSelection": "No templates selected",
       "applyButton": "Apply Selection"
     }

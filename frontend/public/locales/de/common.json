@@ -1158,8 +1158,8 @@
       "error": "Etwas ist schiefgelaufen"
     },
     "teamDetail": {
-      "title": "{teamName} – CastLumen Teams",
-      "metaDescription": "Arbeiten Sie mit dem {teamName}-Team an Podcast-Inhalten zusammen",
+      "title": "{{teamName}} – CastLumen Teams",
+      "metaDescription": "Arbeiten Sie mit dem {{teamName}}-Team an Podcast-Inhalten zusammen",
       "loading": {
         "team": "Team wird geladen – CastLumen",
         "general": "Wird geladen...",
@@ -1372,7 +1372,7 @@
       "subscribeButton": "Abonnieren"
     },
     "bottom": {
-      "copyright": "© {year} CastLumen. Alle Rechte vorbehalten.",
+      "copyright": "© {{year}} CastLumen. Alle Rechte vorbehalten.",
       "legal": {
         "privacy": "Datenschutz",
         "terms": "Nutzungsbedingungen",
@@ -1402,8 +1402,8 @@
       "createButton": "Ihre erste Vorlage erstellen"
     },
     "footer": {
-      "selectedCount": "{count} Vorlage ausgewählt",
-      "selectedCountPlural": "{count} Vorlagen ausgewählt",
+      "selectedCount": "{{count}} Vorlage ausgewählt",
+      "selectedCountPlural": "{{count}} Vorlagen ausgewählt",
       "noSelection": "Keine Vorlagen ausgewählt",
       "applyButton": "Auswahl anwenden"
     }
