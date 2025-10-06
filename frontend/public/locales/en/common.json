@@ -240,7 +240,8 @@
     "confirm": "Confirm",
     "close": "Close",
     "timeSaved": "95% Time Saved!",
-    "aiPowered": "AI Powered"
+    "aiPowered": "AI Powered",
+    "locale": "en-US"
   },
   "generate": {
     "title": "AI Content Generator – Professional Podcast Production",
@@ -1414,6 +1415,20 @@
       "PRO": "Pro", 
       "STARTER": "Starter",
       "FREE": "Free"
+    }
+  },
+  "blog": {
+    "postNotFound": {
+      "title": "Post Not Found",
+      "description": "The blog post you're looking for could not be found",
+      "heading": "Post Not Found",
+      "backToBlog": "Back to Blog"
+    },
+    "post": {
+      "backToBlog": "Back to Blog",
+      "byAuthor": "By {{author}}",
+      "viewCount": "{{count}} views",
+      "viewCountPlural": "{{count}} views"
     }
   }
 }

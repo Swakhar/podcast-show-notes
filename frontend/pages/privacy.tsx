@@ -2,8 +2,12 @@ import Head from "next/head";
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 
 export default function Privacy() {
+  const { t } = useTranslation('common');
   const lastUpdated = "2. Oktober 2025";
 
   return (
@@ -250,3 +254,11 @@ export default function Privacy() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

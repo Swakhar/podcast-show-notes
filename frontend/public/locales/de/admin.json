@@ -1,0 +1,58 @@
+{
+  "blog": {
+    "title": "Blogbeiträge",
+    "newPost": "Neuer Beitrag",
+    "editPost": "Beitrag bearbeiten",
+    "saveDraft": "Als Entwurf speichern",
+    "publish": "Veröffentlichen",
+    "confirmDelete": "Sind Sie sicher, dass Sie diesen Beitrag löschen möchten?",
+    "table": {
+      "title": "Titel",
+      "status": "Status",
+      "date": "Datum",
+      "views": "Aufrufe",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "published": "Veröffentlicht",
+      "archived": "Archiviert"
+    },
+    "tabs": {
+      "content": "Inhalt",
+      "seo": "SEO"
+    },
+    "fields": {
+      "title": "Titel",
+      "content": "Inhalt",
+      "excerpt": "Auszug"
+    },
+    "placeholders": {
+      "title": "Titel des Beitrags eingeben...",
+      "excerpt": "Kurze Zusammenfassung des Beitrags..."
+    },
+    "hints": {
+      "excerpt": "Wird bei leerem Feld automatisch aus dem Inhalt generiert",
+      "keywords": "Schlüsselwörter durch Kommas trennen"
+    },
+    "seo": {
+      "metaTitle": "Meta-Titel",
+      "metaDescription": "Meta-Beschreibung",
+      "keywords": "Schlüsselwörter"
+    },
+    "errors": {
+      "saveFailed": "Speichern des Beitrags fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "updateFailed": "Aktualisieren des Beitrags fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "fetchFailed": "Laden des Beitrags fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "notFound": "Beitrag nicht gefunden."
+    }
+  },
+  "common": {
+    "loading": "Wird geladen...",
+    "saving": "Wird gespeichert...",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "save": "Speichern",
+    "cancel": "Abbrechen"
+  }
+}

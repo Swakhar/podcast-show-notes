@@ -1,0 +1,58 @@
+{
+  "blog": {
+    "title": "Blog Posts",
+    "newPost": "New Post",
+    "editPost": "Edit Post",
+    "saveDraft": "Save Draft",
+    "publish": "Publish",
+    "confirmDelete": "Are you sure you want to delete this post?",
+    "table": {
+      "title": "Title",
+      "status": "Status",
+      "date": "Date",
+      "views": "Views",
+      "actions": "Actions"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "tabs": {
+      "content": "Content",
+      "seo": "SEO"
+    },
+    "fields": {
+      "title": "Title",
+      "content": "Content",
+      "excerpt": "Excerpt"
+    },
+    "placeholders": {
+      "title": "Enter post title...",
+      "excerpt": "Brief summary of the post..."
+    },
+    "hints": {
+      "excerpt": "If left empty, will be auto-generated from content",
+      "keywords": "Separate keywords with commas"
+    },
+    "seo": {
+      "metaTitle": "Meta Title",
+      "metaDescription": "Meta Description",
+      "keywords": "Keywords"
+    },
+    "errors": {
+      "saveFailed": "Failed to save post. Please try again.",
+      "updateFailed": "Failed to update post. Please try again.",
+      "fetchFailed": "Failed to load post. Please try again.",
+      "notFound": "Post not found."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

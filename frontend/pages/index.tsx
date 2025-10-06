@@ -682,7 +682,7 @@ export default function Landing() {
         </section>
 
         {/* NEWSLETTER SIGNUP */}
-        <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <section id="newsletter" className="py-20 bg-gradient-to-br from-blue-600 to-purple-700 text-white">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <div data-reveal>
               <h2 className="text-4xl font-black mb-6">{t('newsletter.title')}</h2>
@@ -704,7 +704,7 @@ export default function Landing() {
                   disabled={newsletterLoading}
                   className="px-6 py-3 bg-[#9CEE69] text-gray-900 font-semibold rounded-xl hover:bg-green-400 transition-colors disabled:opacity-50"
                 >
-                  {newsletterLoading ? "..." : t('newsletter.cta')}
+                  {newsletterLoading ? "..." : t('newsletter.button')}
                 </button>
               </form>
               
@@ -719,10 +719,10 @@ export default function Landing() {
         <section className="py-20 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h2 className="text-4xl lg:text-5xl font-black mb-6">
-              {t('cta.title')}
+              {t('finalCta.title')}
             </h2>
             <p className="text-xl lg:text-2xl text-blue-100 mb-8 leading-relaxed">
-              {t('cta.subtitle')}
+              {t('finalCta.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
@@ -730,13 +730,13 @@ export default function Landing() {
                 href="/generate" 
                 className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200"
               >
-                {t('cta.primary')}
+                {t('finalCta.cta')}
               </Link>
               <Link 
                 href="/#pricing" 
                 className="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-xl hover:border-white/50 transition-colors"
               >
-                {t('cta.secondary')}
+                {t('finalCta.viewPricing')}
               </Link>
             </div>
 
@@ -745,19 +745,19 @@ export default function Landing() {
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                {t('cta.features.freeStart')}
+                {t('finalCta.features.freeStart')}
               </div>
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                {t('cta.features.noCard')}
+                {t('finalCta.features.noCard')}
               </div>
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                {t('cta.features.quickSetup')}
+                {t('finalCta.features.quickSetup')}
               </div>
             </div>
           </div>
