@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-prisma.js && prisma generate && next build",
+    "build": "node scripts/setup-prisma.js && prisma generate && prisma db push && next build",
     "start": "next start",
     "lint": "next lint --dir pages --dir components",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
     "postinstall": "node scripts/setup-prisma.js && prisma generate"
   },
   "dependencies": {
