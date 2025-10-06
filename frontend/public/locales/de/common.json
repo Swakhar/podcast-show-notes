@@ -241,7 +241,8 @@
     "confirm": "Bestätigen",
     "close": "Schließen",
     "timeSaved": "95% Zeit gespart!",
-    "aiPowered": "KI-gestützt"
+    "aiPowered": "KI-gestützt",
+    "locale": "de-DE"
   },
   "generate": {
     "title": "KI Content Generator – Professionelle Podcast Produktion",
@@ -1415,6 +1416,20 @@
       "PRO": "Pro",
       "STARTER": "Starter",
       "FREE": "Kostenlos"
+    }
+  },
+  "blog": {
+    "postNotFound": {
+      "title": "Beitrag nicht gefunden",
+      "description": "Der gesuchte Blog-Beitrag konnte nicht gefunden werden",
+      "heading": "Beitrag nicht gefunden",
+      "backToBlog": "Zurück zum Blog"
+    },
+    "post": {
+      "backToBlog": "Zurück zum Blog",
+      "byAuthor": "Von {{author}}",
+      "viewCount": "{{count}} Aufrufe",
+      "viewCountPlural": "{{count}} Aufrufe"
     }
   }
 }

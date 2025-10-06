@@ -40,6 +40,8 @@ model User {
   rssFeeds             RssFeed[]
   templates            Template[]
   wordpressCreds       WordpressCred?
+  blog_posts           BlogPost[]
+  is_admin             Boolean @default(false)
 
   // Email preferences
   emailRssNewContent Boolean @default(true)
@@ -167,3 +169,30 @@ model WordpressCred {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  status      BlogStatus @default(DRAFT)
+  published_at DateTime?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  author_id   String
+  author      User     @relation(fields: [author_id], references: [id])
+  views       Int      @default(0)
+  
+  // SEO fields
+  meta_title       String?
+  meta_description String?
+  meta_keywords    String?
+  
+  @@map("blog_posts")
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}

@@ -1,8 +1,13 @@
 import Head from "next/head";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import type { GetStaticProps } from 'next';
 
 export default function Impressum() {
+  const { t } = useTranslation('common');
+
   return (
     <>
       <Head>
@@ -212,3 +217,11 @@ export default function Impressum() {
     </>
   );
 }
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};
