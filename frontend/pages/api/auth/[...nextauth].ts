@@ -1,7 +1,7 @@
 import NextAuth, { type AuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter"; // or "@next-auth/prisma-adapter" if you installed that one
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "../../../lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -9,13 +9,11 @@ export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   session: { strategy: "jwt" },
   providers: [
-    // Optional: keep email magic-link
     EmailProvider({
       server: process.env.EMAIL_SERVER!,
       from: process.env.EMAIL_FROM!,
       maxAge: 24 * 60 * 60,
     }),
-    // NEW: credentials (email + password)
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -34,23 +32,22 @@ export const authOptions: AuthOptions = {
         const ok = await bcrypt.compare(password, user.password);
         if (!ok) return null;
 
-        // return minimal user object for JWT
         return { id: user.id, email: user.email, name: user.name || undefined };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // On sign-in, attach DB data
       if (user?.email) {
         const u = await prisma.user.findUnique({ where: { email: user.email } });
         if (u) {
-          token.sub = u.id; // ensure user id present
+          token.sub = u.id;
           token.plan = u.plan;
           token.stripeCustomerId = u.stripeCustomerId;
           token.subscriptionStatus = u.subscriptionStatus;
           token.monthlyMinutesLimit = u.monthlyMinutesLimit;
           token.monthlyMinutesUsed = u.monthlyMinutesUsed;
+          token.is_admin = u.is_admin;
         }
       }
       return token;
@@ -63,6 +60,7 @@ export const authOptions: AuthOptions = {
         (session.user as any).subscriptionStatus = token.subscriptionStatus || null;
         (session.user as any).monthlyMinutesLimit = token.monthlyMinutesLimit ?? 30;
         (session.user as any).monthlyMinutesUsed = token.monthlyMinutesUsed ?? 0;
+        (session.user as any).is_admin = token.is_admin || false;
       }
       return session;
     },
