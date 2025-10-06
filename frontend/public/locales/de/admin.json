@@ -54,5 +54,88 @@
     "delete": "Löschen",
     "save": "Speichern",
     "cancel": "Abbrechen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "lastUpdated": "Zuletzt aktualisiert",
+    "stats": {
+      "totalUsers": "Gesamtzahl der Benutzer",
+      "activeSubscriptions": "Aktive Abonnements",
+      "monthlyRevenue": "Monatlicher Umsatz",
+      "blogPosts": "Blogbeiträge"
+    },
+    "recentActivity": {
+      "title": "Letzte Aktivitäten",
+      "newJobs": "neue Aufträge in den letzten 24 Stunden",
+      "totalJobs": "{{count}} Aufträge insgesamt bearbeitet"
+    },
+    "quickActions": {
+      "newBlogPost": {
+        "title": "Neuer Blogbeitrag",
+        "description": "Einen neuen Blogartikel erstellen"
+      },
+      "manageUsers": {
+        "title": "Benutzer verwalten",
+        "description": "Benutzer anzeigen und verwalten"
+      },
+      "analytics": {
+        "title": "Analytik",
+        "description": "Detaillierte Analysen anzeigen"
+      }
+    }
+  },
+  "users": {
+    "title": "Benutzerverwaltung",
+    "totalCount": "{{count}} Benutzer insgesamt",
+    "confirmDelete": "Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?",
+    "filters": {
+      "search": "Benutzer suchen",
+      "searchPlaceholder": "Nach E-Mail oder Name suchen...",
+      "plan": "Plan",
+      "allPlans": "Alle Pläne"
+    },
+    "plans": {
+      "free": "Kostenlos",
+      "pro": "Pro",
+      "agency": "Agentur"
+    },
+    "table": {
+      "user": "Benutzer",
+      "plan": "Plan",
+      "usage": "Nutzung",
+      "joinDate": "Registrierungsdatum",
+      "admin": "Admin",
+      "actions": "Aktionen"
+    },
+    "adminStatus": {
+      "yes": "Ja",
+      "no": "Nein"
+    }
+  },
+  "analytics": {
+    "title": "Analytik",
+    "error": "Laden der Analysedaten fehlgeschlagen",
+    "timeRange": {
+      "7d": "Letzte 7 Tage",
+      "30d": "Letzte 30 Tage",
+      "90d": "Letzte 90 Tage",
+      "1y": "Letztes Jahr"
+    },
+    "planDistribution": {
+      "title": "Planverteilung"
+    },
+    "jobStats": {
+      "title": "Auftragsstatistiken",
+      "total": "Gesamt",
+      "successful": "Erfolgreich",
+      "failed": "Fehlgeschlagen",
+      "avgTime": "Durchschnittliche Zeit"
+    },
+    "userGrowth": {
+      "title": "Benutzerwachstum"
+    },
+    "topFeatures": {
+      "title": "Top-Funktionen"
+    }
   }
 }
