@@ -47,6 +47,8 @@ model User {
   emailRssNewContent Boolean @default(true)
   emailManualJobs    Boolean @default(true)
   emailWeeklyDigest  Boolean @default(false)
+
+  landingContent LandingContent[]
 }
 
 model Account {
@@ -195,4 +197,90 @@ enum BlogStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+model LandingContent {
+  id          String   @id @default(cuid())
+  section     String   // 'hero', 'stats', 'features', 'testimonials', 'pricing', 'faq'
+  key         String   // unique identifier within section
+  locale      String   @default("en") // 'en' or 'de'
+  
+  // Content fields
+  title       String?
+  subtitle    String?
+  description String?
+  content     Json?    // For complex structured data
+  
+  // Display settings
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  
+  // Metadata
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  created_by  String
+  creator     User     @relation(fields: [created_by], references: [id])
+  
+  @@unique([section, key, locale])
+  @@map("landing_content")
+}
+
+model LandingStats {
+  id          String   @id @default(cuid())
+  locale      String   @default("en")
+  
+  episodes    String   @default("1,000+")
+  episodesLabel String @default("Episodes Processed")
+  
+  creators    String   @default("500+")
+  creatorsLabel String @default("Happy Creators")
+  
+  timeSaved   String   @default("10,000+")
+  timeSavedLabel String @default("Hours Saved")
+  
+  rating      String   @default("4.9/5")
+  ratingLabel String   @default("User Rating")
+  
+  isActive    Boolean  @default(true)
+  updated_at  DateTime @updatedAt
+  
+  @@unique([locale])
+  @@map("landing_stats")
+}
+
+model LandingFeature {
+  id          String   @id @default(cuid())
+  locale      String   @default("en")
+  
+  icon        String   // Emoji or icon name
+  title       String
+  description String
+  benefits    Json     // Array of benefit strings
+  
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  @@map("landing_features")
+}
+
+model LandingTestimonial {
+  id          String   @id @default(cuid())
+  locale      String   @default("en")
+  
+  name        String
+  role        String
+  company     String
+  quote       String
+  avatar      String?  // URL to avatar image
+  rating      Int      @default(5)
+  
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  
+  @@map("landing_testimonials")
 }

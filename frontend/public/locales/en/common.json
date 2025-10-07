@@ -1430,5 +1430,29 @@
       "viewCount": "{{count}} views",
       "viewCountPlural": "{{count}} views"
     }
+  },
+  "earlyAccess": {
+    "title": "Join Our Early Access Program",
+    "subtitle": "Be among the first to experience the future of podcast content creation",
+    "benefits": {
+      "betaUsers": {
+        "title": "100+ Beta Users",
+        "description": "Join creators already testing our platform"
+      },
+      "exclusiveAccess": {
+        "title": "Exclusive Access",
+        "description": "Get features before they're publicly available"
+      },
+      "directFeedback": {
+        "title": "Direct Feedback",
+        "description": "Shape the product with your input"
+      }
+    },
+    "cta": {
+      "title": "Ready to Join?",
+      "subtitle": "Start your free trial and experience AI-powered podcast creation",
+      "button": "Get Early Access Free",
+      "disclaimer": "No credit card required • Full access • Cancel anytime"
+    }
   }
 }

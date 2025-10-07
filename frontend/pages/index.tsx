@@ -37,6 +37,41 @@ function useReveal() {
   }, []);
 }
 
+const useLandingContent = (locale: string) => {
+  const [content, setContent] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const [statsRes, featuresRes] = await Promise.all([
+          fetch(`/api/landing/stats?locale=${locale}`),
+          fetch(`/api/landing/features?locale=${locale}`)
+        ]);
+
+        const [statsData, featuresData] = await Promise.all([
+          statsRes.json(),
+          featuresRes.json()
+        ]);
+
+        setContent({
+          stats: statsData.stats || {},
+          features: featuresData.features || []
+        });
+      } catch (error) {
+        console.error('Failed to fetch landing content:', error);
+        setContent({});
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [locale]);
+
+  return { content, loading };
+};
+
 export default function Landing() {
   useReveal();
   const router = useRouter();
@@ -107,7 +142,15 @@ export default function Landing() {
     benefits: string[];
   }>;
 
-  const stats = [
+  const { content, loading: contentLoading } = useLandingContent(i18n.language);
+  
+  // Use dynamic content if available, fallback to i18n
+  const stats = content.stats ? [
+    { value: content.stats.episodes, label: content.stats.episodesLabel },
+    { value: content.stats.creators, label: content.stats.creatorsLabel },
+    { value: content.stats.timeSaved, label: content.stats.timeSavedLabel },
+    { value: content.stats.rating, label: content.stats.ratingLabel }
+  ] : [
     { value: t('stats.episodes'), label: t('stats.episodesLabel') },
     { value: t('stats.creators'), label: t('stats.creatorsLabel') },
     { value: t('stats.timeSaved'), label: t('stats.timeSavedLabel') },
@@ -217,6 +260,11 @@ export default function Landing() {
       setNewsletterLoading(false);
     }
   };
+
+  // Replace the static features with dynamic ones:
+  const dynamicFeatures = content.features && content.features.length > 0 
+    ? content.features 
+    : features; // fallback to i18n features
 
   return (
     <>
@@ -418,7 +466,7 @@ export default function Landing() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, i) => (
+              {dynamicFeatures.map((feature, i) => (
                 <div
                   key={feature.title}
                   style={{ transitionDelay: `${i * 100}ms` }}
@@ -444,14 +492,13 @@ export default function Landing() {
         </section>
 
         {/* ENHANCED TESTIMONIALS */}
-        <section className="py-20 bg-white">
+        {/* <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-center mb-16" data-reveal>
               <h2 className="text-4xl font-black text-gray-900 mb-6">{t('testimonials.title')}</h2>
               <p className="text-xl text-gray-600">{t('testimonials.subtitle')}</p>
             </div>
 
-            {/* Featured Testimonial Carousel */}
             <div className="relative mb-16" data-reveal>
               <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-3xl p-8 lg:p-12 text-center max-w-4xl mx-auto">
                 <div className="text-6xl mb-6">👩‍💼</div>
@@ -472,7 +519,6 @@ export default function Landing() {
                 </cite>
               </div>
               
-              {/* Testimonial Navigation */}
               <div className="flex justify-center mt-6 gap-2">
                 {testimonials.map((_, i) => (
                   <button
@@ -486,7 +532,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Testimonial Grid */}
             <div className="grid md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, i) => (
                 <div
@@ -509,6 +554,50 @@ export default function Landing() {
                   </cite>
                 </div>
               ))}
+            </div>
+          </div>
+        </section> */}
+
+        {/* EARLY ACCESS SECTION instead of testimonials */}
+        <section className="py-20 bg-gradient-to-br from-blue-50 to-green-50">
+          <div className="max-w-6xl mx-auto px-4 text-center">
+            <div className="mb-16" data-reveal>
+              <h2 className="text-4xl font-black text-gray-900 mb-6">
+                🚀 {t('earlyAccess.title')}
+              </h2>
+              <p className="text-xl text-gray-600">
+                {t('earlyAccess.subtitle')}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="p-6 bg-white rounded-xl shadow-sm border">
+                <div className="text-3xl mb-4">👥</div>
+                <h3 className="font-bold text-gray-900 mb-2">{t('earlyAccess.benefits.betaUsers.title')}</h3>
+                <p className="text-gray-600 text-sm">{t('earlyAccess.benefits.betaUsers.description')}</p>
+              </div>
+              <div className="p-6 bg-white rounded-xl shadow-sm border">
+                <div className="text-3xl mb-4">⚡</div>
+                <h3 className="font-bold text-gray-900 mb-2">{t('earlyAccess.benefits.exclusiveAccess.title')}</h3>
+                <p className="text-gray-600 text-sm">{t('earlyAccess.benefits.exclusiveAccess.description')}</p>
+              </div>
+              <div className="p-6 bg-white rounded-xl shadow-sm border">
+                <div className="text-3xl mb-4">💬</div>
+                <h3 className="font-bold text-gray-900 mb-2">{t('earlyAccess.benefits.directFeedback.title')}</h3>
+                <p className="text-gray-600 text-sm">{t('earlyAccess.benefits.directFeedback.description')}</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg border max-w-2xl mx-auto">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('earlyAccess.cta.title')}</h3>
+              <p className="text-gray-600 mb-6">{t('earlyAccess.cta.subtitle')}</p>
+              <Link 
+                href="/generate" 
+                className="px-8 py-4 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 font-bold rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-200 inline-block"
+              >
+                {t('earlyAccess.cta.button')}
+              </Link>
+              <p className="text-xs text-gray-500 mt-3">{t('earlyAccess.cta.disclaimer')}</p>
             </div>
           </div>
         </section>

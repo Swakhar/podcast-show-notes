@@ -3,6 +3,8 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import type { GetServerSideProps } from 'next';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface User {
   id: string;
@@ -215,10 +217,30 @@ export default function UsersAdmin() {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale ?? 'en', ['admin', 'common'])),
-    },
-  };
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  try {
+    const session = await getServerSession(context.req, context.res, authOptions);
+    
+    if (!session || !(session.user as any)?.is_admin) {
+      return {
+        redirect: {
+          destination: '/login',
+          permanent: false,
+        },
+      };
+    }
+
+    return {
+      props: {
+        ...(await serverSideTranslations(context.locale ?? 'en', ['admin', 'common'])),
+      },
+    };
+  } catch (error) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
 };

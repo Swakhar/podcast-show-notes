@@ -1431,5 +1431,29 @@
       "viewCount": "{{count}} Aufrufe",
       "viewCountPlural": "{{count}} Aufrufe"
     }
+  },
+  "earlyAccess": {
+    "title": "Treten Sie unserem Early Access-Programm bei",
+    "subtitle": "Seien Sie unter den Ersten, die die Zukunft der Podcast-Content-Erstellung erleben",
+    "benefits": {
+      "betaUsers": {
+        "title": "100+ Beta-Nutzer",
+        "description": "Schließen Sie sich Erstellern an, die bereits unsere Plattform testen"
+      },
+      "exclusiveAccess": {
+        "title": "Exklusiver Zugang",
+        "description": "Erhalten Sie Features, bevor sie öffentlich verfügbar sind"
+      },
+      "directFeedback": {
+        "title": "Direktes Feedback",
+        "description": "Gestalten Sie das Produkt mit Ihrem Input mit"
+      }
+    },
+    "cta": {
+      "title": "Bereit beizutreten?",
+      "subtitle": "Starten Sie Ihre kostenlose Testversion und erleben Sie KI-gestützte Podcast-Erstellung",
+      "button": "Kostenlos Early Access erhalten",
+      "disclaimer": "Keine Kreditkarte erforderlich • Vollzugriff • Jederzeit kündbar"
+    }
   }
 }
