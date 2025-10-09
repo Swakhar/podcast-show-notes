@@ -8,11 +8,11 @@ import type { GetServerSideProps } from 'next';
 import SiteHeader from '../../components/SiteHeader';
 import SiteFooter from '../../components/SiteFooter';
 import { 
-  DocumentTextIcon, 
-  ClipboardDocumentIcon, 
-  ClockIcon, 
-  ShareIcon, 
-  MagnifyingGlassIcon, 
+  DocumentTextIcon,
+  ClipboardDocumentIcon,
+  ClockIcon,
+  ShareIcon,
+  MagnifyingGlassIcon,
   EnvelopeIcon,
   CheckIcon,
   ArrowLeftIcon,
@@ -20,6 +20,8 @@ import {
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { logger } from '../../lib/logger';
+import ContentRepurposingPanel from '../../components/ContentRepurposingPanel';
+import RepurposedContentDisplay from '../../components/RepurposedContentDisplay';
 
 interface JobResult {
   id: string;
@@ -38,12 +40,23 @@ interface JobResult {
     guest_research?: string;
     interview_questions?: string;
     conversation_starters?: string;
+    
+    // ✅ Add repurposed content type
+    repurposed_content?: {
+      linkedin_carousel?: any;
+      twitter_thread?: any;
+      instagram_story?: any;
+      tiktok_script?: any;
+      blog_outline?: any;
+      email_course?: any;
+      infographic_data?: any;
+    };
   };
   url?: string;
   stage?: string;
   error?: string;
   // ✅ Add type to distinguish between job types
-  job_type?: 'audio' | 'guest_research';
+  job_type?: 'audio' | 'guest_research' | 'podcast' | 'repurposing';
 }
 
 export default function JobResults() {
@@ -85,18 +98,6 @@ export default function JobResults() {
     navigator.clipboard.writeText(text);
     setCopiedSection(sectionName);
     setTimeout(() => setCopiedSection(null), 2000);
-  }
-
-  function toggleSection(sectionName: string) {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionName)) {
-        newSet.delete(sectionName);
-      } else {
-        newSet.add(sectionName);
-      }
-      return newSet;
-    });
   }
 
   // Helper functions
@@ -285,6 +286,8 @@ export default function JobResults() {
     result.summary || result.show_notes || result.timestamps || result.social_snippets || result.seo || result.newsletter ||
     // ✅ Guest research content
     result.guest_research || result.interview_questions || result.conversation_starters
+    // ✅ Repurposed content
+    || (result.repurposed_content && Object.keys(result.repurposed_content).length > 0)
   );
 
   if (!hasContent) {
@@ -642,6 +645,23 @@ export default function JobResults() {
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* Repurposing Panel - Show for completed audio/podcast jobs that haven't been repurposed yet */}
+              {(job.job_type === 'audio' || job.job_type === 'podcast' || !job.job_type) &&
+               !job.result?.repurposed_content && (
+                <ContentRepurposingPanel 
+                  jobId={job.id} 
+                  onRepurposeStart={(repurposingJobId) => {
+                    // Redirect to the new repurposing job
+                    router.push(`/results/${repurposingJobId}`);
+                  }}
+                />
+              )}
+
+              {/* Repurposed Content Display - Show when repurposed content exists */}
+              {job.result?.repurposed_content && Object.keys(job.result.repurposed_content).length > 0 && (
+                <RepurposedContentDisplay content={job.result.repurposed_content} />
               )}
             </div>
 

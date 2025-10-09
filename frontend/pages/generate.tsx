@@ -169,7 +169,7 @@ export default function Generate() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // New state for tab navigation
-  const [activeTab, setActiveTab] = useState<'audio' | 'guest'>('audio');
+  const [activeTab, setActiveTab] = useState<'audio' | 'guest' | 'repurpose'>('audio');
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -471,6 +471,16 @@ export default function Generate() {
                     >
                       {t('generate.tabs.guest')}
                     </button>
+                    <button
+                      onClick={() => setActiveTab('repurpose')}
+                      className={`px-6 py-4 text-sm font-semibold ${
+                        activeTab === 'repurpose'
+                          ? 'border-b-2 border-pink-500 text-pink-600 bg-pink-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      🔄 Repurpose
+                    </button>
                   </nav>
                 </div>
 
@@ -506,7 +516,7 @@ export default function Generate() {
                     setJobStatus={setJobStatus}
                     setErrorMessage={setErrorMessage}
                   />
-                ) : (
+                ) : activeTab === 'guest' ? (
                   <GuestResearchForm
                     onSubmit={async (data) => {
                       try {
@@ -529,6 +539,17 @@ export default function Generate() {
                     templates={templates}
                     me={me}
                   />
+                ) : (
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">{t('generate.repurpose.title')}</h3>
+                    <p className="text-gray-600 mb-6">{t('generate.repurpose.subtitle')}</p>
+                    <Link 
+                      href="/repurpose"
+                      className="inline-block px-4 py-2 bg-gradient-to-r from-[#9CEE69] to-green-400 text-gray-900 rounded-lg font-medium hover:shadow-md transition-all text-sm"
+                    >
+                      {t('generate.repurpose.start')}
+                    </Link>
+                  </div>
                 )}
               </div>
             </section>

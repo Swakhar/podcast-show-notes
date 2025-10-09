@@ -19,7 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Fetch job from backend
+    console.log('Fetching job from backend:', jobId);
     const backendRes = await fetch(`${BACKEND}/jobs/${jobId}`);
+    console.log('Backend response status:', backendRes.status);
     
     if (!backendRes.ok) {
       if (backendRes.status === 404) {
@@ -29,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const jobData = await backendRes.json();
+    console.log('Job data fetched:', jobData);
     
     // Optional: Verify the job belongs to the current user
     // You might want to add user verification here based on your job storage

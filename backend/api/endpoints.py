@@ -1,5 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Body, HTTPException
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Body, HTTPException, Request
 from typing import Optional
+from datetime import datetime
+import time
 
 from core.features import parse_features
 from core.estimate import est_llm_cost, PRICE_WHISPER_PER_MIN
@@ -25,6 +27,7 @@ from services.youtube_service import YouTubeService
 from services.transcript_service import get_youtube_transcript
 import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
+from core.repurposing import ContentRepurposer
 
 router = APIRouter()
 
@@ -328,3 +331,57 @@ async def create_guest_research_job(
         "stage": "queued",
         "billed_minutes": 1
     }
+
+@router.post("/jobs/repurpose")
+async def create_repurposing_job(request: Request):
+    """Create a repurposing job from existing content"""
+    try:
+        data = await request.json()
+        
+        source_job_id = data.get('source_job_id')
+        source_content = data.get('source_content')
+        content_types = data.get('content_types', [])
+        custom_instructions = data.get('custom_instructions', '')
+        target_audience = data.get('target_audience', '')
+        brand_voice = data.get('brand_voice', 'professional')
+        user_email = data.get('user_email')
+        
+        if not source_content or not content_types:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        # Generate unique job ID
+        job_id = f"repurpose_{int(time.time() * 1000)}"
+        
+        # Store job in JOBS dictionary (using your existing system)
+        JOBS[job_id] = {
+            'id': job_id,
+            'status': 'pending',
+            'stage': 'queued',
+            'user_email': user_email,
+            'source_job_id': source_job_id,
+            'content_types': content_types,
+            'custom_instructions': custom_instructions,
+            'target_audience': target_audience,
+            'brand_voice': brand_voice,
+            'source_content': source_content,
+            'billed_minutes': 1,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        
+        # Save job using your existing save_job function
+        save_job(job_id)
+        
+        # Start background processing
+        from jobs import process_repurposing_job
+        import asyncio
+        asyncio.create_task(process_repurposing_job(job_id))
+        
+        return {
+            "job_id": job_id,
+            "status": "queued",
+            "message": "Repurposing job created successfully"
+        }
+        
+    except Exception as e:
+        print(f"Repurposing job creation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
