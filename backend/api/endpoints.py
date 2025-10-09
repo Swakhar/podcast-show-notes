@@ -385,3 +385,43 @@ async def create_repurposing_job(request: Request):
     except Exception as e:
         print(f"Repurposing job creation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Add this new endpoint:
+@router.get("/jobs/completed/{user_email}")
+async def get_completed_jobs(user_email: str):
+    """Get user's completed jobs for repurposing"""
+    print(f"🔍 Fetching completed jobs for user: {user_email}")
+    
+    completed_jobs = []
+    
+    for job_id, job_data in JOBS.items():
+        print(f"🔍 Checking job {job_id}: user={job_data.get('user_email')}, status={job_data.get('status')}")
+        
+        if (job_data.get('user_email') == user_email and 
+            job_data.get('status') == 'complete' and
+            job_data.get('result')):
+            
+            # Only include jobs with actual content (not repurposing jobs)
+            if not job_data.get('result', {}).get('repurposed_content'):
+                # Add a created_at timestamp if missing
+                created_at = job_data.get('created_at')
+                if not created_at:
+                    created_at = datetime.utcnow().isoformat()
+                    job_data['created_at'] = created_at  # Store for future use
+                
+                completed_jobs.append({
+                    'id': job_id,
+                    'created_at': created_at,
+                    'billed_minutes': job_data.get('billed_minutes', 1),
+                    'result': {
+                        'seo': job_data.get('result', {}).get('seo'),
+                        'summary': job_data.get('result', {}).get('summary', '')[:100] + '...' if job_data.get('result', {}).get('summary') else None
+                    }
+                })
+                print(f"✅ Added job {job_id} to completed jobs")
+    
+    # Sort by creation date (newest first)
+    completed_jobs.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    
+    print(f"📊 Found {len(completed_jobs)} completed jobs for {user_email}")
+    return {"jobs": completed_jobs}
