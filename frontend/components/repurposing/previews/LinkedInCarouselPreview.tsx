@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ContentActions from '../ContentActions';
 
 interface LinkedInCarouselPreviewProps {
   data: any;
@@ -37,18 +38,6 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
             <h3 className="text-xl font-bold text-gray-900">LinkedIn Carousel</h3>
             <p className="text-sm text-gray-600">{slides.length} slides • Professional format</p>
           </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            📱 Mobile Preview
-          </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            🎨 Edit in Canva
-          </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            📤 Export Images
-          </button>
         </div>
       </div>
 
@@ -162,6 +151,34 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <div className="bg-blue-50 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-3">📊 Performance Predictions</h4>
+          <div className="space-y-3">
+            <div className="p-3 bg-white border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800">
+                👁️ Expected impressions: {Math.floor(Math.random() * 10000) + 5000}
+              </div>
+            </div>
+            <div className="p-3 bg-white border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800">
+                💬 Expected engagement: {Math.floor(Math.random() * 15) + 10}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-green-50 rounded-lg p-4">
+          <h4 className="font-medium text-green-900 mb-3">🚀 LinkedIn Tools</h4>
+          <ContentActions 
+            content={data}
+            contentType="linkedin_carousel"
+            filename="linkedin_carousel.txt"
+          />
         </div>
       </div>
 

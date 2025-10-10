@@ -20,8 +20,8 @@ import {
   DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import { logger } from '../../lib/logger';
-import ContentRepurposingPanel from '../../components/ContentRepurposingPanel';
-import RepurposedContentDisplay from '../../components/RepurposedContentDisplay';
+// ✅ Replace the old components with the new unified one
+import { RepurposingSection } from '../../components/repurposing';
 
 interface JobResult {
   id: string;
@@ -132,6 +132,7 @@ export default function JobResults() {
   function getSourceIcon(url?: string, jobType?: string) {
     // ✅ Check job type first
     if (jobType === 'guest_research') return '🔍';
+    if (jobType === 'repurposing') return '🔄';
     
     // Existing audio logic
     if (!url) return '📄';
@@ -320,7 +321,7 @@ export default function JobResults() {
   return (
     <>
       <Head>
-        <title>{job.job_type === 'guest_research' ? t('jobResults.guestResearchTitle') : t('jobResults.title')}</title>
+        <title>{job.job_type === 'guest_research' ? t('jobResults.guestResearchTitle') : job.job_type === 'repurposing' ? 'Repurposed Content Results' : t('jobResults.title')}</title>
         <meta name="description" content={t('jobResults.metaDescription')} />
       </Head>
       <SiteHeader />
@@ -336,6 +337,8 @@ export default function JobResults() {
                   <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
                     {job.job_type === 'guest_research' 
                       ? t('jobResults.header.guestResearchResults') 
+                      : job.job_type === 'repurposing'
+                      ? 'Repurposed Content Results'
                       : t('jobResults.header.generatedContent')
                     }
                   </h1>
@@ -349,6 +352,11 @@ export default function JobResults() {
                     <span className="flex items-center gap-1">
                       <MagnifyingGlassIcon className="w-4 h-4" />
                       {t('jobResults.header.researchGenerated')}
+                    </span>
+                  ) : job.job_type === 'repurposing' ? (
+                    <span className="flex items-center gap-1">
+                      <ShareIcon className="w-4 h-4" />
+                      Content repurposed successfully
                     </span>
                   ) : job.url && (
                     <span className="flex items-center gap-1 max-w-md truncate">
@@ -380,441 +388,450 @@ export default function JobResults() {
 
         {/* Content Grid */}
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className={`grid gap-6 ${
-            job.job_type === 'guest_research' 
-              ? 'lg:grid-cols-1' // Single column for guest research
-              : 'lg:grid-cols-3' // Three columns for audio content
-          }`}>
-            
-            {/* Main Content */}
-            <div className={`space-y-6 ${
+          {/* ✅ Check if this is a repurposing job with repurposed content - show full width */}
+          {job.result?.repurposed_content && Object.keys(job.result.repurposed_content).length > 0 ? (
+            <div className="w-full">
+              <RepurposingSection
+                sourceJobId={job.id}
+                existingRepurposedContent={job.result.repurposed_content}
+                mode="standalone"
+                onJobCreated={(newJobId) => {
+                  router.push(`/results/${newJobId}`);
+                }}
+              />
+            </div>
+          ) : (
+            <div className={`grid gap-6 ${
               job.job_type === 'guest_research' 
-                ? '' // Full width for guest research
-                : 'lg:col-span-2' // 2/3 width for audio content
+                ? 'lg:grid-cols-1' // Single column for guest research
+                : 'lg:grid-cols-3' // Three columns for audio content
             }`}>
               
-              {/* Summary */}
-              {result.summary && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <DocumentTextIcon className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.summary.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(renderContent(result.summary), 'summary')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'summary' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'summary' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.summary.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.summary.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="prose max-w-none text-gray-700 leading-relaxed">
-                      <p className="whitespace-pre-wrap">{renderContent(result.summary)}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Show Notes */}
-              {result.show_notes && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <ClipboardDocumentIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.showNotes.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(renderContent(result.show_notes), 'show_notes')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'show_notes' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'show_notes' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.showNotes.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.showNotes.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="prose max-w-none text-gray-700">
-                      <div className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border">
-                        {renderContent(result.show_notes)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Newsletter */}
-              {result.newsletter && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <EnvelopeIcon className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.newsletter.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(getNewsletterCopyText(result.newsletter), 'newsletter')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'newsletter' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'newsletter' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.newsletter.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.newsletter.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="space-y-4">
-                      {typeof result.newsletter === 'object' && result.newsletter !== null && 'subject' in result.newsletter && (
-                        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <label className="text-sm font-medium text-purple-800 block mb-1">
-                            {t('jobResults.sections.newsletter.subjectLabel')}
-                          </label>
-                          <p className="text-purple-900 font-medium">{result.newsletter.subject}</p>
-                        </div>
-                      )}
-                      <div className="prose max-w-none">
-                        <div className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border text-gray-700">
-                          {renderContent(result.newsletter)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Guest Research */}
-              {result.guest_research && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <MagnifyingGlassIcon className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.guestResearch.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(renderContent(result.guest_research), 'guest_research')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'guest_research' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'guest_research' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.guestResearch.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.guestResearch.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="prose max-w-none text-gray-700">
-                      <div className="whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-200">
-                        {renderContent(result.guest_research)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Interview Questions */}
-              {result.interview_questions && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <DocumentTextIcon className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.interviewQuestions.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(renderContent(result.interview_questions), 'interview_questions')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'interview_questions' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'interview_questions' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.interviewQuestions.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.interviewQuestions.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="prose max-w-none text-gray-700">
-                      <div className="whitespace-pre-wrap bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        {renderContent(result.interview_questions)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Conversation Starters */}
-              {result.conversation_starters && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <ClipboardDocumentIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.conversationStarters.title')}</h2>
-                      </div>
-                      <button 
-                        onClick={() => copyToClipboard(renderContent(result.conversation_starters), 'conversation_starters')}
-                        className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
-                          copiedSection === 'conversation_starters' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {copiedSection === 'conversation_starters' ? (
-                          <>
-                            <CheckIcon className="w-4 h-4" />
-                            {t('jobResults.sections.conversationStarters.copied')}
-                          </>
-                        ) : (
-                          <>
-                            <ClipboardDocumentIcon className="w-4 h-4" />
-                            {t('jobResults.sections.conversationStarters.copy')}
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    <div className="prose max-w-none text-gray-700">
-                      <div className="whitespace-pre-wrap bg-green-50 p-4 rounded-lg border border-green-200">
-                        {renderContent(result.conversation_starters)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Repurposing Panel - Show for completed audio/podcast jobs that haven't been repurposed yet */}
-              {(job.job_type === 'audio' || job.job_type === 'podcast' || !job.job_type) &&
-               !job.result?.repurposed_content && (
-                <ContentRepurposingPanel 
-                  jobId={job.id} 
-                  onRepurposeStart={(repurposingJobId) => {
-                    // Redirect to the new repurposing job
-                    router.push(`/results/${repurposingJobId}`);
-                  }}
-                />
-              )}
-
-              {/* Repurposed Content Display - Show when repurposed content exists */}
-              {job.result?.repurposed_content && Object.keys(job.result.repurposed_content).length > 0 && (
-                <RepurposedContentDisplay content={job.result.repurposed_content} />
-              )}
-            </div>
-
-            {/* Sidebar - Only show for audio content */}
-            {job.job_type !== 'guest_research' && (
-              <div className="space-y-6">
+              {/* Main Content */}
+              <div className={`space-y-6 ${
+                job.job_type === 'guest_research' 
+                  ? '' // Full width for guest research
+                  : 'lg:col-span-2' // 2/3 width for audio content
+              }`}>
                 
-                {/* Timestamps */}
-                {result.timestamps && result.timestamps.length > 0 && (
+                {/* Summary */}
+                {result.summary && (
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <ClockIcon className="w-5 h-5 text-orange-600" />
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <DocumentTextIcon className="w-5 h-5 text-blue-600" />
                           </div>
-                          <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.timestamps.title')}</h2>
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.summary.title')}</h2>
                         </div>
                         <button 
-                          onClick={() => copyToClipboard(result.timestamps!.join('\n'), 'timestamps')}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all ${
-                            copiedSection === 'timestamps' 
+                          onClick={() => copyToClipboard(renderContent(result.summary), 'summary')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'summary' 
                               ? 'bg-green-100 text-green-700' 
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                           }`}
                         >
-                          {copiedSection === 'timestamps' ? (
-                            <CheckIcon className="w-3 h-3" />
+                          {copiedSection === 'summary' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.summary.copied')}
+                            </>
                           ) : (
-                            <ClipboardDocumentIcon className="w-3 h-3" />
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.summary.copy')}
+                            </>
                           )}
                         </button>
                       </div>
-                      <div className="space-y-3 max-h-80 overflow-y-auto">
-                        {result.timestamps.map((timestamp, index) => {
-                          // Parse the timestamp string to extract time and text
-                          const parts = timestamp.split(' - ');
-                          const time = parts[0] || `${index + 1}`;
-                          const text = parts.slice(1).join(' - ') || timestamp;
-                          
-                          return (
-                            <div key={index} className="flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                              <span className="font-mono text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded font-medium min-w-[50px] text-center">
-                                {time}
-                              </span>
-                              <span className="text-sm text-gray-700 flex-1">{text}</span>
-                            </div>
-                          );
-                        })}
+                      <div className="prose max-w-none text-gray-700 leading-relaxed">
+                        <p className="whitespace-pre-wrap">{renderContent(result.summary)}</p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Social Snippets */}
-                {result.social_snippets && result.social_snippets.length > 0 && (
+                {/* Show Notes */}
+                {result.show_notes && (
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                     <div className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                          <ShareIcon className="w-5 h-5 text-pink-600" />
-                        </div>
-                        <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.socialMedia.title')}</h2>
-                      </div>
-                      <div className="space-y-3">
-                        {result.social_snippets.map((snippet, index) => (
-                          <div key={index} className="group p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200 hover:shadow-md transition-all">
-                            <div className="flex items-start justify-between gap-3">
-                              <p className="text-sm text-gray-700 flex-1">{renderContent(snippet)}</p>
-                              <button 
-                                onClick={() => copyToClipboard(renderContent(snippet), `social_${index}`)}
-                                className={`flex-shrink-0 p-1 rounded transition-all ${
-                                  copiedSection === `social_${index}` 
-                                    ? 'bg-green-100 text-green-600' 
-                                    : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                                }`}
-                              >
-                                {copiedSection === `social_${index}` ? (
-                                  <CheckIcon className="w-4 h-4" />
-                                ) : (
-                                  <ClipboardDocumentIcon className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <ClipboardDocumentIcon className="w-5 h-5 text-green-600" />
                           </div>
-                        ))}
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.showNotes.title')}</h2>
+                        </div>
+                        <button 
+                          onClick={() => copyToClipboard(renderContent(result.show_notes), 'show_notes')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'show_notes' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {copiedSection === 'show_notes' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.showNotes.copied')}
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.showNotes.copy')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="prose max-w-none text-gray-700">
+                        <div className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border">
+                          {renderContent(result.show_notes)}
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* SEO Content */}
-                {result.seo && (
+                {/* Newsletter */}
+                {result.newsletter && (
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
                     <div className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                          <MagnifyingGlassIcon className="w-5 h-5 text-indigo-600" />
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <EnvelopeIcon className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.newsletter.title')}</h2>
                         </div>
-                        <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.seoContent.title')}</h2>
+                        <button 
+                          onClick={() => copyToClipboard(getNewsletterCopyText(result.newsletter), 'newsletter')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'newsletter' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {copiedSection === 'newsletter' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.newsletter.copied')}
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.newsletter.copy')}
+                            </>
+                          )}
+                        </button>
                       </div>
                       <div className="space-y-4">
-                        {result.seo.title && (
-                          <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-medium text-indigo-800">{t('jobResults.sections.seoContent.titleLabel')}</label>
-                              <button 
-                                onClick={() => copyToClipboard(renderContent(result.seo!.title), 'seo_title')}
-                                className={`p-1 rounded transition-all ${
-                                  copiedSection === 'seo_title' 
-                                    ? 'bg-green-100 text-green-600' 
-                                    : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                                }`}
-                              >
-                                {copiedSection === 'seo_title' ? (
-                                  <CheckIcon className="w-3 h-3" />
-                                ) : (
-                                  <ClipboardDocumentIcon className="w-3 h-3" />
-                                )}
-                              </button>
-                            </div>
-                            <p className="text-sm text-indigo-900 font-medium">{renderContent(result.seo.title)}</p>
+                        {typeof result.newsletter === 'object' && result.newsletter !== null && 'subject' in result.newsletter && (
+                          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <label className="text-sm font-medium text-purple-800 block mb-1">
+                              {t('jobResults.sections.newsletter.subjectLabel')}
+                            </label>
+                            <p className="text-purple-900 font-medium">{result.newsletter.subject}</p>
                           </div>
                         )}
-                        {result.seo.description && (
-                          <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="text-xs font-medium text-indigo-800">{t('jobResults.sections.seoContent.descriptionLabel')}</label>
-                              <button 
-                                onClick={() => copyToClipboard(renderContent(result.seo!.description), 'seo_description')}
-                                className={`p-1 rounded transition-all ${
-                                  copiedSection === 'seo_description' 
-                                    ? 'bg-green-100 text-green-600' 
-                                    : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                                }`}
-                              >
-                                {copiedSection === 'seo_description' ? (
-                                  <CheckIcon className="w-3 h-3" />
-                                ) : (
-                                  <ClipboardDocumentIcon className="w-3 h-3" />
-                                )}
-                              </button>
-                            </div>
-                            <p className="text-sm text-indigo-900">{renderContent(result.seo.description)}</p>
+                        <div className="prose max-w-none">
+                          <div className="whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border text-gray-700">
+                            {renderContent(result.newsletter)}
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
+
+                {/* Guest Research */}
+                {result.guest_research && (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <MagnifyingGlassIcon className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.guestResearch.title')}</h2>
+                        </div>
+                        <button 
+                          onClick={() => copyToClipboard(renderContent(result.guest_research), 'guest_research')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'guest_research' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {copiedSection === 'guest_research' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.guestResearch.copied')}
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.guestResearch.copy')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="prose max-w-none text-gray-700">
+                        <div className="whitespace-pre-wrap bg-purple-50 p-4 rounded-lg border border-purple-200">
+                          {renderContent(result.guest_research)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Interview Questions */}
+                {result.interview_questions && (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <DocumentTextIcon className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.interviewQuestions.title')}</h2>
+                        </div>
+                        <button 
+                          onClick={() => copyToClipboard(renderContent(result.interview_questions), 'interview_questions')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'interview_questions' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {copiedSection === 'interview_questions' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.interviewQuestions.copied')}
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.interviewQuestions.copy')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="prose max-w-none text-gray-700">
+                        <div className="whitespace-pre-wrap bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          {renderContent(result.interview_questions)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Conversation Starters */}
+                {result.conversation_starters && (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <ClipboardDocumentIcon className="w-5 h-5 text-green-600" />
+                          </div>
+                          <h2 className="text-xl font-semibold text-gray-900">{t('jobResults.sections.conversationStarters.title')}</h2>
+                        </div>
+                        <button 
+                          onClick={() => copyToClipboard(renderContent(result.conversation_starters), 'conversation_starters')}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm transition-all ${
+                            copiedSection === 'conversation_starters' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {copiedSection === 'conversation_starters' ? (
+                            <>
+                              <CheckIcon className="w-4 h-4" />
+                              {t('jobResults.sections.conversationStarters.copied')}
+                            </>
+                          ) : (
+                            <>
+                              <ClipboardDocumentIcon className="w-4 h-4" />
+                              {t('jobResults.sections.conversationStarters.copy')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div className="prose max-w-none text-gray-700">
+                        <div className="whitespace-pre-wrap bg-green-50 p-4 rounded-lg border border-green-200">
+                          {renderContent(result.conversation_starters)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ Repurposing Panel - Show for completed audio/podcast jobs that haven't been repurposed yet */}
+                {(job.job_type === 'audio' || job.job_type === 'podcast' || !job.job_type) &&
+                !job.result?.repurposed_content && (
+                  <RepurposingSection
+                    sourceJobId={job.id}
+                    mode="inline"
+                    onJobCreated={(newJobId) => {
+                      router.push(`/results/${newJobId}`);
+                    }}
+                  />
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Sidebar - Only show for audio content */}
+              {job.job_type !== 'guest_research' && (
+                <div className="space-y-6">
+                  
+                  {/* Timestamps */}
+                  {result.timestamps && result.timestamps.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                              <ClockIcon className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.timestamps.title')}</h2>
+                          </div>
+                          <button 
+                            onClick={() => copyToClipboard(result.timestamps!.join('\n'), 'timestamps')}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all ${
+                              copiedSection === 'timestamps' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {copiedSection === 'timestamps' ? (
+                              <CheckIcon className="w-3 h-3" />
+                            ) : (
+                              <ClipboardDocumentIcon className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                          {result.timestamps.map((timestamp, index) => {
+                            // Parse the timestamp string to extract time and text
+                            const parts = timestamp.split(' - ');
+                            const time = parts[0] || `${index + 1}`;
+                            const text = parts.slice(1).join(' - ') || timestamp;
+                            
+                            return (
+                              <div key={index} className="flex gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <span className="font-mono text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded font-medium min-w-[50px] text-center">
+                                  {time}
+                                </span>
+                                <span className="text-sm text-gray-700 flex-1">{text}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Social Snippets */}
+                  {result.social_snippets && result.social_snippets.length > 0 && (
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                            <ShareIcon className="w-5 h-5 text-pink-600" />
+                          </div>
+                          <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.socialMedia.title')}</h2>
+                        </div>
+                        <div className="space-y-3">
+                          {result.social_snippets.map((snippet, index) => (
+                            <div key={index} className="group p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border border-pink-200 hover:shadow-md transition-all">
+                              <div className="flex items-start justify-between gap-3">
+                                <p className="text-sm text-gray-700 flex-1">{renderContent(snippet)}</p>
+                                <button 
+                                  onClick={() => copyToClipboard(renderContent(snippet), `social_${index}`)}
+                                  className={`flex-shrink-0 p-1 rounded transition-all ${
+                                    copiedSection === `social_${index}` 
+                                      ? 'bg-green-100 text-green-600' 
+                                      : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                                  }`}
+                                >
+                                  {copiedSection === `social_${index}` ? (
+                                    <CheckIcon className="w-4 h-4" />
+                                  ) : (
+                                    <ClipboardDocumentIcon className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SEO Content */}
+                  {result.seo && (
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                      <div className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <MagnifyingGlassIcon className="w-5 h-5 text-indigo-600" />
+                          </div>
+                          <h2 className="text-lg font-semibold text-gray-900">{t('jobResults.sections.seoContent.title')}</h2>
+                        </div>
+                        <div className="space-y-4">
+                          {result.seo.title && (
+                            <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-xs font-medium text-indigo-800">{t('jobResults.sections.seoContent.titleLabel')}</label>
+                                <button 
+                                  onClick={() => copyToClipboard(renderContent(result.seo!.title), 'seo_title')}
+                                  className={`p-1 rounded transition-all ${
+                                    copiedSection === 'seo_title' 
+                                      ? 'bg-green-100 text-green-600' 
+                                      : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                                  }`}
+                                >
+                                  {copiedSection === 'seo_title' ? (
+                                    <CheckIcon className="w-3 h-3" />
+                                  ) : (
+                                    <ClipboardDocumentIcon className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                              <p className="text-sm text-indigo-900 font-medium">{renderContent(result.seo.title)}</p>
+                            </div>
+                          )}
+                          {result.seo.description && (
+                            <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-xs font-medium text-indigo-800">{t('jobResults.sections.seoContent.descriptionLabel')}</label>
+                                <button 
+                                  onClick={() => copyToClipboard(renderContent(result.seo!.description), 'seo_description')}
+                                  className={`p-1 rounded transition-all ${
+                                    copiedSection === 'seo_description' 
+                                      ? 'bg-green-100 text-green-600' 
+                                      : 'bg-white text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                                  }`}
+                                >
+                                  {copiedSection === 'seo_description' ? (
+                                    <CheckIcon className="w-3 h-3" />
+                                  ) : (
+                                    <ClipboardDocumentIcon className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                              <p className="text-sm text-indigo-900">{renderContent(result.seo.description)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

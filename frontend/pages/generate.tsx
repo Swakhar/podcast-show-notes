@@ -17,9 +17,7 @@ import { toYouTubeChapters } from "../lib/chapters";
 import { useToast } from "../contexts/ToastContext";
 import GuestResearchForm from '../components/GuestResearchForm';
 import AudioUploadForm from '../components/AudioUploadForm';
-import RepurposingTab from '../components/repurposing/RepurposingTab';
-import { RepurposingDashboard } from '../components/repurposing';
-import RepurposingSidebarForm from '../components/repurposing/RepurposingSidebarForm';
+import { RepurposingSection } from '../components/repurposing';
 
 /* ---------- Small helpers ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -607,34 +605,74 @@ export default function Generate() {
                     me={me}
                   />
                 ) : activeTab === 'repurpose' && (
-                  <RepurposingSidebarForm
-                    onSubmit={async (data) => {
-                      try {
-                        setIsSubmitting(true);
-                        const result = await submitRepurposingJob(data);
-                        setJobId(result.id);
-                        setJobStatus({
-                          id: result.id,
-                          status: result.status || "pending",
-                          stage: result.stage,
-                          billed_minutes: result.billed_minutes,
-                          result: {}
-                        });
-                      } catch (err: any) {
-                        setErrorMessage(err.message || "Failed to create repurposing job");
-                        setIsSubmitting(false);
-                      }
+                  <RepurposingSection
+                    mode="sidebar"
+                    onJobCreated={(newJobId) => {
+                      setJobId(newJobId);
+                      setActiveTab('repurpose');
                     }}
-                    isSubmitting={isSubmitting}
-                    me={me}
                   />
                 )}
               </div>
             </section>
 
-            {/* Enhanced Results Section */}
+            {/* ✅ Enhanced Results Section with Better Loading States */}
             <section className="lg:col-span-3 space-y-6">
-              {!jobStatus?.result ? (
+              {/* Show loading state while processing */}
+              {isBusy && !jobStatus?.result ? (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+                  <div className="text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                      activeTab === 'guest' 
+                        ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                        : activeTab === 'repurpose'
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-500'
+                        : 'bg-gradient-to-br from-[#9CEE69] to-green-400'
+                    }`}>
+                      {/* Loading spinner */}
+                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    
+                    {/* Show stage timeline with current stage */}
+                    <StageTimeline stage={jobStatus?.stage || "queued"} />
+                    
+                    {/* Show current stage text */}
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {jobStatus?.stage ? 
+                          jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
+                          "Starting..."
+                        }
+                      </h3>
+                      <p className="text-gray-600">
+                        {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
+                      </p>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full max-w-md mx-auto">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-500 ${
+                            activeTab === 'guest' 
+                              ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                              : activeTab === 'repurpose'
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                              : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
+                          }`}
+                          style={{ width: `${Math.max(5, progress)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 max-w-md mx-auto">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                      <Skeleton className="h-4 w-4/6" />
+                    </div>
+                  </div>
+                </div>
+              ) : !jobStatus?.result ? (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
                   <div className="text-center space-y-6">
                     <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
@@ -659,47 +697,7 @@ export default function Generate() {
                       )}
                     </div>
                     
-                    {isBusy ? (
-                      <>
-                        {/* Show stage timeline with current stage */}
-                        <StageTimeline stage={jobStatus?.stage || "queued"} />
-                        
-                        {/* Show current stage text */}
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-gray-900">
-                            {jobStatus?.stage ? 
-                              jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
-                              "Starting..."
-                            }
-                          </h3>
-                          <p className="text-gray-600">
-                            {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
-                          </p>
-                        </div>
-                        
-                        {/* Progress bar */}
-                        <div className="w-full max-w-md mx-auto">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-500 ${
-                                activeTab === 'guest' 
-                                  ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
-                                  : activeTab === 'repurpose'
-                                  ? 'bg-gradient-to-r from-purple-500 to-pink-500'
-                                  : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
-                              }`}
-                              style={{ width: `${Math.max(5, progress)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4 max-w-md mx-auto">
-                          <Skeleton className="h-6 w-full" />
-                          <Skeleton className="h-4 w-5/6" />
-                          <Skeleton className="h-4 w-4/6" />
-                        </div>
-                      </>
-                    ) : activeTab === 'guest' ? (
+                    {activeTab === 'guest' ? (
                       <>
                         <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.guest.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
@@ -718,9 +716,9 @@ export default function Generate() {
                       </>
                     ) : activeTab === 'repurpose' ? (
                       <>
-                        <h3 className="text-2xl font-bold text-gray-900">Ready to Generate Content</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">Ready to Repurpose Content</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
-                          Upload an audio file or paste a URL in the sidebar to start generating professional podcast content with AI.
+                          Select existing podcast content from your library to transform into engaging social media posts, LinkedIn carousels, and more.
                         </p>
                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                           <div className="p-4 bg-purple-50 rounded-lg text-center">
@@ -729,7 +727,7 @@ export default function Generate() {
                           </div>
                           <div className="p-4 bg-pink-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">🎯</div>
-                            <p className="text-sm font-medium text-gray-700">Highly Accurate</p>
+                            <p className="text-sm font-medium text-gray-700">Multi-Platform</p>
                           </div>
                         </div>
                       </>
@@ -756,11 +754,14 @@ export default function Generate() {
               ) : (
                 <div className="space-y-6">
                   {/* Check if this is a repurposing job with repurposed content */}
-                  {jobStatus.result.repurposed_content ? (
-                    // ✅ Use RepurposingDashboard for repurposing results
-                    <RepurposingDashboard 
-                      jobStatus={jobStatus} 
-                      results={jobStatus.result.repurposed_content} 
+                  {jobStatus.result.repurposed_content && Object.keys(jobStatus.result.repurposed_content).length > 0 ? (
+                    <RepurposingSection
+                      sourceJobId={jobStatus.id}
+                      existingRepurposedContent={jobStatus.result.repurposed_content}
+                      mode="inline"
+                      onJobCreated={(newJobId) => {
+                        setJobId(newJobId);
+                      }}
                     />
                   ) : (
                     // ✅ Keep existing results display for audio/guest jobs
