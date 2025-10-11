@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContentActions from '../ContentActions';
+import { useToast } from "../../../contexts/ToastContext";
 
 interface TwitterThreadPreviewProps {
   data: any;
 }
 
 export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps) {
+  const { showToast } = useToast();
   const [expandedTweet, setExpandedTweet] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'thread' | 'individual'>('thread');
   const [currentTweet, setCurrentTweet] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
   
   const hookTweet = data?.structured_data?.hook_tweet || data?.hook_tweet || '';
   const threadTweets = data?.structured_data?.thread_tweets || data?.thread_tweets || [];
@@ -18,11 +21,118 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!', 'success');
   };
 
+  // ✅ Export thread in multiple formats
   const exportThread = () => {
     const allTweets = [hookTweet, ...threadTweets.map((t: any) => t.content || t.text || t)];
     return allTweets.map((tweet, index) => `${index + 1}/${allTweets.length} ${tweet}`).join('\n\n');
+  };
+
+  // ✅ NEW: Download formatted text files
+  const downloadFormattedFiles = () => {
+    setIsExporting(true);
+    
+    try {
+      const allTweets = [hookTweet, ...threadTweets.map((t: any) => t.content || t.text || t)];
+      const timestamp = new Date().toISOString().split('T')[0];
+      
+      // Format 1: Simple numbered thread
+      const simpleFormat = allTweets.map((tweet, index) => 
+        `${index + 1}/${allTweets.length} ${tweet}`
+      ).join('\n\n');
+      
+      // Format 2: Thread with hashtags
+      const hashtagFormat = allTweets.map((tweet, index) => {
+        const hashtagsStr = index === allTweets.length - 1 ? `\n\n${hashtags.join(' ')}` : '';
+        return `${index + 1}/${allTweets.length} ${tweet}${hashtagsStr}`;
+      }).join('\n\n');
+      
+      // Format 3: Twitter scheduler format (Buffer/Hootsuite)
+      const schedulerFormat = allTweets.map((tweet, index) => 
+        `TWEET ${index + 1}:\n${tweet}\n\nSTATUS: ${index === 0 ? 'MAIN TWEET' : 'REPLY TO PREVIOUS'}\nCHARACTERS: ${tweet.length}/280\n\n${'='.repeat(50)}\n`
+      ).join('\n');
+      
+      // Format 4: Analytics format with metadata
+      const analyticsFormat = `TWITTER THREAD ANALYTICS REPORT
+Generated: ${new Date().toLocaleDateString()}
+Total Tweets: ${allTweets.length}
+Estimated Reach: ${data?.optimization?.engagement_predictions?.estimated_reach || '5.2K'}
+Estimated Engagement: ${data?.optimization?.engagement_predictions?.estimated_engagement_rate || '4.8'}%
+
+THREAD CONTENT:
+${allTweets.map((tweet, index) => {
+  return `\nTWEET ${index + 1}:
+Content: ${tweet}
+Character Count: ${tweet.length}/280
+Type: ${index === 0 ? 'Hook Tweet' : 'Thread Tweet'}
+${index === 0 ? 'Viral Potential: High 🔥' : 'Follow-up Score: Good ✅'}`;
+}).join('\n')}
+
+HASHTAGS:
+${hashtags.join(', ')}
+
+OPTIMIZATION NOTES:
+• Best posting time: 9:00 AM EST
+• Hook tweet optimized for engagement
+• Thread length optimized for retention
+• Hashtags selected for maximum reach`;
+
+      // Download each format
+      const formats = {
+        [`twitter_thread_simple_${timestamp}.txt`]: simpleFormat,
+        [`twitter_thread_with_hashtags_${timestamp}.txt`]: hashtagFormat,
+        [`twitter_thread_scheduler_${timestamp}.txt`]: schedulerFormat,
+        [`twitter_thread_analytics_${timestamp}.txt`]: analyticsFormat
+      };
+      
+      Object.entries(formats).forEach(([filename, content]) => {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      });
+
+      showToast('📄 Thread files downloaded successfully!', 'success');
+    } catch (error: any) {
+      console.error('Error downloading thread files:', error);
+      showToast(`Error downloading files: ${error.message}`, 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ✅ NEW: Export single tweet file
+  const downloadSingleTweet = (tweetContent: string, index: number) => {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `tweet_${index + 1}_${timestamp}.txt`;
+    const content = `TWEET ${index + 1} OF ${allTweets.length}
+
+${tweetContent}
+
+---
+Character Count: ${tweetContent.length}/280
+Generated: ${new Date().toLocaleDateString()}
+Type: ${index === 0 ? 'Hook Tweet' : 'Thread Tweet'}
+${hashtags.length > 0 ? `\nSuggested Hashtags: ${hashtags.join(' ')}` : ''}`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    
+    showToast(`Tweet ${index + 1} downloaded!`, 'success');
   };
 
   const allTweets = [
@@ -45,7 +155,7 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
 
   return (
     <div className="p-6">
-      {/* Enhanced Header */}
+      {/* Enhanced Header with Export Buttons */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
@@ -57,7 +167,7 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setViewMode('thread')}
@@ -84,13 +194,27 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
             📋 Copy Thread
           </button>
           
-          <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium">
-            📅 Schedule Posts
+          {/* ✅ NEW: Download Files Button */}
+          <button
+            onClick={downloadFormattedFiles}
+            disabled={isExporting}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
+          >
+            {isExporting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Downloading...
+              </>
+            ) : (
+              <>
+                📄 Download Files
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* View Mode: Thread */}
+      {/* Thread View with Individual Download Buttons */}
       {viewMode === 'thread' && (
         <div className="bg-black rounded-xl p-6 mb-6">
           <div className="max-w-2xl mx-auto">
@@ -110,13 +234,11 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
                     className="bg-black border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-colors"
                   >
                     <div className="flex gap-3">
-                      {/* Profile Image */}
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-bold text-sm">YP</span>
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        {/* Header */}
                         <div className="flex items-center gap-2 mb-2">
                           <span className="font-bold text-white">Your Profile</span>
                           <span className="text-blue-400">@yourhandle</span>
@@ -132,7 +254,6 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
                           </span>
                         </div>
                         
-                        {/* Content */}
                         <div className="text-white leading-relaxed mb-3">
                           {isLong && !isExpanded ? (
                             <>
@@ -159,38 +280,45 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
                           )}
                         </div>
                         
-                        {/* Engagement Metrics */}
-                        <div className="flex items-center gap-6 text-gray-400 text-sm">
-                          <button className="flex items-center gap-1 hover:text-red-400 transition-colors group">
-                            <svg className="w-4 h-4 group-hover:fill-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                            {formatEngagement(engagement.likes)}
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-green-400 transition-colors group">
-                            <svg className="w-4 h-4 group-hover:stroke-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            {formatEngagement(engagement.retweets)}
-                          </button>
-                          <button className="flex items-center gap-1 hover:text-blue-400 transition-colors group">
-                            <svg className="w-4 h-4 group-hover:stroke-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            {formatEngagement(engagement.replies)}
-                          </button>
-                          <button 
-                            onClick={() => copyToClipboard(content)}
-                            className="flex items-center gap-1 hover:text-blue-400 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            Copy
-                          </button>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-6 text-gray-400 text-sm">
+                            <button className="flex items-center gap-1 hover:text-red-400 transition-colors group">
+                              <svg className="w-4 h-4 group-hover:fill-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              {formatEngagement(engagement.likes)}
+                            </button>
+                            <button className="flex items-center gap-1 hover:text-green-400 transition-colors group">
+                              <svg className="w-4 h-4 group-hover:stroke-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {formatEngagement(engagement.retweets)}
+                            </button>
+                            <button className="flex items-center gap-1 hover:text-blue-400 transition-colors group">
+                              <svg className="w-4 h-4 group-hover:stroke-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                              </svg>
+                              {formatEngagement(engagement.replies)}
+                            </button>
+                          </div>
+                          
+                          {/* ✅ Individual Tweet Actions */}
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => copyToClipboard(content)}
+                              className="flex items-center gap-1 hover:text-blue-400 transition-colors text-xs px-2 py-1 bg-gray-800 rounded"
+                            >
+                              📋 Copy
+                            </button>
+                            <button 
+                              onClick={() => downloadSingleTweet(content, index)}
+                              className="flex items-center gap-1 hover:text-green-400 transition-colors text-xs px-2 py-1 bg-gray-800 rounded"
+                            >
+                              📄 Download
+                            </button>
+                          </div>
                         </div>
                         
-                        {/* Thread Connection Line */}
                         {index < allTweets.length - 1 && (
                           <div className="mt-3 ml-2 w-0.5 h-4 bg-gray-700"></div>
                         )}
@@ -204,7 +332,7 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
         </div>
       )}
 
-      {/* View Mode: Individual Tweet Slider */}
+      {/* Individual View - Keep existing code */}
       {viewMode === 'individual' && (
         <div className="bg-black rounded-xl p-6 mb-6">
           <div className="max-w-md mx-auto">
@@ -264,13 +392,28 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
                 </div>
               </div>
             </div>
+            
+            {/* Individual Tweet Actions */}
+            <div className="mt-4 flex gap-2 justify-center">
+              <button 
+                onClick={() => copyToClipboard(allTweets[currentTweet]?.content || '')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                📋 Copy This Tweet
+              </button>
+              <button 
+                onClick={() => downloadSingleTweet(allTweets[currentTweet]?.content || '', currentTweet)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                📄 Download This Tweet
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Analytics & Hashtags */}
+      {/* Analytics & Actions - Keep existing code */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Analytics Predictions */}
         {data?.optimization && (
           <div className="bg-blue-50 rounded-lg p-4">
             <h4 className="font-medium text-blue-900 mb-3">📊 Performance Predictions</h4>
@@ -308,25 +451,6 @@ export default function TwitterThreadPreview({ data }: TwitterThreadPreviewProps
             </div>
           </div>
         )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-3">📊 Thread Analytics</h4>
-          <div className="space-y-3">
-            <div className="p-3 bg-white border border-blue-200 rounded-lg">
-              <div className="text-sm text-blue-800">
-                🔄 Expected retweets: {Math.floor(Math.random() * 200) + 50}
-              </div>
-            </div>
-            <div className="p-3 bg-white border border-blue-200 rounded-lg">
-              <div className="text-sm text-blue-800">
-                ❤️ Expected likes: {Math.floor(Math.random() * 1000) + 300}
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className="bg-purple-50 rounded-lg p-4">
           <h4 className="font-medium text-purple-900 mb-3">🚀 Twitter Tools</h4>

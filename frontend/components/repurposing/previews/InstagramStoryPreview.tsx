@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContentActions from '../ContentActions';
+import { useToast } from "../../../contexts/ToastContext";
 
 interface InstagramStoryPreviewProps {
   data: any;
 }
 
 export default function InstagramStoryPreview({ data }: InstagramStoryPreviewProps) {
+  const { showToast } = useToast();
   const [currentStory, setCurrentStory] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<{ [key: number]: string }>({});
   
   const stories = data?.structured_data?.story_sequence || data?.stories || [];
   const designSpecs = data?.design_automation || data?.design_specs || {};
@@ -27,8 +31,80 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
     }
   }));
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  // ✅ NEW: Generate story images
+  const generateStoryImages = async () => {
+    setIsGeneratingImages(true);
+    
+    try {
+      const response = await fetch('/api/repurpose/generate-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contentType: 'instagram_story',
+          stories: enhancedStories,
+          designSpecs: {
+            dimensions: '1080x1920',
+            format: 'story',
+            brand_colors: designSpecs.brand_colors || ['#667eea', '#764ba2'],
+            font_family: designSpecs.font_family || 'Inter',
+            ...designSpecs
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate images');
+      }
+
+      const result = await response.json();
+      setGeneratedImages(result.images || {});
+      
+      // Show success message
+      showToast('Story images generated successfully!', 'success');
+    } catch (error: any) {
+      console.error('Error generating story images:', error);
+      showToast(`Error generating images: ${error.message}`, 'error');
+    } finally {
+      setIsGeneratingImages(false);
+    }
+  };
+
+  // ✅ NEW: Download all story images
+  const downloadStoryImages = async () => {
+    try {
+      const response = await fetch('/api/repurpose/download-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contentType: 'instagram_story',
+          stories: enhancedStories,
+          images: generatedImages
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to prepare download');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'instagram_stories.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      showToast('Story images downloaded successfully!', 'success');
+    } catch (error: any) {
+      console.error('Error downloading images:', error);
+      showToast(`Error downloading images: ${error.message}`, 'error');
+    }
   };
 
   const getBackgroundStyle = (story: any) => {
@@ -69,9 +145,34 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
           >
             {isPlaying ? '⏸️ Pause' : '▶️ Preview Stories'}
           </button>
-          <button className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors text-sm font-medium">
-            📱 Export for Instagram
+          
+          {/* ✅ NEW: Generate Images Button */}
+          <button
+            onClick={generateStoryImages}
+            disabled={isGeneratingImages}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
+          >
+            {isGeneratingImages ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                🎨 Generate Images
+              </>
+            )}
           </button>
+
+          {/* ✅ NEW: Download Images Button */}
+          {Object.keys(generatedImages).length > 0 && (
+            <button
+              onClick={downloadStoryImages}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+            >
+              📥 Download Images
+            </button>
+          )}
         </div>
       </div>
 
@@ -136,69 +237,81 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                     transition={{ duration: 0.3 }}
                     className="absolute inset-0 flex items-center justify-center text-white p-6"
                     style={{
-                      background: getBackgroundStyle(enhancedStories[currentStory])
+                      background: generatedImages[currentStory] 
+                        ? `url(${generatedImages[currentStory]}) center/cover` 
+                        : getBackgroundStyle(enhancedStories[currentStory])
                     }}
                   >
-                    <div className="text-center">
-                      {enhancedStories[currentStory]?.type === 'quote' && (
-                        <div>
-                          <div className="text-6xl mb-4">💭</div>
-                          <p className="text-xl font-bold leading-tight mb-4">
-                            "{enhancedStories[currentStory]?.content}"
-                          </p>
-                          <div className="text-sm opacity-80">Swipe up for more insights</div>
+                    {/* ✅ Show generated image or fallback to text */}
+                    {generatedImages[currentStory] ? (
+                      <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-lg font-bold mb-2">✨ Generated Story</div>
+                          <div className="text-sm opacity-80">Ready for Instagram</div>
                         </div>
-                      )}
-                      
-                      {enhancedStories[currentStory]?.type === 'stat' && (
-                        <div>
-                          <div className="text-6xl mb-4">📊</div>
-                          <div className="text-4xl font-bold mb-2">
-                            {Math.floor(Math.random() * 90) + 10}%
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        {enhancedStories[currentStory]?.type === 'quote' && (
+                          <div>
+                            <div className="text-6xl mb-4">💭</div>
+                            <p className="text-xl font-bold leading-tight mb-4">
+                              "{enhancedStories[currentStory]?.content}"
+                            </p>
+                            <div className="text-sm opacity-80">Swipe up for more insights</div>
                           </div>
-                          <p className="text-lg mb-4">
-                            {enhancedStories[currentStory]?.content}
-                          </p>
-                          <div className="text-sm opacity-80">Source: Our podcast research</div>
-                        </div>
-                      )}
-                      
-                      {enhancedStories[currentStory]?.type === 'tip' && (
-                        <div>
-                          <div className="text-6xl mb-4">💡</div>
-                          <div className="text-lg font-bold mb-2">Pro Tip</div>
-                          <p className="text-lg leading-relaxed">
-                            {enhancedStories[currentStory]?.content}
-                          </p>
-                        </div>
-                      )}
-                      
-                      {enhancedStories[currentStory]?.type === 'question' && (
-                        <div>
-                          <div className="text-6xl mb-4">❓</div>
-                          <p className="text-xl font-bold leading-tight mb-4">
-                            {enhancedStories[currentStory]?.content}
-                          </p>
-                          <div className="flex gap-2 justify-center">
-                            <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
-                              Yes
+                        )}
+                        
+                        {enhancedStories[currentStory]?.type === 'stat' && (
+                          <div>
+                            <div className="text-6xl mb-4">📊</div>
+                            <div className="text-4xl font-bold mb-2">
+                              {Math.floor(Math.random() * 90) + 10}%
                             </div>
-                            <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
-                              No
+                            <p className="text-lg mb-4">
+                              {enhancedStories[currentStory]?.content}
+                            </p>
+                            <div className="text-sm opacity-80">Source: Our podcast research</div>
+                          </div>
+                        )}
+                        
+                        {enhancedStories[currentStory]?.type === 'tip' && (
+                          <div>
+                            <div className="text-6xl mb-4">💡</div>
+                            <div className="text-lg font-bold mb-2">Pro Tip</div>
+                            <p className="text-lg leading-relaxed">
+                              {enhancedStories[currentStory]?.content}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {enhancedStories[currentStory]?.type === 'question' && (
+                          <div>
+                            <div className="text-6xl mb-4">❓</div>
+                            <p className="text-xl font-bold leading-tight mb-4">
+                              {enhancedStories[currentStory]?.content}
+                            </p>
+                            <div className="flex gap-2 justify-center">
+                              <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
+                                Yes
+                              </div>
+                              <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
+                                No
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      
-                      {(!enhancedStories[currentStory]?.type || enhancedStories[currentStory]?.type === 'behind_scenes') && (
-                        <div>
-                          <div className="text-6xl mb-4">🎬</div>
-                          <p className="text-lg leading-relaxed">
-                            {enhancedStories[currentStory]?.content}
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                        
+                        {(!enhancedStories[currentStory]?.type || enhancedStories[currentStory]?.type === 'behind_scenes') && (
+                          <div>
+                            <div className="text-6xl mb-4">🎬</div>
+                            <p className="text-lg leading-relaxed">
+                              {enhancedStories[currentStory]?.content}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -237,20 +350,29 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
         </div>
       </div>
 
-      {/* Story Grid Overview */}
+      {/* ✅ ENHANCED: Story Grid Overview with Image Status */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {enhancedStories.map((story: any, index: number) => (
           <motion.div
             key={index}
             whileHover={{ scale: 1.05 }}
             onClick={() => setCurrentStory(index)}
-            className={`aspect-[9/16] rounded-lg cursor-pointer overflow-hidden border-2 transition-all ${
+            className={`aspect-[9/16] rounded-lg cursor-pointer overflow-hidden border-2 transition-all relative ${
               currentStory === index ? 'border-pink-500 ring-2 ring-pink-200' : 'border-gray-200'
             }`}
             style={{
-              background: getBackgroundStyle(story)
+              background: generatedImages[index] 
+                ? `url(${generatedImages[index]}) center/cover` 
+                : getBackgroundStyle(story)
             }}
           >
+            {/* ✅ Image status indicator */}
+            {generatedImages[index] && (
+              <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+            )}
+            
             <div className="p-3 text-white h-full flex flex-col justify-between">
               <div className="text-center">
                 <div className="text-2xl mb-2">
@@ -265,14 +387,16 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-xs opacity-70">Story {index + 1}</div>
+                <div className="text-xs opacity-70">
+                  Story {index + 1} {generatedImages[index] && '• Image Ready'}
+                </div>
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Action Buttons */}
+      {/* ✅ ENHANCED: Action Buttons with Image Features */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div className="bg-purple-50 rounded-lg p-4">
           <h4 className="font-medium text-purple-900 mb-3">📊 Story Analytics</h4>
@@ -287,16 +411,43 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                 💬 Expected engagement: {Math.floor(Math.random() * 20) + 15}%
               </div>
             </div>
+            {/* ✅ NEW: Image generation status */}
+            <div className="p-3 bg-white border border-purple-200 rounded-lg">
+              <div className="text-sm text-purple-800">
+                🎨 Images generated: {Object.keys(generatedImages).length}/{enhancedStories.length}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
           <h4 className="font-medium text-pink-900 mb-3">🚀 Publishing Tools</h4>
-          <ContentActions 
-            content={data}
-            contentType="instagram_story"
-            filename="instagram_stories.txt"
-          />
+          <div className="space-y-3">
+            <ContentActions 
+              content={data}
+              contentType="instagram_story"
+              filename="instagram_stories.txt"
+            />
+            
+            {/* ✅ NEW: Image-specific actions */}
+            {Object.keys(generatedImages).length > 0 && (
+              <div className="pt-3 border-t border-pink-200">
+                <h5 className="font-medium text-pink-800 mb-2">📱 Ready for Instagram</h5>
+                <button
+                  onClick={downloadStoryImages}
+                  className="w-full p-3 bg-white border border-pink-200 rounded-lg hover:border-pink-300 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📥</span>
+                    <div>
+                      <div className="font-medium text-pink-900">Download Story Images</div>
+                      <div className="text-xs text-pink-700">1080x1920 PNG files</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
