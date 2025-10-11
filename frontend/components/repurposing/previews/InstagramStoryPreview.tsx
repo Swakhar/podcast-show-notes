@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContentActions from '../ContentActions';
 import { useToast } from "../../../contexts/ToastContext";
@@ -13,6 +13,9 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
   const [isPlaying, setIsPlaying] = useState(false);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<{ [key: number]: string }>({});
+  const [storyProgress, setStoryProgress] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef<NodeJS.Timeout | null>(null);
   
   const stories = data?.structured_data?.story_sequence || data?.stories || [];
   const designSpecs = data?.design_automation || data?.design_specs || {};
@@ -31,16 +34,73 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
     }
   }));
 
-  // ✅ NEW: Generate story images
+  // ✅ AUTO-PLAY FUNCTIONALITY
+  const STORY_DURATION = 4000;
+  const PROGRESS_UPDATE_INTERVAL = 50;
+
+  const startStoryPlayback = () => {
+    setIsPlaying(true);
+    setStoryProgress(0);
+    
+    progressRef.current = setInterval(() => {
+      setStoryProgress(prev => {
+        if (prev >= 100) return 0;
+        return prev + (100 / (STORY_DURATION / PROGRESS_UPDATE_INTERVAL));
+      });
+    }, PROGRESS_UPDATE_INTERVAL);
+
+    intervalRef.current = setInterval(() => {
+      setCurrentStory(prev => {
+        const nextStory = prev + 1;
+        if (nextStory >= enhancedStories.length) {
+          stopStoryPlayback();
+          return 0;
+        }
+        setStoryProgress(0);
+        return nextStory;
+      });
+    }, STORY_DURATION);
+  };
+
+  const stopStoryPlayback = () => {
+    setIsPlaying(false);
+    setStoryProgress(0);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+      progressRef.current = null;
+    }
+  };
+
+  const togglePlayback = () => {
+    if (isPlaying) {
+      stopStoryPlayback();
+    } else {
+      startStoryPlayback();
+    }
+  };
+
+  useEffect(() => {
+    return () => stopStoryPlayback();
+  }, []);
+
+  const goToStory = (index: number) => {
+    if (isPlaying) stopStoryPlayback();
+    setCurrentStory(index);
+    setStoryProgress(0);
+  };
+
+  // ✅ GENERATE IMAGES ONLY
   const generateStoryImages = async () => {
     setIsGeneratingImages(true);
     
     try {
       const response = await fetch('/api/repurpose/generate-images', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType: 'instagram_story',
           stories: enhancedStories,
@@ -54,14 +114,10 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate images');
-      }
+      if (!response.ok) throw new Error('Failed to generate images');
 
       const result = await response.json();
       setGeneratedImages(result.images || {});
-      
-      // Show success message
       showToast('Story images generated successfully!', 'success');
     } catch (error: any) {
       console.error('Error generating story images:', error);
@@ -71,47 +127,11 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
     }
   };
 
-  // ✅ NEW: Download all story images
-  const downloadStoryImages = async () => {
-    try {
-      const response = await fetch('/api/repurpose/download-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contentType: 'instagram_story',
-          stories: enhancedStories,
-          images: generatedImages
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to prepare download');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'instagram_stories.zip';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      showToast('Story images downloaded successfully!', 'success');
-    } catch (error: any) {
-      console.error('Error downloading images:', error);
-      showToast(`Error downloading images: ${error.message}`, 'error');
-    }
-  };
-
   const getBackgroundStyle = (story: any) => {
     const backgrounds = {
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       solid: designSpecs.brand_colors?.[0] || '#E91E63',
-      pattern: 'linear-gradient(45deg, #FF6B6B 25%, transparent 25%, transparent 75%, #FF6B6B 75%, #FF6B6B), linear-gradient(45deg, #FF6B6B 25%, transparent 25%, transparent 75%, #FF6B6B 75%, #FF6B6B)',
+      pattern: 'linear-gradient(45deg, #FF6B6B 25%, transparent 25%, transparent 75%, #FF6B6B 75%)',
     };
     
     return story.background_type && backgrounds[story.background_type as keyof typeof backgrounds] 
@@ -126,7 +146,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
 
   return (
     <div className="p-6">
-      {/* Header */}
+      {/* Clean Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -134,19 +154,33 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
           </div>
           <div>
             <h3 className="text-xl font-bold text-gray-900">Instagram Stories</h3>
-            <p className="text-sm text-gray-600">{enhancedStories.length} stories • Interactive format</p>
+            <p className="text-sm text-gray-600">{enhancedStories.length} stories • Interactive preview</p>
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-3">
+          {/* Play/Pause Button */}
           <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-sm font-medium"
+            onClick={togglePlayback}
+            className={`px-4 py-2 text-white rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
+              isPlaying 
+                ? 'bg-red-500 hover:bg-red-600' 
+                : 'bg-pink-500 hover:bg-pink-600'
+            }`}
           >
-            {isPlaying ? '⏸️ Pause' : '▶️ Preview Stories'}
+            {isPlaying ? (
+              <>
+                <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                ⏸️ Pause
+              </>
+            ) : (
+              <>
+                ▶️ Preview
+              </>
+            )}
           </button>
           
-          {/* ✅ NEW: Generate Images Button */}
+          {/* Generate Images Button */}
           <button
             onClick={generateStoryImages}
             disabled={isGeneratingImages}
@@ -163,23 +197,12 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
               </>
             )}
           </button>
-
-          {/* ✅ NEW: Download Images Button */}
-          {Object.keys(generatedImages).length > 0 && (
-            <button
-              onClick={downloadStoryImages}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
-            >
-              📥 Download Images
-            </button>
-          )}
         </div>
       </div>
 
       {/* Instagram Phone Mockup */}
       <div className="bg-gray-100 rounded-3xl p-6 mb-6">
         <div className="max-w-sm mx-auto">
-          {/* Phone Frame */}
           <div className="bg-black rounded-3xl p-2">
             <div className="bg-white rounded-3xl overflow-hidden relative" style={{ aspectRatio: '9/16' }}>
               {/* Status Bar */}
@@ -204,11 +227,11 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                   {enhancedStories.map((_, index) => (
                     <div key={index} className="flex-1 h-1 bg-white bg-opacity-30 rounded-full overflow-hidden">
                       <div 
-                        className={`h-full bg-white rounded-full transition-all duration-300 ${
-                          index < currentStory ? 'w-full' 
-                          : index === currentStory ? 'w-1/2' 
-                          : 'w-0'
-                        }`}
+                        className="h-full bg-white rounded-full transition-all duration-75"
+                        style={{
+                          width: index === currentStory ? `${storyProgress}%` : 
+                                index < currentStory ? '100%' : '0%'
+                        }}
                       />
                     </div>
                   ))}
@@ -218,11 +241,20 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
               {/* Story Header */}
               <div className="absolute top-12 left-0 right-0 z-20 p-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center relative">
                     <span className="text-white text-xs font-bold">YP</span>
+                    {isPlaying && (
+                      <div className="absolute -inset-1 border-2 border-white rounded-full animate-pulse"></div>
+                    )}
                   </div>
                   <span className="text-white text-sm font-medium">yourprofile</span>
                   <span className="text-white text-sm opacity-70">2h</span>
+                  {isPlaying && (
+                    <div className="ml-auto flex items-center gap-1 text-white text-xs bg-black bg-opacity-30 px-2 py-1 rounded-full">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      LIVE
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -242,7 +274,6 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                         : getBackgroundStyle(enhancedStories[currentStory])
                     }}
                   >
-                    {/* ✅ Show generated image or fallback to text */}
                     {generatedImages[currentStory] ? (
                       <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                         <div className="text-center">
@@ -252,6 +283,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                       </div>
                     ) : (
                       <div className="text-center">
+                        {/* Story Type Content */}
                         {enhancedStories[currentStory]?.type === 'quote' && (
                           <div>
                             <div className="text-6xl mb-4">💭</div>
@@ -320,7 +352,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
               <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => setCurrentStory(prev => prev > 0 ? prev - 1 : enhancedStories.length - 1)}
+                    onClick={() => goToStory(currentStory > 0 ? currentStory - 1 : enhancedStories.length - 1)}
                     className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
                   >
                     ←
@@ -335,10 +367,15 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                       <span>❤️</span>
                       <span className="text-sm">{formatNumber(enhancedStories[currentStory]?.engagement?.likes || 0)}</span>
                     </div>
+                    {isPlaying && (
+                      <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                        Auto-playing
+                      </div>
+                    )}
                   </div>
                   
                   <button
-                    onClick={() => setCurrentStory(prev => prev < enhancedStories.length - 1 ? prev + 1 : 0)}
+                    onClick={() => goToStory(currentStory < enhancedStories.length - 1 ? currentStory + 1 : 0)}
                     className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white hover:bg-opacity-30 transition-colors"
                   >
                     →
@@ -350,13 +387,13 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
         </div>
       </div>
 
-      {/* ✅ ENHANCED: Story Grid Overview with Image Status */}
+      {/* Story Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {enhancedStories.map((story: any, index: number) => (
           <motion.div
             key={index}
             whileHover={{ scale: 1.05 }}
-            onClick={() => setCurrentStory(index)}
+            onClick={() => goToStory(index)}
             className={`aspect-[9/16] rounded-lg cursor-pointer overflow-hidden border-2 transition-all relative ${
               currentStory === index ? 'border-pink-500 ring-2 ring-pink-200' : 'border-gray-200'
             }`}
@@ -366,10 +403,15 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                 : getBackgroundStyle(story)
             }}
           >
-            {/* ✅ Image status indicator */}
             {generatedImages[index] && (
               <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">✓</span>
+              </div>
+            )}
+            
+            {currentStory === index && isPlaying && (
+              <div className="absolute top-2 left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                <span className="text-white text-xs">▶</span>
               </div>
             )}
             
@@ -388,7 +430,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
               </div>
               <div className="text-center">
                 <div className="text-xs opacity-70">
-                  Story {index + 1} {generatedImages[index] && '• Image Ready'}
+                  Story {index + 1} {generatedImages[index] && '• Ready'}
                 </div>
               </div>
             </div>
@@ -396,8 +438,8 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
         ))}
       </div>
 
-      {/* ✅ ENHANCED: Action Buttons with Image Features */}
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
+      {/* Analytics & ContentActions */}
+      <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-purple-50 rounded-lg p-4">
           <h4 className="font-medium text-purple-900 mb-3">📊 Story Analytics</h4>
           <div className="space-y-3">
@@ -411,43 +453,32 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                 💬 Expected engagement: {Math.floor(Math.random() * 20) + 15}%
               </div>
             </div>
-            {/* ✅ NEW: Image generation status */}
             <div className="p-3 bg-white border border-purple-200 rounded-lg">
               <div className="text-sm text-purple-800">
                 🎨 Images generated: {Object.keys(generatedImages).length}/{enhancedStories.length}
               </div>
             </div>
+            {isPlaying && (
+              <div className="p-3 bg-white border border-purple-200 rounded-lg">
+                <div className="text-sm text-purple-800 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  Currently auto-playing
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
-          <h4 className="font-medium text-pink-900 mb-3">🚀 Publishing Tools</h4>
-          <div className="space-y-3">
-            <ContentActions 
-              content={data}
-              contentType="instagram_story"
-              filename="instagram_stories.txt"
-            />
-            
-            {/* ✅ NEW: Image-specific actions */}
-            {Object.keys(generatedImages).length > 0 && (
-              <div className="pt-3 border-t border-pink-200">
-                <h5 className="font-medium text-pink-800 mb-2">📱 Ready for Instagram</h5>
-                <button
-                  onClick={downloadStoryImages}
-                  className="w-full p-3 bg-white border border-pink-200 rounded-lg hover:border-pink-300 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📥</span>
-                    <div>
-                      <div className="font-medium text-pink-900">Download Story Images</div>
-                      <div className="text-xs text-pink-700">1080x1920 PNG files</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+          <h4 className="font-medium text-pink-900 mb-3">🚀 Export Options</h4>
+          <ContentActions 
+            content={{
+              ...data,
+              generatedImages: generatedImages // Pass generated images to ContentActions
+            }}
+            contentType="instagram_story"
+            filename="instagram_stories.txt"
+          />
         </div>
       </div>
     </div>

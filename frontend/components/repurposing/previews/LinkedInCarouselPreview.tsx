@@ -13,22 +13,19 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
   const [generatedSlides, setGeneratedSlides] = useState<{ [key: number]: string }>({});
   
-  // Parse the data structure
   const slides = data?.structured_data?.slides || data?.slides || [];
   const title = data?.structured_data?.title || data?.title || 'LinkedIn Carousel';
   const hashtags = data?.structured_data?.hashtags || data?.hashtags || [];
   const designSpecs = data?.design_specs || {};
 
-  // ✅ NEW: Generate carousel slide images
+  // ✅ Generate carousel slide images
   const generateCarouselSlides = async () => {
     setIsGeneratingSlides(true);
     
     try {
       const response = await fetch('/api/repurpose/generate-images', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType: 'linkedin_carousel',
           slides: [{ title, content: 'Cover slide' }, ...slides],
@@ -44,15 +41,10 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate slide images');
-      }
+      if (!response.ok) throw new Error('Failed to generate slide images');
 
       const result = await response.json();
       setGeneratedSlides(result.images || {});
-      
-      // Show success message
-      
       showToast('Carousel slides generated successfully!', 'success');
     } catch (error: any) {
       console.error('Error generating carousel slides:', error);
@@ -62,46 +54,11 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
     }
   };
 
-  // ✅ NEW: Download all carousel slides
-  const downloadCarouselSlides = async () => {
-    try {
-      const response = await fetch('/api/repurpose/download-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contentType: 'linkedin_carousel',
-          slides: [{ title, content: 'Cover slide' }, ...slides],
-          images: generatedSlides
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to prepare download');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'linkedin_carousel_slides.zip';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      showToast('Carousel slides downloaded successfully!', 'success');
-    } catch (error: any) {
-      console.error('Error downloading slides:', error);
-      showToast(`Error downloading slides: ${error.message}`, 'error');
-    }
-  };
-
   const allSlides = [{ title, content: 'Cover slide', type: 'cover' }, ...slides];
 
   return (
     <div className="p-6">
-      {/* Header with actions */}
+      {/* Clean Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -113,8 +70,8 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
           </div>
         </div>
         
-        <div className="flex gap-2">
-          {/* ✅ NEW: Generate Slides Button */}
+        <div className="flex gap-3">
+          {/* Generate Slides Button */}
           <button
             onClick={generateCarouselSlides}
             disabled={isGeneratingSlides}
@@ -131,20 +88,10 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
               </>
             )}
           </button>
-
-          {/* ✅ NEW: Download Slides Button */}
-          {Object.keys(generatedSlides).length > 0 && (
-            <button
-              onClick={downloadCarouselSlides}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
-            >
-              📥 Download Slides
-            </button>
-          )}
         </div>
       </div>
 
-      {/* ✅ ENHANCED: Full LinkedIn UI Mockup with Generated Images */}
+      {/* LinkedIn UI Mockup */}
       <div className="bg-gray-50 rounded-lg p-6 mb-6">
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
@@ -162,7 +109,7 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
               </div>
             </div>
 
-            {/* ✅ Dynamic Carousel with Generated Images */}
+            {/* Carousel with Generated Images */}
             <div className="relative">
               <div 
                 className="aspect-square text-white relative overflow-hidden"
@@ -192,7 +139,6 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                         : 'transparent'
                     }}
                   >
-                    {/* ✅ Show generated image or fallback to text */}
                     {generatedSlides[currentSlide] ? (
                       <div className="text-center">
                         <div className="text-lg font-bold mb-2">✨ Generated Slide</div>
@@ -202,17 +148,12 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                       <>
                         {currentSlide === 0 ? (
                           <div className="text-center">
-                            <h2 
-                              className="text-2xl font-bold mb-4"
-                              style={{ fontSize: designSpecs?.title_size || '2rem' }}
-                            >
-                              {title}
-                            </h2>
+                            <h2 className="text-2xl font-bold mb-4">{title}</h2>
                             <div className="text-blue-100">Swipe to see insights →</div>
                           </div>
                         ) : (
                           <div>
-                            <div className="text-sm mb-2" style={{ opacity: 0.8 }}>
+                            <div className="text-sm mb-2 opacity-80">
                               {currentSlide}/{allSlides.length - 1}
                             </div>
                             <h3 className="text-lg font-bold mb-3">
@@ -228,24 +169,15 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                   </motion.div>
                 </AnimatePresence>
 
-                {/* ✅ Slide generation status indicator */}
+                {/* Generation Status */}
                 {generatedSlides[currentSlide] && (
                   <div className="absolute top-4 right-4 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm">✓</span>
                   </div>
                 )}
-
-                {/* ✅ Brand Logo Overlay */}
-                {designSpecs?.logo_url && !generatedSlides[currentSlide] && (
-                  <img 
-                    src={designSpecs.logo_url} 
-                    alt="Brand Logo"
-                    className="absolute bottom-4 right-4 w-8 h-8 opacity-80"
-                  />
-                )}
               </div>
 
-              {/* Navigation */}
+              {/* Navigation Dots */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
                 {allSlides.map((_, index) => (
                   <button
@@ -281,7 +213,7 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
         </div>
       </div>
 
-      {/* ✅ ENHANCED: Slide Grid Overview with Image Status */}
+      {/* Slide Grid */}
       <div className="grid grid-cols-3 md:grid-cols-5 gap-4 mb-6">
         {allSlides.map((slide: any, index: number) => (
           <motion.div
@@ -302,7 +234,6 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                 : (designSpecs?.background_color || '#1B365D')
             }}
           >
-            {/* ✅ Image status indicator */}
             {generatedSlides[index] && (
               <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">✓</span>
@@ -317,7 +248,7 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
               </div>
               <div className="text-center">
                 <div className="text-xs opacity-70">
-                  {generatedSlides[index] ? 'Image Ready' : 'Text Only'}
+                  {generatedSlides[index] ? 'Ready' : 'Text'}
                 </div>
               </div>
             </div>
@@ -325,8 +256,8 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
         ))}
       </div>
 
-      {/* ✅ ENHANCED: Action Buttons with Slide Features */}
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
+      {/* Analytics & ContentActions */}
+      <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-blue-50 rounded-lg p-4">
           <h4 className="font-medium text-blue-900 mb-3">📊 Performance Predictions</h4>
           <div className="space-y-3">
@@ -340,7 +271,6 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                 💬 Expected engagement: {Math.floor(Math.random() * 15) + 10}%
               </div>
             </div>
-            {/* ✅ NEW: Slide generation status */}
             <div className="p-3 bg-white border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
                 🎨 Slides generated: {Object.keys(generatedSlides).length}/{allSlides.length}
@@ -350,90 +280,15 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
         </div>
 
         <div className="bg-green-50 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-3">🚀 LinkedIn Tools</h4>
-          <div className="space-y-3">
-            <ContentActions 
-              content={data}
-              contentType="linkedin_carousel"
-              filename="linkedin_carousel.txt"
-            />
-            
-            {/* ✅ NEW: Slide-specific actions */}
-            {Object.keys(generatedSlides).length > 0 && (
-              <div className="pt-3 border-t border-green-200">
-                <h5 className="font-medium text-green-800 mb-2">📊 Ready for LinkedIn</h5>
-                <button
-                  onClick={downloadCarouselSlides}
-                  className="w-full p-3 bg-white border border-green-200 rounded-lg hover:border-green-300 transition-colors text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📥</span>
-                    <div>
-                      <div className="font-medium text-green-900">Download Carousel Slides</div>
-                      <div className="text-xs text-green-700">1080x1080 PNG files</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ ENHANCED: Design Specifications Panel */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-3">🎨 Design Specifications</h4>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-blue-800">Dimensions:</span>
-              <span className="text-blue-700">{designSpecs?.dimensions || '1080x1080px'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-800">Primary Color:</span>
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded border"
-                  style={{ backgroundColor: designSpecs?.background_color || '#1B365D' }}
-                ></div>
-                <span className="text-blue-700">{designSpecs?.background_color || '#1B365D'}</span>
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-800">Font:</span>
-              <span className="text-blue-700">{designSpecs?.font_family || 'Inter'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-green-50 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-3">🚀 Ready-to-Use Assets</h4>
-          <div className="space-y-3">
-            <button className="w-full p-3 bg-white border border-green-200 rounded-lg hover:border-green-300 transition-colors">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🎨</span>
-                <div className="text-left">
-                  <div className="font-medium text-green-900">Edit in Canva</div>
-                  <div className="text-xs text-green-700">Pre-made template ready</div>
-                </div>
-              </div>
-            </button>
-            
-            {Object.keys(generatedSlides).length > 0 && (
-              <button
-                onClick={downloadCarouselSlides}
-                className="w-full p-3 bg-white border border-green-200 rounded-lg hover:border-green-300 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">📱</span>
-                  <div className="text-left">
-                    <div className="font-medium text-green-900">Download Images</div>
-                    <div className="text-xs text-green-700">High-res PNG files</div>
-                  </div>
-                </div>
-              </button>
-            )}
-          </div>
+          <h4 className="font-medium text-green-900 mb-3">🚀 Export Options</h4>
+          <ContentActions 
+            content={{
+              ...data,
+              generatedSlides: generatedSlides // Pass generated slides to ContentActions
+            }}
+            contentType="linkedin_carousel"
+            filename="linkedin_carousel.txt"
+          />
         </div>
       </div>
     </div>
