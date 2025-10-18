@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useToast } from '../../contexts/ToastContext';
 
 export interface ContentActionsProps {
@@ -7,6 +6,67 @@ export interface ContentActionsProps {
   contentType: 'linkedin_carousel' | 'twitter_thread' | 'instagram_story' | 'tiktok_script' | 'blog_outline' | 'email_course' | 'infographic_data';
   filename?: string;
 }
+
+const compressImageData = async (imageData: string, quality: number = 0.8): Promise<string> => {
+  if (imageData.length < 50000) { // Less than ~37KB
+    return imageData;
+  }
+  
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = (e) => reject(e);
+      img.src = imageData;
+    });
+
+    // ✅ Better dimension handling - don't reduce too much
+    let width = img.width;
+    let height = img.height;
+    
+    // ✅ Only reduce if really large (keep quality better)
+    const maxDimension = 1080; // Back to original size
+        
+    if (width > maxDimension || height > maxDimension) {
+      if (width > height) {
+        height = (height * maxDimension) / width;
+        width = maxDimension;
+      } else {
+        width = (width * maxDimension) / height;
+        height = maxDimension;
+      }
+    }
+        
+    canvas.width = width;
+    canvas.height = height;
+        
+    if (ctx) {
+      // ✅ Higher quality rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // ✅ Use PNG for better quality, JPEG only if too large
+      const originalPNG = canvas.toDataURL('image/png');
+      
+      // Only compress to JPEG if PNG is too large
+      if (originalPNG.length > 800000) { // ~600KB threshold
+        const compressedJPEG = canvas.toDataURL('image/jpeg', Math.max(quality, 0.7)); // Minimum 70% quality
+        return compressedJPEG.length < originalPNG.length ? compressedJPEG : originalPNG;
+      }
+      
+      return originalPNG;
+    } else {
+      return imageData;
+    }
+  } catch (error) {
+    console.warn('Image compression failed, using original:', error);
+    return imageData;
+  }
+};
 
 export default function ContentActions({ 
   content, 
@@ -40,6 +100,23 @@ export default function ContentActions({
             `Slide ${index + 1}: ${slide.content || slide.text || slide}`
           ).join('\n\n');
           return `${title}\n\n${slideTexts}\n\n${hashtags.join(' ')}`;
+          
+        case 'tiktok_script':
+          const script = content?.structured_data?.script || content?.script || {};
+          const scenes = script?.scenes || content?.structured_data?.scenes || content?.scenes || [];
+          const hooks = script?.hook_variations || content?.structured_data?.hook_variations || content?.hook_variations || [];
+          
+          let scriptText = `TikTok Video Script\n\n`;
+          
+          if (hooks.length > 0) {
+            scriptText += `HOOK VARIATIONS:\n${hooks.map((hook, i) => `${i + 1}. ${hook}`).join('\n')}\n\n`;
+          }
+          
+          scriptText += `SCENES:\n${scenes.map((scene, i) => 
+            `Scene ${i + 1} (${scene.duration || 5}s):\nAction: ${scene.action || 'N/A'}\nDialogue: ${scene.dialogue || scene.content || ''}`
+          ).join('\n\n')}`;
+          
+          return scriptText;
           
         default:
           return JSON.stringify(content, null, 2);
@@ -88,14 +165,45 @@ export default function ContentActions({
     setIsDownloading(true);
     
     try {
-      // Check if we have generated images
-      const generatedImages = content?.generatedImages || content?.generatedSlides || {};
+      const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {};
       
       if (Object.keys(generatedImages).length === 0) {
-        showToast('No generated images found. Generate images first!', 'warning');
+        showToast('No generated content found. Generate content first!', 'warning');
         return;
       }
 
+      // ✅ Handle URL-based images for TikTok
+      if (contentType === 'tiktok_script') {
+        // Check if images are URLs instead of base64
+        const hasURLs = Object.values(generatedImages).some(img => 
+          typeof img === 'string' && img.startsWith('/generated/')
+        );
+        
+        if (hasURLs) {
+          showToast('Downloading scene reference files...', 'info');
+          
+          // ✅ Download each file directly
+          for (const [index, imageUrl] of Object.entries(generatedImages)) {
+            if (typeof imageUrl === 'string' && imageUrl.startsWith('/generated/')) {
+              const response = await fetch(imageUrl);
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `scene_${parseInt(index) + 1}_reference.png`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              window.URL.revokeObjectURL(url);
+            }
+          }
+          
+          showToast('All scene reference images downloaded!', 'success');
+          return;
+        }
+      }
+
+      // ✅ Original logic for base64 images (Instagram/LinkedIn)
       const response = await fetch('/api/repurpose/download-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,26 +211,31 @@ export default function ContentActions({
           contentType: contentType,
           stories: contentType === 'instagram_story' ? (content?.structured_data?.story_sequence || content?.stories) : undefined,
           slides: contentType === 'linkedin_carousel' ? (content?.structured_data?.slides || content?.slides) : undefined,
+          scenes: contentType === 'tiktok_script' ? (content?.structured_data?.scenes || content?.scenes || []) : undefined,
           images: generatedImages
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to prepare download');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Download error:', response.status, errorText);
+        throw new Error(`Server error: ${response.status}`);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${contentType}_images.zip`;
+      a.download = `${contentType}_${contentType === 'tiktok_script' ? 'scenes' : 'images'}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
       
-      showToast('Images downloaded successfully!', 'success');
+      showToast(`${contentType === 'tiktok_script' ? 'Scene frames' : 'Images'} downloaded successfully!`, 'success');
     } catch (error: any) {
-      console.error('Error downloading images:', error);
-      showToast(`Error downloading images: ${error.message}`, 'error');
+      console.error('Error downloading content:', error);
+      showToast(`Error downloading content: ${error.message}`, 'error');
     } finally {
       setIsDownloading(false);
     }
@@ -133,11 +246,51 @@ export default function ContentActions({
     setIsDownloading(true);
     
     try {
-      const generatedImages = content?.generatedImages || content?.generatedSlides || {};
+      const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {};
       
       if (Object.keys(generatedImages).length === 0) {
-        showToast('No generated images found. Generate images first!', 'warning');
+        showToast('No generated content found. Generate content first!', 'warning');
         return;
+      }
+
+      // ✅ Apply same compression logic for export
+      let processedImages = generatedImages;
+      if (contentType === 'tiktok_script') {
+        processedImages = {};
+        
+        showToast('Compressing images for export...', 'info');
+        
+        for (const [key, imageData] of Object.entries(generatedImages)) {
+          if (typeof imageData === 'string' && imageData.startsWith('data:image/')) {
+            // ✅ Moderate compression for better quality in exports
+            let compressedImage = imageData;
+            
+            if (imageData.length > 500000) { // ~375KB threshold
+              compressedImage = await compressImageData(imageData, 0.8); // Higher quality for exports
+            }
+            
+            processedImages[key] = compressedImage;
+          } else {
+            processedImages[key] = imageData;
+          }
+        }
+        
+        // ✅ Check total size and batch if needed
+        const totalSize = JSON.stringify({
+          contentType: contentType,
+          scenes: content?.structured_data?.scenes || content?.scenes || [],
+          images: processedImages,
+          exportFormats: ['canva_templates', 'buffer_ready', 'later_scheduler', 'hootsuite_format', 'raw_images']
+        }).length;
+        
+        console.log(`Export payload size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
+        
+        if (totalSize > 10000000) { // ~10MB limit for exports
+          showToast('Content is large, using simpler export...', 'info');
+          
+          // ✅ Fallback: Export only essential formats
+          return await exportForPlatformsSimple(processedImages);
+        }
       }
 
       const response = await fetch('/api/repurpose/export-platforms', {
@@ -147,10 +300,11 @@ export default function ContentActions({
           contentType: contentType,
           stories: contentType === 'instagram_story' ? (content?.structured_data?.story_sequence || content?.stories) : undefined,
           slides: contentType === 'linkedin_carousel' ? (content?.structured_data?.slides || content?.slides) : undefined,
-          images: generatedImages,
+          scenes: contentType === 'tiktok_script' ? (content?.structured_data?.scenes || content?.scenes || []) : undefined,
+          images: processedImages,
           exportFormats: [
             'canva_templates',
-            'buffer_ready',
+            'buffer_ready', 
             'later_scheduler',
             'hootsuite_format',
             'raw_images'
@@ -158,7 +312,11 @@ export default function ContentActions({
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to export for platforms');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Export error:', response.status, errorText);
+        throw new Error(`Export failed: ${response.status}`);
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -179,10 +337,104 @@ export default function ContentActions({
     }
   };
 
+  // ✅ Add fallback simple export function:
+  const exportForPlatformsSimple = async (images: any) => {
+    try {
+      showToast('Creating simplified export...', 'info');
+      
+      const response = await fetch('/api/repurpose/export-platforms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentType: contentType,
+          scenes: content?.structured_data?.scenes || content?.scenes || [],
+          images: images,
+          exportFormats: ['raw_images', 'canva_templates'] // Only essential formats
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Simple export failed: ${response.status}`);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${contentType}_essential_exports.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      showToast('Essential exports downloaded successfully!', 'success');
+    } catch (error: any) {
+      console.error('Simple export error:', error);
+      showToast(`Simple export failed: ${error.message}`, 'error');
+    }
+  };
+
   // Check if we have generated images
   const hasGeneratedImages = () => {
-    const generatedImages = content?.generatedImages || content?.generatedSlides || {};
+    const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {}; // ✅ Add generatedVideos
     return Object.keys(generatedImages).length > 0;
+  };
+
+  // ✅ Add batch processing function:
+  const downloadImagesBatch = async (images: any) => {
+    try {
+      const imageEntries = Object.entries(images);
+      const batchSize = 2; // Process 2 images at a time
+      const batches = [];
+      
+      for (let i = 0; i < imageEntries.length; i += batchSize) {
+        batches.push(imageEntries.slice(i, i + batchSize));
+      }
+      
+      showToast(`Processing ${batches.length} batches...`, 'info');
+      
+      const allBlobs = [];
+      
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        const batchImages = Object.fromEntries(batch);
+        
+        showToast(`Processing batch ${i + 1}/${batches.length}...`, 'info');
+        
+        const response = await fetch('/api/repurpose/download-images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contentType: contentType,
+            scenes: content?.structured_data?.scenes || content?.scenes || [],
+            images: batchImages,
+            batchIndex: i,
+            totalBatches: batches.length
+          }),
+        });
+
+        if (!response.ok) throw new Error(`Batch ${i + 1} failed`);
+        
+        const blob = await response.blob();
+        allBlobs.push(blob);
+      }
+      
+      // ✅ Download all batches
+      allBlobs.forEach((blob, index) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tiktok_scenes_batch_${index + 1}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      });
+      
+      showToast(`All ${batches.length} batches downloaded successfully!`, 'success');
+      
+    } catch (error: any) {
+      console.error('Batch download error:', error);
+      showToast(`Batch download failed: ${error.message}`, 'error');
+    }
   };
 
   return (
@@ -262,6 +514,65 @@ export default function ContentActions({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* TikTok-specific Actions */}
+      {contentType === 'tiktok_script' && (
+        <div className="border-t border-gray-200 pt-3">
+          <h5 className="font-medium text-gray-700 mb-2 text-sm">🎬 TikTok Content</h5>
+          
+          {hasGeneratedImages() ? (
+            <div className="space-y-2">
+              <button
+                onClick={downloadGeneratedImages}
+                disabled={isDownloading}
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-left disabled:opacity-50"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎬</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {isDownloading ? 'Downloading...' : 'Download Scene Frames'}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      High-resolution 1080x1920 scene images
+                    </div>
+                  </div>
+                  {isDownloading && (
+                    <div className="ml-auto w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </div>
+              </button>
+
+              <button
+                onClick={exportForPlatforms}
+                disabled={isDownloading}
+                className="w-full p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors text-left disabled:opacity-50"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📱</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {isDownloading ? 'Exporting...' : 'Export for Video Editing'}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      CapCut, InShot, Adobe Premiere formats
+                    </div>
+                  </div>
+                  {isDownloading && (
+                    <div className="ml-auto w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </div>
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
+              <div className="text-sm text-gray-600">
+                Generate scene frames first to unlock export options
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,23 +1,129 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ContentActions from '../ContentActions';
+import { useToast } from "../../../contexts/ToastContext";
 
 interface TikTokScriptPreviewProps {
   data: any;
 }
 
 export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) {
+  const { showToast } = useToast();
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [viewMode, setViewMode] = useState<'script' | 'video' | 'production'>('script');
+  const [isGeneratingVideos, setIsGeneratingVideos] = useState(false);
+  const [generatedVideos, setGeneratedVideos] = useState<{ [key: number]: string }>({});
+  const [sceneProgress, setSceneProgress] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef<NodeJS.Timeout | null>(null);
   
   const script = data?.structured_data?.script || data?.script || {};
   const scenes = script?.scenes || [];
   const hooks = script?.hook_variations || [];
   const designSpecs = data?.design_automation || data?.design_specs || {};
 
+  // ✅ AUTO-PLAY FUNCTIONALITY for Video Preview
+  const SCENE_DURATION = 3000; // 3 seconds per scene
+  const PROGRESS_UPDATE_INTERVAL = 50;
+
+  const startVideoPlayback = () => {
+    setIsPlaying(true);
+    setSceneProgress(0);
+    
+    progressRef.current = setInterval(() => {
+      setSceneProgress(prev => {
+        if (prev >= 100) return 0;
+        return prev + (100 / (SCENE_DURATION / PROGRESS_UPDATE_INTERVAL));
+      });
+    }, PROGRESS_UPDATE_INTERVAL);
+
+    intervalRef.current = setInterval(() => {
+      setCurrentScene(prev => {
+        const nextScene = prev + 1;
+        if (nextScene >= scenes.length) {
+          stopVideoPlayback();
+          return 0;
+        }
+        setSceneProgress(0);
+        return nextScene;
+      });
+    }, SCENE_DURATION);
+  };
+
+  const stopVideoPlayback = () => {
+    setIsPlaying(false);
+    setSceneProgress(0);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (progressRef.current) {
+      clearInterval(progressRef.current);
+      progressRef.current = null;
+    }
+  };
+
+  const toggleVideoPlayback = () => {
+    if (isPlaying) {
+      stopVideoPlayback();
+    } else {
+      startVideoPlayback();
+    }
+  };
+
+  useEffect(() => {
+    return () => stopVideoPlayback();
+  }, []);
+
+  const goToScene = (index: number) => {
+    if (isPlaying) stopVideoPlayback();
+    setCurrentScene(index);
+    setSceneProgress(0);
+  };
+
+  // ✅ GENERATE VIDEO PREVIEWS
+  const generateVideoContent = async () => {
+    setIsGeneratingVideos(true);
+    
+    try {
+      const response = await fetch('/api/repurpose/generate-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentType: 'tiktok_script',
+          scenes: scenes,
+          designSpecs: {
+            dimensions: '1080x1920',
+            format: 'video_frames',
+            brand_colors: designSpecs.brand_colors || ['#ff0050', '#00f2ea'],
+            font_family: designSpecs.font_family || 'Inter',
+            style: 'tiktok',
+            ...designSpecs
+          }
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate video content');
+
+      const result = await response.json();
+      setGeneratedVideos(result.images || {});
+      showToast('TikTok video content generated successfully!', 'success');
+    } catch (error: any) {
+      console.error('Error generating video content:', error);
+      showToast(`Error generating content: ${error.message}`, 'error');
+    } finally {
+      setIsGeneratingVideos(false);
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!', 'success');
   };
 
   const exportFullScript = () => {
@@ -27,13 +133,9 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
     return fullScript;
   };
 
-  const formatDuration = (seconds: number) => {
-    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="p-6">
-      {/* Header */}
+      {/* Clean Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -45,7 +147,8 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-3">
+          {/* View Mode Toggle */}
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setViewMode('script')}
@@ -61,7 +164,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 viewMode === 'video' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📱 Video Preview
+              📱 Preview
             </button>
             <button
               onClick={() => setViewMode('production')}
@@ -72,12 +175,23 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
               🎭 Production
             </button>
           </div>
-          
+
+          {/* Generate Video Content Button */}
           <button
-            onClick={() => copyToClipboard(exportFullScript())}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+            onClick={generateVideoContent}
+            disabled={isGeneratingVideos}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
           >
-            📋 Copy Script
+            {isGeneratingVideos ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                🎨 Generate Content
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -135,6 +249,11 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
                           {scene.type || 'dialogue'}
                         </span>
+                        {generatedVideos[index] && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                            ✓ Generated
+                          </span>
+                        )}
                       </div>
                       
                       {scene.action && (
@@ -175,6 +294,29 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
       {viewMode === 'video' && (
         <div className="bg-black rounded-xl p-6">
           <div className="max-w-sm mx-auto">
+            {/* Play Controls */}
+            <div className="flex justify-center gap-3 mb-4">
+              <button
+                onClick={toggleVideoPlayback}
+                className={`px-4 py-2 text-white rounded-lg transition-all text-sm font-medium flex items-center gap-2 ${
+                  isPlaying 
+                    ? 'bg-red-500 hover:bg-red-600' 
+                    : 'bg-pink-500 hover:bg-pink-600'
+                }`}
+              >
+                {isPlaying ? (
+                  <>
+                    <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                    ⏸️ Pause
+                  </>
+                ) : (
+                  <>
+                    ▶️ Play Preview
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* TikTok Phone Mockup */}
             <div className="bg-black rounded-3xl p-2">
               <div className="bg-black rounded-3xl overflow-hidden relative" style={{ aspectRatio: '9/16' }}>
@@ -182,10 +324,27 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 <div className="absolute top-0 left-0 right-0 z-20 p-4">
                   <div className="flex items-center justify-between text-white">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Following</span>
+                      <span className="text-sm opacity-70">Following</span>
                       <span className="text-sm font-bold">For You</span>
                     </div>
                     <span className="text-lg">🔍</span>
+                  </div>
+                </div>
+
+                {/* Scene Progress Bars */}
+                <div className="absolute top-12 left-0 right-0 z-20 p-2">
+                  <div className="flex gap-1">
+                    {scenes.map((_, index) => (
+                      <div key={index} className="flex-1 h-1 bg-white bg-opacity-30 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-white rounded-full transition-all duration-75"
+                          style={{
+                            width: index === currentScene ? `${sceneProgress}%` : 
+                                  index < currentScene ? '100%' : '0%'
+                          }}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -197,38 +356,49 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                       initial={{ opacity: 0, scale: 1.1 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.3 }}
                       className="absolute inset-0 flex items-center justify-center text-white p-6"
+                      style={{
+                        background: generatedVideos[currentScene] 
+                          ? `url(${generatedVideos[currentScene]}) center/cover` 
+                          : 'linear-gradient(135deg, #ff0050 0%, #00f2ea 100%)'
+                      }}
                     >
-                      <div className="text-center">
-                        <div className="text-6xl mb-4">🎬</div>
-                        <p className="text-lg font-bold leading-tight mb-2">
-                          Scene {currentScene + 1}
-                        </p>
-                        <p className="text-base leading-relaxed">
-                          {scenes[currentScene]?.dialogue || scenes[currentScene]?.content || 'No content available'}
-                        </p>
-                        
-                        {scenes[currentScene]?.action && (
-                          <div className="mt-4 p-2 bg-black bg-opacity-40 rounded-lg">
-                            <p className="text-sm opacity-80">
-                              {scenes[currentScene].action}
-                            </p>
+                      {generatedVideos[currentScene] ? (
+                        <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-lg font-bold mb-2">✨ Generated Frame</div>
+                            <div className="text-sm opacity-80">Ready for TikTok</div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <div className="text-6xl mb-4">🎬</div>
+                          <p className="text-lg font-bold leading-tight mb-2">
+                            Scene {currentScene + 1}
+                          </p>
+                          <p className="text-base leading-relaxed">
+                            {scenes[currentScene]?.dialogue || scenes[currentScene]?.content || 'No content available'}
+                          </p>
+                          
+                          {scenes[currentScene]?.action && (
+                            <div className="mt-4 p-2 bg-black bg-opacity-40 rounded-lg">
+                              <p className="text-sm opacity-80">
+                                {scenes[currentScene].action}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
                   
-                  {/* Progress Bar */}
-                  <div className="absolute bottom-20 left-4 right-20 z-20">
-                    <div className="w-full h-1 bg-white bg-opacity-30 rounded-full">
-                      <div 
-                        className="h-full bg-white rounded-full transition-all duration-500"
-                        style={{ width: `${((currentScene + 1) / scenes.length) * 100}%` }}
-                      />
+                  {/* Generation Status */}
+                  {generatedVideos[currentScene] && (
+                    <div className="absolute top-16 right-4 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm">✓</span>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* TikTok Side Actions */}
@@ -253,39 +423,44 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                   </div>
                 </div>
 
-                {/* Bottom Info */}
+                {/* Bottom Navigation & Info */}
                 <div className="absolute bottom-0 left-0 right-0 z-20 p-4 text-white">
-                  <div className="mb-2">
+                  <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
                         <span className="text-xs font-bold">YP</span>
                       </div>
                       <span className="font-bold">@yourprofile</span>
+                      {isPlaying && (
+                        <div className="ml-auto flex items-center gap-1 text-xs bg-black bg-opacity-50 px-2 py-1 rounded-full">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          AUTO-PLAYING
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm">{script.description || 'Key insights from our latest podcast episode! 🎙️'}</p>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <button
-                      onClick={() => setCurrentScene(prev => prev > 0 ? prev - 1 : scenes.length - 1)}
-                      className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"
+                      onClick={() => goToScene(currentScene > 0 ? currentScene - 1 : scenes.length - 1)}
+                      className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-colors"
                     >
                       ←
                     </button>
                     
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center"
-                      >
-                        {isPlaying ? '⏸️' : '▶️'}
-                      </button>
                       <span className="text-sm">{currentScene + 1}/{scenes.length}</span>
+                      {isPlaying && (
+                        <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                          Auto-playing
+                        </div>
+                      )}
                     </div>
                     
                     <button
-                      onClick={() => setCurrentScene(prev => prev < scenes.length - 1 ? prev + 1 : 0)}
-                      className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center"
+                      onClick={() => goToScene(currentScene < scenes.length - 1 ? currentScene + 1 : 0)}
+                      className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:bg-opacity-30 transition-colors"
                     >
                       →
                     </button>
@@ -423,14 +598,59 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
+      {/* Scene Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {scenes.map((scene: any, index: number) => (
+          <motion.div
+            key={index}
+            whileHover={{ scale: 1.05 }}
+            onClick={() => goToScene(index)}
+            className={`aspect-[9/16] rounded-lg cursor-pointer overflow-hidden border-2 transition-all relative ${
+              currentScene === index ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'
+            }`}
+            style={{
+              background: generatedVideos[index] 
+                ? `url(${generatedVideos[index]}) center/cover` 
+                : 'linear-gradient(135deg, #ff0050 0%, #00f2ea 100%)'
+            }}
+          >
+            {generatedVideos[index] && (
+              <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">✓</span>
+              </div>
+            )}
+            
+            {currentScene === index && isPlaying && (
+              <div className="absolute top-2 left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                <span className="text-white text-xs">▶</span>
+              </div>
+            )}
+            
+            <div className="p-3 text-white h-full flex flex-col justify-between">
+              <div className="text-center">
+                <div className="text-2xl mb-2">🎬</div>
+                <p className="text-xs leading-tight">
+                  {(scene.dialogue || scene.content || '').substring(0, 40)}...
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="text-xs opacity-70">
+                  Scene {index + 1} {generatedVideos[index] && '• Ready'}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Analytics & ContentActions */}
+      <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-red-50 rounded-lg p-4">
           <h4 className="font-medium text-red-900 mb-3">🎬 Production Tips</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-red-200 rounded-lg">
               <div className="text-sm text-red-800">
-                📱 Optimal duration: {script.estimated_duration || 30} seconds
+                📱 Optimal duration: {formatDuration(script.estimated_duration || 30)}
               </div>
             </div>
             <div className="p-3 bg-white border border-red-200 rounded-lg">
@@ -438,13 +658,33 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 🎯 Hook success rate: 85% with first 3 seconds
               </div>
             </div>
+            <div className="p-3 bg-white border border-red-200 rounded-lg">
+              <div className="text-sm text-red-800">
+                🎨 Content generated: {Object.keys(generatedVideos).length}/{scenes.length}
+              </div>
+            </div>
+            {isPlaying && (
+              <div className="p-3 bg-white border border-red-200 rounded-lg">
+                <div className="text-sm text-red-800 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  Currently auto-playing
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
-          <h4 className="font-medium text-pink-900 mb-3">🚀 Production Tools</h4>
+          <h4 className="font-medium text-pink-900 mb-3">🚀 Export Options</h4>
           <ContentActions 
-            content={data}
+            content={{
+              ...data,
+              structured_data: {
+                ...data.structured_data,
+                scenes: scenes
+              },
+              generatedVideos: generatedVideos
+            }}
             contentType="tiktok_script"
             filename="tiktok_script.txt"
           />
