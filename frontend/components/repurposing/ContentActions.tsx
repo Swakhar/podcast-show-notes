@@ -170,6 +170,30 @@ export default function ContentActions({
         return;
       }
 
+      if (content?.generatedVideos && contentType === 'tiktok_script') {
+        // Check if files still exist in the generated folder
+        const fileChecks = await Promise.all(
+          Object.values(content.generatedVideos).map(async (imageUrl: any) => {
+            if (typeof imageUrl === 'string' && imageUrl.startsWith('/generated/')) {
+              try {
+                const response = await fetch(imageUrl, { method: 'HEAD' });
+                return response.ok;
+              } catch {
+                return false;
+              }
+            }
+            return true; // For base64 images
+          })
+        );
+
+        const filesExist = fileChecks.every(exists => exists);
+        if (!filesExist) {
+          showToast('TikTok scene files have expired. Please regenerate the content to download.', 'error');
+          setIsDownloading(false);
+          return;
+        }
+      }
+
       const response = await fetch('/api/repurpose/download-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
