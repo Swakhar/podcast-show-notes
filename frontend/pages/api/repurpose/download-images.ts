@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 import JSZip from 'jszip';
+import fs from 'fs';
+import path from 'path';
 
 interface DownloadImagesData {
   contentType: 'instagram_story' | 'linkedin_carousel' | 'tiktok_script';
@@ -37,29 +39,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const [index, imageDataUrl] of Object.entries(images)) {
       try {
         // Convert base64 data URL to buffer
-        const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        
-        // ✅ Generate filename based on content type
-        let filename = '';
-        if (contentType === 'instagram_story') {
-          const storyType = stories?.[parseInt(index)]?.type || 'story';
-          filename = `story_${parseInt(index) + 1}_${storyType}_${timestamp}.png`;
-        } else if (contentType === 'linkedin_carousel') {
-          const slideTitle = slides?.[parseInt(index)]?.title || `slide_${parseInt(index) + 1}`;
-          const safeTitle = slideTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20);
-          filename = `slide_${parseInt(index) + 1}_${safeTitle}_${timestamp}.png`;
-        } else if (contentType === 'tiktok_script') {
-          // ✅ Add TikTok scene handling
-          const sceneType = scenes?.[parseInt(index)]?.type || 'scene';
-          const sceneAction = scenes?.[parseInt(index)]?.action || '';
-          const safeAction = sceneAction.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 15);
-          filename = `scene_${parseInt(index) + 1}_${sceneType}_${safeAction}_${timestamp}.png`;
+        // ✅ Update ONLY the TikTok section in the image processing loop:
+
+        // ✅ Handle TikTok file URLs (different from Instagram/LinkedIn base64)
+        if (contentType === 'tiktok_script' && typeof imageDataUrl === 'string' && imageDataUrl.startsWith('/generated/')) {
+          // Read file from disk
+          const filePath = path.join(process.cwd(), 'public', imageDataUrl);
+          
+          if (fs.existsSync(filePath)) {
+            const buffer = fs.readFileSync(filePath);
+            
+            const sceneType = scenes?.[parseInt(index)]?.type || 'scene';
+            const sceneAction = scenes?.[parseInt(index)]?.action || '';
+            const safeAction = sceneAction.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 15);
+            const filename = `scene_${parseInt(index) + 1}_${sceneType}_${safeAction}_${timestamp}.png`;
+            
+            zip.file(filename, buffer);
+          } else {
+            // ✅ NEW: Handle missing TikTok files
+            console.warn(`TikTok scene file not found: ${filePath}`);
+            // Don't add to zip, but continue processing other images
+          }
+        } else {
+          // ✅ Handle Instagram/LinkedIn base64 (UNCHANGED)
+          const base64Data = imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          
+          let filename = '';
+          if (contentType === 'instagram_story') {
+            const storyType = stories?.[parseInt(index)]?.type || 'story';
+            filename = `story_${parseInt(index) + 1}_${storyType}_${timestamp}.png`;
+          } else if (contentType === 'linkedin_carousel') {
+            const slideTitle = slides?.[parseInt(index)]?.title || `slide_${parseInt(index) + 1}`;
+            const safeTitle = slideTitle.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20);
+            filename = `slide_${parseInt(index) + 1}_${safeTitle}_${timestamp}.png`;
+          }
+          
+          zip.file(filename, buffer);
         }
-        
-        // Add to ZIP
-        zip.file(filename, buffer);
-        
+
       } catch (error) {
         // Continue with other images
       }

@@ -170,38 +170,6 @@ export default function ContentActions({
         return;
       }
 
-      // ✅ Handle URL-based images for TikTok
-      if (contentType === 'tiktok_script') {
-        // Check if images are URLs instead of base64
-        const hasURLs = Object.values(generatedImages).some(img => 
-          typeof img === 'string' && img.startsWith('/generated/')
-        );
-        
-        if (hasURLs) {
-          showToast('Downloading scene reference files...', 'info');
-          
-          // ✅ Download each file directly
-          for (const [index, imageUrl] of Object.entries(generatedImages)) {
-            if (typeof imageUrl === 'string' && imageUrl.startsWith('/generated/')) {
-              const response = await fetch(imageUrl);
-              const blob = await response.blob();
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `scene_${parseInt(index) + 1}_reference.png`;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(url);
-            }
-          }
-          
-          showToast('All scene reference images downloaded!', 'success');
-          return;
-        }
-      }
-
-      // ✅ Original logic for base64 images (Instagram/LinkedIn)
       const response = await fetch('/api/repurpose/download-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,8 +182,15 @@ export default function ContentActions({
         }),
       });
 
+      // ✅ NEW: Handle expired TikTok files
       if (!response.ok) {
-        const errorText = await response.text();
+        if (response.status === 410) {
+          const errorData = await response.json();
+          if (errorData.needsRegenerate) {
+            showToast(errorData.error, 'error');
+            return;
+          }
+        }
         throw new Error(`Server error: ${response.status}`);
       }
 

@@ -531,6 +531,9 @@ async function createTikTokScene(params: {
     // ✅ Save file to public directory
     fs.writeFileSync(filePath, buffer);
     
+    // ✅ NEW: Schedule automatic cleanup after 5 minutes
+    scheduleFileCleanup(filePath, 5);
+    
     // ✅ Return URL instead of base64
     return `/generated/${filename}`;
     
@@ -538,4 +541,18 @@ async function createTikTokScene(params: {
     // ✅ Fallback to compressed base64
     return canvas.toDataURL('image/jpeg', 0.5);
   }
+}
+
+// ✅ Add this helper function at the top of the file, after imports
+function scheduleFileCleanup(filePath: string, delayMinutes: number = 5) {
+  setTimeout(() => {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`🗑️ Auto-cleaned TikTok file: ${path.basename(filePath)}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to auto-clean file: ${filePath}`, error);
+    }
+  }, delayMinutes * 60 * 1000); // Convert minutes to milliseconds
 }
