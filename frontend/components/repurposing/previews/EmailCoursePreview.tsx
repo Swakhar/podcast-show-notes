@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from "../../../contexts/ToastContext";
 import ContentActions from '../ContentActions';
 
 interface EmailCoursePreviewProps {
@@ -7,23 +8,205 @@ interface EmailCoursePreviewProps {
 }
 
 export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
+  const { showToast } = useToast();
   const [currentEmail, setCurrentEmail] = useState(0);
   const [viewMode, setViewMode] = useState<'sequence' | 'email' | 'analytics'>('sequence');
   const [selectedEmailClient, setSelectedEmailClient] = useState<'gmail' | 'outlook' | 'apple'>('gmail');
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<{ [key: string]: any }>({});
   
-  const course = data?.structured_data?.email_course || data?.course || {};
+  const course = data?.email_course || data?.structured_data?.email_course || {};
   const emails = course?.emails || [];
   const designSpecs = data?.design_automation || data?.design_specs || {};
   const analytics = data?.email_analytics || {};
 
   const copyToClipboard = (text: string) => {
+    console.log('Copying to clipboard:', text);
     navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!', 'success');
   };
 
   const exportEmailSequence = () => {
     return emails.map((email: any, index: number) => 
       `EMAIL ${index + 1}: ${email.subject}\n\n${email.content}\n\n---\n\n`
     ).join('');
+  };
+
+  // ✅ Generate enhanced email content (WordPress export, automation setup, etc.)
+  const generateEnhancedContent = async () => {
+    setIsGeneratingContent(true);
+    
+    try {
+      const response = await fetch('/api/repurpose/generate-email-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          course: course,
+          emails: emails,
+          designSpecs: {
+            format: 'enhanced',
+            include_automation_setup: true,
+            include_email_templates: true,
+            include_analytics_tracking: true,
+            include_social_integration: true
+          }
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate enhanced content');
+
+      const result = await response.json();
+      setGeneratedContent(result);
+      showToast('Enhanced email course content generated successfully!', 'success');
+    } catch (error: any) {
+      console.error('Error generating enhanced content:', error);
+      showToast(`Error generating content: ${error.message}`, 'error');
+    } finally {
+      setIsGeneratingContent(false);
+    }
+  };
+
+  // ✅ Download multiple formats (HTML templates, plain text, automation files)
+  const downloadMultipleFormats = () => {
+    try {
+      // HTML Email Templates
+      const htmlContent = generateHTMLTemplates();
+      downloadFile(htmlContent, 'email_course_html_templates.html', 'text/html');
+
+      // Plain Text Version
+      const plainTextContent = generatePlainTextVersion();
+      downloadFile(plainTextContent, 'email_course_plain_text.txt', 'text/plain');
+
+      // Email Automation Setup (JSON)
+      const automationContent = generateAutomationSetup();
+      downloadFile(JSON.stringify(automationContent, null, 2), 'email_automation_setup.json', 'application/json');
+
+      // Mailchimp Import CSV
+      const csvContent = generateMailchimpCSV();
+      downloadFile(csvContent, 'mailchimp_email_sequence.csv', 'text/csv');
+
+      showToast('All email formats downloaded successfully!', 'success');
+    } catch (error: any) {
+      showToast(`Error downloading files: ${error.message}`, 'error');
+    }
+  };
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const generateHTMLTemplates = () => {
+    return emails.map((email: any, index: number) => `
+<!-- EMAIL ${index + 1}: ${email.subject} -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${email.subject}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .content { background: white; padding: 30px; }
+        .cta-button { background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Day ${index + 1}: ${email.subject}</h1>
+        </div>
+        <div class="content">
+            ${email.content.replace(/\n/g, '<br>')}
+            ${email.cta ? `<p style="text-align: center;"><a href="${email.cta.url || '#'}" class="cta-button">${email.cta.text}</a></p>` : ''}
+        </div>
+        <div class="footer">
+            <p>You're receiving this because you signed up for our email course.</p>
+            <p><a href="#">Unsubscribe</a> | <a href="#">Update preferences</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
+`).join('\n\n');
+  };
+
+  const generatePlainTextVersion = () => {
+    return emails.map((email: any, index: number) => `
+EMAIL ${index + 1}: ${email.subject}
+==================================================
+
+${email.content}
+
+${email.cta ? `👉 ${email.cta.text}: ${email.cta.url || '[INSERT_LINK]'}` : ''}
+
+--
+Best regards,
+Your Course Team
+
+You're receiving this because you signed up for our email course.
+Unsubscribe: [UNSUBSCRIBE_LINK]
+Update preferences: [PREFERENCES_LINK]
+
+`).join('\n' + '='.repeat(60) + '\n');
+  };
+
+  const generateAutomationSetup = () => {
+    return {
+      platform: "general_automation",
+      course_title: course.title,
+      total_emails: emails.length,
+      sequence: emails.map((email: any, index: number) => ({
+        email_number: index + 1,
+        send_delay_days: index * (course.interval_days || 1),
+        subject_line: email.subject,
+        preview_text: email.preview || email.content.substring(0, 100),
+        tags_to_add: [`course_email_${index + 1}`, 'email_course_subscriber'],
+        automation_triggers: index === 0 ? ['course_signup'] : [`email_${index}_opened`],
+        a_b_test_subjects: [
+          email.subject,
+          email.subject.replace(/^\w/, (c: string) => c.toUpperCase()),
+          `${email.subject} 📧`
+        ]
+      })),
+      mailchimp_setup: {
+        list_name: `${course.title} Email Course`,
+        automation_name: `${course.title} - Auto Sequence`,
+        segments: ['email_course_subscribers', 'high_engagement', 'needs_nurturing']
+      },
+      convertkit_setup: {
+        sequence_name: course.title,
+        tag_subscribers: 'email_course_member',
+        automation_rules: emails.map((_, index) => ({
+          trigger: index === 0 ? 'tag_added' : 'email_opened',
+          delay: `${index * (course.interval_days || 1)} days`,
+          action: 'send_email'
+        }))
+      }
+    };
+  };
+
+  const generateMailchimpCSV = () => {
+    const headers = ['Email Number', 'Subject Line', 'Send Delay (Days)', 'Preview Text', 'Tags'];
+    const rows = emails.map((email: any, index: number) => [
+      index + 1,
+      `"${email.subject}"`,
+      index * (course.interval_days || 1),
+      `"${email.preview || email.content.substring(0, 50)}..."`,
+      `"course_email_${index + 1}, email_course_subscriber"`
+    ]);
+    
+    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   };
 
   const formatDate = (daysFromNow: number) => {
@@ -55,6 +238,14 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
       }
     };
     return styles[selectedEmailClient];
+  };
+
+  const estimateReadingTime = (content: string) => {
+    return Math.ceil((content?.length || 500) / 1000);
+  };
+
+  const formatWordCount = (content: string) => {
+    return Math.floor((content?.length || 500) / 5);
   };
 
   return (
@@ -101,6 +292,14 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
             </button>
           </div>
           
+          <button
+            onClick={generateEnhancedContent}
+            disabled={isGeneratingContent}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            {isGeneratingContent ? '⏳ Generating...' : '🚀 Generate Enhanced'}
+          </button>
+
           <button
             onClick={() => copyToClipboard(exportEmailSequence())}
             className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
@@ -205,7 +404,10 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
                           🖱️ Est. click: {Math.floor(Math.random() * 10) + 8}%
                         </span>
                         <span className="flex items-center gap-1">
-                          ⏱️ Read time: {Math.ceil((email.content?.length || 500) / 800)} min
+                          ⏱️ Read time: {estimateReadingTime(email.content)} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          📝 Words: {formatWordCount(email.content)}
                         </span>
                       </div>
                       
@@ -557,7 +759,7 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Action Buttons & Downloads */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div className="bg-orange-50 rounded-lg p-4">
           <h4 className="font-medium text-orange-900 mb-3">📧 Course Metrics</h4>
@@ -572,6 +774,24 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
                 🎯 Completion rate: {analytics.expected_completion_rate || '68'}%
               </div>
             </div>
+            <div className="p-3 bg-white border border-orange-200 rounded-lg">
+              <div className="text-sm text-orange-800">
+                📊 Est. subscribers: {analytics.expected_subscribers || '2.5K'}
+              </div>
+            </div>
+            
+            {/* ✅ Enhanced download options */}
+            <div className="pt-3 border-t border-orange-200">
+              <button
+                onClick={downloadMultipleFormats}
+                className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium mb-2"
+              >
+                📦 Download All Formats
+              </button>
+              <div className="text-xs text-orange-700">
+                Includes: HTML templates, plain text, automation setup, CSV import
+              </div>
+            </div>
           </div>
         </div>
 
@@ -582,6 +802,42 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
             contentType="email_course"
             filename="email_course.txt"
           />
+          
+          {/* ✅ Enhanced content options */}
+          {Object.keys(generatedContent).length > 0 && (
+            <div className="mt-4 p-3 bg-white border border-pink-200 rounded-lg">
+              <div className="text-sm text-pink-800 mb-2">✅ Enhanced content generated!</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => copyToClipboard(JSON.stringify(generatedContent.automation_setup, null, 2))}
+                  className="px-3 py-1 bg-pink-100 text-pink-700 rounded text-xs hover:bg-pink-200 transition-colors"
+                >
+                  Copy Automation
+                </button>
+                <button
+                  onClick={() => {
+                    let htmlContent = '';
+                    
+                    if (typeof generatedContent.html_templates === 'string') {
+                      // If it's already a string
+                      htmlContent = generatedContent.html_templates;
+                    } else if (Array.isArray(generatedContent.html_templates)) {
+                      // If it's an array, join the HTML content
+                      console.log(generatedContent.html_templates);
+                      htmlContent = generatedContent.html_templates
+                        .map(template => template.content || template.html || template.template)
+                        .join('\n\n');
+                    }
+                    
+                    copyToClipboard(htmlContent);
+                  }}
+                  className="px-3 py-1 bg-pink-100 text-pink-700 rounded text-xs hover:bg-pink-200 transition-colors"
+                >
+                  Copy HTML
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

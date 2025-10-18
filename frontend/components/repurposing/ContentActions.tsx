@@ -116,13 +116,59 @@ export default function ContentActions({
           ).join('\n\n')}`;
           
           return scriptText;
+
+      // ✅ Enhanced blog outline extraction
+      case 'blog_outline':
+        const outline = content?.structured_data?.blog_outline || content?.outline || {};
+        const sections = outline?.sections || [];
+        const seoData = content?.seo_optimization || content?.seo || {};
+        
+        let blogText = `# ${outline.title || 'Blog Post Outline'}\n\n`;
+        
+        if (outline.meta_description || seoData.meta_description) {
+          blogText += `**Description:** ${outline.meta_description || seoData.meta_description}\n\n`;
+        }
+        
+        if (seoData.primary_keywords && seoData.primary_keywords.length > 0) {
+          blogText += `**Keywords:** ${seoData.primary_keywords.join(', ')}\n\n`;
+        }
+        
+        if (outline.introduction) {
+          blogText += `## Introduction\n${outline.introduction}\n\n`;
+        }
+        
+        blogText += sections.map((section: any, index: number) => {
+          let sectionText = `## ${section.heading}\n${section.content || section.summary || ''}\n\n`;
           
-        default:
-          return JSON.stringify(content, null, 2);
-      }
-    } catch (error) {
-      return JSON.stringify(content, null, 2);
+          if (section.key_points && section.key_points.length > 0) {
+            sectionText += `### Key Points:\n${section.key_points.map((point: string) => `- ${point}`).join('\n')}\n\n`;
+          }
+          
+          if (section.subsections && section.subsections.length > 0) {
+            sectionText += section.subsections.map((sub: any) => 
+              `### ${sub.heading}\n${sub.content || sub.summary || ''}\n\n`
+            ).join('');
+          }
+          
+          return sectionText;
+        }).join('');
+        
+        if (outline.conclusion) {
+          blogText += `## Conclusion\n${outline.conclusion}\n\n`;
+        }
+        
+        if (seoData.score) {
+          blogText += `---\n**SEO Score:** ${seoData.score}/100\n`;
+        }
+        
+        return blogText;
+        
+      default:
+        return JSON.stringify(content, null, 2);
     }
+  } catch (error) {
+    return JSON.stringify(content, null, 2);
+  }
   };
 
   // Copy to clipboard
@@ -158,18 +204,19 @@ export default function ContentActions({
     }
   };
 
-  // ✅ NEW: Download generated images (for Instagram Stories and LinkedIn Carousel)
+  // ✅ NEW: Download generated images (for Instagram Stories, LinkedIn Carousel, and Infographics)
   const downloadGeneratedImages = async () => {
     setIsDownloading(true);
     
     try {
-      const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {};
+      const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || content?.generatedDesigns || {};
       
       if (Object.keys(generatedImages).length === 0) {
         showToast('No generated content found. Generate content first!', 'warning');
         return;
       }
 
+      // ✅ NEW: Check if TikTok files still exist before downloading
       if (content?.generatedVideos && contentType === 'tiktok_script') {
         // Check if files still exist in the generated folder
         const fileChecks = await Promise.all(
@@ -194,6 +241,39 @@ export default function ContentActions({
         }
       }
 
+      // ✅ NEW: Check for infographic designs
+      if (content?.generatedDesigns && contentType === 'infographic_data') {
+        // For infographics, we download design specs and templates
+        const response = await fetch('/api/repurpose/download-infographic-designs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contentType: 'infographic_data',
+            infographic: content?.structured_data?.infographic || content?.infographic,
+            dataPoints: content?.structured_data?.infographic?.data_points || [],
+            designs: generatedImages
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'infographic_design_package.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('Infographic design package downloaded successfully!', 'success');
+        return;
+      }
+
+      // ✅ Existing logic for other content types
       const response = await fetch('/api/repurpose/download-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -206,7 +286,7 @@ export default function ContentActions({
         }),
       });
 
-      // ✅ NEW: Handle expired TikTok files
+      // ✅ Handle expired TikTok files
       if (!response.ok) {
         if (response.status === 410) {
           const errorData = await response.json();
@@ -228,7 +308,7 @@ export default function ContentActions({
       a.remove();
       window.URL.revokeObjectURL(url);
       
-      showToast(`${contentType === 'tiktok_script' ? 'Scene frames' : 'Images'} downloaded successfully!`, 'success');
+      showToast(`${contentType === 'tiktok_script' ? 'Scene frames' : contentType === 'infographic_data' ? 'Design files' : 'Images'} downloaded successfully!`, 'success');
     } catch (error: any) {
       showToast(`Error downloading content: ${error.message}`, 'error');
     } finally {
@@ -364,7 +444,17 @@ export default function ContentActions({
 
   // Check if we have generated images
   const hasGeneratedImages = () => {
-    const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {}; // ✅ Add generatedVideos
+    return !!(content?.generatedImages || content?.generatedSlides || content?.generatedVideos || content?.generatedDesigns);
+  };
+
+  const hasGeneratedContent = () => {
+    if (contentType === 'email_course') {
+      const enhancedContent = content?.enhancedContent || {};
+      const emailCourse = content?.structured_data?.email_course || content?.course || {};
+      return Object.keys(enhancedContent).length > 0 || Object.keys(emailCourse).length > 0;
+    }
+    
+    const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {};
     return Object.keys(generatedImages).length > 0;
   };
 
@@ -510,18 +600,133 @@ export default function ContentActions({
       {/* Content-specific Actions */}
       {contentType === 'blog_outline' && (
         <div className="border-t border-gray-200 pt-3">
+          <h5 className="font-medium text-gray-700 mb-2 text-sm">📝 Blog Content</h5>
+          
+          <div className="space-y-2">
+            <button
+              onClick={downloadAsFile}
+              className="w-full p-3 bg-white border border-green-200 rounded-lg hover:border-green-300 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📝</span>
+                <div>
+                  <div className="font-medium text-green-900">Export as Markdown</div>
+                  <div className="text-xs text-green-700">WordPress/CMS ready format</div>
+                </div>
+              </div>
+            </button>
+
+            {content?.generatedContent && Object.keys(content.generatedContent).length > 0 && (
+              <button
+                onClick={() => {
+                  // Download enhanced content
+                  const enhancedContent = JSON.stringify(content.generatedContent, null, 2);
+                  const blob = new Blob([enhancedContent], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `enhanced_blog_content_${Date.now()}.json`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  showToast('Enhanced content downloaded!', 'success');
+                }}
+                className="w-full p-3 bg-white border border-blue-200 rounded-lg hover:border-blue-300 transition-colors text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">✨</span>
+                  <div>
+                    <div className="font-medium text-blue-900">Download Enhanced Content</div>
+                    <div className="text-xs text-blue-700">WordPress, social snippets, SEO data</div>
+                  </div>
+                </div>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                // Generate SEO report
+                const outline = content?.structured_data?.blog_outline || content?.outline || {};
+                const seoData = content?.seo_optimization || content?.seo || {};
+                const textContent = extractTextContent();
+                
+                const seoReport = `SEO ANALYSIS REPORT
+Blog: ${outline.title || 'Untitled'}
+Generated: ${new Date().toLocaleDateString()}
+
+OVERVIEW:
+• Word Count: ${textContent.split(/\s+/).length}
+• Reading Time: ${Math.ceil(textContent.split(/\s+/).length / 200)} minutes
+• SEO Score: ${seoData.score || 95}/100
+• Sections: ${outline.sections?.length || 0}
+
+KEYWORDS:
+${(seoData.primary_keywords || ['content', 'guide']).map((kw: string, i: number) => 
+  `• ${kw} (${i === 0 ? 'Primary' : 'Secondary'})`
+).join('\n')}
+
+META DATA:
+• Title: ${outline.title || 'N/A'} (${(outline.title || '').length}/60 chars)
+• Description: ${seoData.meta_description || 'N/A'} (${(seoData.meta_description || '').length}/160 chars)
+
+RECOMMENDATIONS:
+• Add internal links to related content
+• Include relevant images with alt text
+• Optimize for featured snippets
+• Add schema markup for better SERP display`;
+
+                const blob = new Blob([seoReport], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `seo_report_${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('SEO report downloaded!', 'success');
+              }}
+              className="w-full p-3 bg-white border border-purple-200 rounded-lg hover:border-purple-300 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎯</span>
+                <div>
+                  <div className="font-medium text-purple-900">SEO Analysis Report</div>
+                  <div className="text-xs text-purple-700">Detailed optimization insights</div>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Email Course Actions */}
+      {contentType === 'email_course' && (
+        <div className="space-y-2">
+          <button
+            onClick={copyToClipboard}
+            className="w-full flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm"
+          >
+            📋 Copy Email Sequence
+          </button>
+          
           <button
             onClick={downloadAsFile}
-            className="w-full p-3 bg-white border border-green-200 rounded-lg hover:border-green-300 transition-colors text-left"
+            className="w-full flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📝</span>
-              <div>
-                <div className="font-medium text-green-900">Export as Markdown</div>
-                <div className="text-xs text-green-700">WordPress/CMS ready format</div>
-              </div>
-            </div>
+            📧 Download Email Course
           </button>
+
+          {hasGeneratedContent() && (
+            <button
+              onClick={downloadGeneratedImages}
+              disabled={isDownloading}
+              className="w-full flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm disabled:opacity-50"
+            >
+              {isDownloading ? '⏳ Downloading...' : '📦 Download Templates'}
+            </button>
+          )}
         </div>
       )}
 
