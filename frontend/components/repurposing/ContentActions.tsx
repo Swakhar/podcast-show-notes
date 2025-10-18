@@ -63,7 +63,6 @@ const compressImageData = async (imageData: string, quality: number = 0.8): Prom
       return imageData;
     }
   } catch (error) {
-    console.warn('Image compression failed, using original:', error);
     return imageData;
   }
 };
@@ -122,7 +121,6 @@ export default function ContentActions({
           return JSON.stringify(content, null, 2);
       }
     } catch (error) {
-      console.error('Error extracting content:', error);
       return JSON.stringify(content, null, 2);
     }
   };
@@ -218,7 +216,6 @@ export default function ContentActions({
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Download error:', response.status, errorText);
         throw new Error(`Server error: ${response.status}`);
       }
 
@@ -234,7 +231,6 @@ export default function ContentActions({
       
       showToast(`${contentType === 'tiktok_script' ? 'Scene frames' : 'Images'} downloaded successfully!`, 'success');
     } catch (error: any) {
-      console.error('Error downloading content:', error);
       showToast(`Error downloading content: ${error.message}`, 'error');
     } finally {
       setIsDownloading(false);
@@ -283,8 +279,6 @@ export default function ContentActions({
           exportFormats: ['canva_templates', 'buffer_ready', 'later_scheduler', 'hootsuite_format', 'raw_images']
         }).length;
         
-        console.log(`Export payload size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
-        
         if (totalSize > 10000000) { // ~10MB limit for exports
           showToast('Content is large, using simpler export...', 'info');
           
@@ -314,7 +308,6 @@ export default function ContentActions({
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Export error:', response.status, errorText);
         throw new Error(`Export failed: ${response.status}`);
       }
 
@@ -330,7 +323,6 @@ export default function ContentActions({
 
       showToast('Platform exports downloaded successfully!', 'success');
     } catch (error: any) {
-      console.error('Error exporting for platforms:', error);
       showToast(`Error exporting: ${error.message}`, 'error');
     } finally {
       setIsDownloading(false);
@@ -367,7 +359,6 @@ export default function ContentActions({
 
       showToast('Essential exports downloaded successfully!', 'success');
     } catch (error: any) {
-      console.error('Simple export error:', error);
       showToast(`Simple export failed: ${error.message}`, 'error');
     }
   };
@@ -376,65 +367,6 @@ export default function ContentActions({
   const hasGeneratedImages = () => {
     const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {}; // ✅ Add generatedVideos
     return Object.keys(generatedImages).length > 0;
-  };
-
-  // ✅ Add batch processing function:
-  const downloadImagesBatch = async (images: any) => {
-    try {
-      const imageEntries = Object.entries(images);
-      const batchSize = 2; // Process 2 images at a time
-      const batches = [];
-      
-      for (let i = 0; i < imageEntries.length; i += batchSize) {
-        batches.push(imageEntries.slice(i, i + batchSize));
-      }
-      
-      showToast(`Processing ${batches.length} batches...`, 'info');
-      
-      const allBlobs = [];
-      
-      for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i];
-        const batchImages = Object.fromEntries(batch);
-        
-        showToast(`Processing batch ${i + 1}/${batches.length}...`, 'info');
-        
-        const response = await fetch('/api/repurpose/download-images', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contentType: contentType,
-            scenes: content?.structured_data?.scenes || content?.scenes || [],
-            images: batchImages,
-            batchIndex: i,
-            totalBatches: batches.length
-          }),
-        });
-
-        if (!response.ok) throw new Error(`Batch ${i + 1} failed`);
-        
-        const blob = await response.blob();
-        allBlobs.push(blob);
-      }
-      
-      // ✅ Download all batches
-      allBlobs.forEach((blob, index) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `tiktok_scenes_batch_${index + 1}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      });
-      
-      showToast(`All ${batches.length} batches downloaded successfully!`, 'success');
-      
-    } catch (error: any) {
-      console.error('Batch download error:', error);
-      showToast(`Batch download failed: ${error.message}`, 'error');
-    }
   };
 
   return (

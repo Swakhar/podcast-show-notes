@@ -62,7 +62,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error: any) {
-    console.error('Error generating images:', error);
     return res.status(500).json({ 
       error: 'Failed to generate images',
       details: error.message 
@@ -536,7 +535,6 @@ async function createTikTokScene(params: {
     return `/generated/${filename}`;
     
   } catch (error) {
-    console.error('Error saving TikTok scene:', error);
     // ✅ Fallback to compressed base64
     return canvas.toDataURL('image/jpeg', 0.5);
   }

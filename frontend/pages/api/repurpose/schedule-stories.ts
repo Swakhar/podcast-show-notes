@@ -56,7 +56,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error: any) {
-    console.error('Error scheduling stories:', error);
     return res.status(500).json({ 
       error: 'Failed to schedule stories',
       details: error.message 

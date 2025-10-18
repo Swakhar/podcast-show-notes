@@ -61,7 +61,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         zip.file(filename, buffer);
         
       } catch (error) {
-        console.error(`Error processing image ${index}:`, error);
         // Continue with other images
       }
     }
@@ -197,7 +196,6 @@ ${scenes.map((scene, index) => `
     res.status(200).send(zipBuffer);
 
   } catch (error: any) {
-    console.error('Error creating download:', error);
     return res.status(500).json({ 
       error: 'Failed to create download',
       details: error.message 

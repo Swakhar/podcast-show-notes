@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 import JSZip from 'jszip';
+import fs from 'fs';
+import path from 'path';
 
 interface ExportPlatformsData {
   contentType: 'instagram_story' | 'linkedin_carousel' | 'tiktok_script';
@@ -10,6 +12,32 @@ interface ExportPlatformsData {
   scenes?: any[];
   images: { [key: number]: string };
   exportFormats: string[];
+}
+
+// ✅ Helper function to handle both URL and base64 images
+async function convertImageToBuffer(imageData: string): Promise<Buffer> {
+  // Check if it's a file URL (TikTok case)
+  if (typeof imageData === 'string' && imageData.startsWith('/generated/')) {
+    try {
+      // Read file from public directory
+      const filePath = path.join(process.cwd(), 'public', imageData);
+      if (fs.existsSync(filePath)) {
+        return fs.readFileSync(filePath);
+      } else {
+        throw new Error(`File not found: ${imageData}`);
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  // Handle base64 data (Instagram/LinkedIn case)
+  if (typeof imageData === 'string' && imageData.startsWith('data:image/')) {
+    const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
+    return Buffer.from(base64Data, 'base64');
+  }
+  
+  throw new Error('Invalid image data format');
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -80,7 +108,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).send(zipBuffer);
 
   } catch (error: any) {
-    console.error('Error creating platform exports:', error);
     return res.status(500).json({ 
       error: 'Failed to create platform exports',
       details: error.message 
@@ -88,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-// ✅ CANVA TEMPLATES - Updated with TikTok support
+// ✅ CANVA TEMPLATES - Updated with proper image handling
 async function createCanvaTemplates(
   folder: JSZip, 
   contentType: string, 
@@ -136,12 +163,14 @@ async function createCanvaTemplates(
 
   folder.file('canva_template.json', JSON.stringify(canvaTemplate, null, 2));
 
-  // Add images with Canva naming
-  Object.entries(images).forEach(([index, imageData]) => {
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    folder.file(`image_${parseInt(index) + 1}.png`, buffer);
-  });
+  // ✅ FIXED: Add images with proper handling for both URL and base64
+  for (const [index, imageData] of Object.entries(images)) {
+    try {
+      const buffer = await convertImageToBuffer(imageData);
+      folder.file(`image_${parseInt(index) + 1}.png`, buffer);
+    } catch (error) {
+    }
+  }
 
   // ✅ Updated Canva instructions with TikTok support
   const canvaInstructions = `# Canva Template Import
@@ -181,7 +210,7 @@ ${contentType === 'tiktok_script' ? `
   folder.file('CANVA_INSTRUCTIONS.md', canvaInstructions);
 }
 
-// ✅ BUFFER FORMAT - Updated with TikTok support
+// ✅ BUFFER FORMAT - Updated with proper image handling
 async function createBufferFormat(
   folder: JSZip, 
   contentType: string, 
@@ -201,12 +230,14 @@ async function createBufferFormat(
 
   folder.file('buffer_schedule.csv', csvHeaders + csvRows);
 
-  // Add images for Buffer
-  Object.entries(images).forEach(([index, imageData]) => {
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    folder.file(`image_${parseInt(index) + 1}.png`, buffer);
-  });
+  // ✅ FIXED: Add images with proper handling for both URL and base64
+  for (const [index, imageData] of Object.entries(images)) {
+    try {
+      const buffer = await convertImageToBuffer(imageData);
+      folder.file(`image_${parseInt(index) + 1}.png`, buffer);
+    } catch (error) {
+    }
+  }
 
   // ✅ Updated Buffer setup guide with TikTok support
   const bufferGuide = `# Buffer Import Guide
@@ -253,7 +284,7 @@ ${content?.map((item: any, index: number) => {
   folder.file('BUFFER_SETUP.md', bufferGuide);
 }
 
-// ✅ LATER FORMAT - Updated with TikTok support
+// ✅ LATER FORMAT - Updated with proper image handling
 async function createLaterFormat(
   folder: JSZip, 
   contentType: string, 
@@ -285,12 +316,14 @@ async function createLaterFormat(
 
   folder.file('later_campaign.json', JSON.stringify(laterMetadata, null, 2));
 
-  // Add numbered images for Later
-  Object.entries(images).forEach(([index, imageData]) => {
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    folder.file(`${parseInt(index) + 1}.png`, buffer);
-  });
+  // ✅ FIXED: Add numbered images with proper handling for both URL and base64
+  for (const [index, imageData] of Object.entries(images)) {
+    try {
+      const buffer = await convertImageToBuffer(imageData);
+      folder.file(`${parseInt(index) + 1}.png`, buffer);
+    } catch (error) {
+    }
+  }
 
   // ✅ Updated Later workflow guide with TikTok support
   const laterWorkflow = `# Later.com Import Workflow
@@ -339,7 +372,7 @@ Content: ${contentText.substring(0, 100)}${contentText.length > 100 ? '...' : ''
   folder.file('LATER_WORKFLOW.md', laterWorkflow);
 }
 
-// ✅ HOOTSUITE FORMAT - Updated with TikTok support
+// ✅ HOOTSUITE FORMAT - Updated with proper image handling
 async function createHootsuiteFormat(
   folder: JSZip, 
   contentType: string, 
@@ -359,12 +392,14 @@ ${content?.map((item: any, index: number) => {
 
   folder.file('hootsuite_bulk_upload.csv', hootsuiteCSV);
 
-  // Add images with Hootsuite naming
-  Object.entries(images).forEach(([index, imageData]) => {
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    folder.file(`hootsuite_${parseInt(index) + 1}.jpg`, buffer);
-  });
+  // ✅ FIXED: Add images with Hootsuite naming and proper handling for both URL and base64
+  for (const [index, imageData] of Object.entries(images)) {
+    try {
+      const buffer = await convertImageToBuffer(imageData);
+      folder.file(`hootsuite_${parseInt(index) + 1}.jpg`, buffer);
+    } catch (error) {
+    }
+  }
 
   // ✅ Updated Hootsuite instructions with TikTok support
   const hootsuiteInstructions = `# Hootsuite Bulk Import
@@ -416,31 +451,33 @@ ${contentType === 'tiktok_script' ? '- Confirm video format compatibility (MP4, 
   folder.file('HOOTSUITE_INSTRUCTIONS.md', hootsuiteInstructions);
 }
 
-// ✅ RAW IMAGES - Updated with TikTok support
+// ✅ RAW IMAGES - Updated with proper image handling
 async function createRawImages(
   folder: JSZip, 
   contentType: string, 
   content: any[], 
   images: { [key: number]: string }
 ) {
-  // Add high-quality images
-  Object.entries(images).forEach(([index, imageData]) => {
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    
-    const contentTitle = content?.[parseInt(index)]?.content || 
-                        content?.[parseInt(index)]?.dialogue || 
-                        content?.[parseInt(index)]?.text || 
-                        `content_${parseInt(index) + 1}`;
-    const safeTitle = contentTitle.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_');
-    
-    // ✅ Add scene type for TikTok files
-    const prefix = contentType === 'tiktok_script' 
-      ? `scene_${parseInt(index) + 1}_${content?.[parseInt(index)]?.type || 'content'}`
-      : `${parseInt(index) + 1}`;
-    
-    folder.file(`${prefix}_${safeTitle}.png`, buffer);
-  });
+  // ✅ FIXED: Add high-quality images with proper handling for both URL and base64
+  for (const [index, imageData] of Object.entries(images)) {
+    try {
+      const buffer = await convertImageToBuffer(imageData);
+      
+      const contentTitle = content?.[parseInt(index)]?.content || 
+                          content?.[parseInt(index)]?.dialogue || 
+                          content?.[parseInt(index)]?.text || 
+                          `content_${parseInt(index) + 1}`;
+      const safeTitle = contentTitle.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_');
+      
+      // ✅ Add scene type for TikTok files
+      const prefix = contentType === 'tiktok_script' 
+        ? `scene_${parseInt(index) + 1}_${content?.[parseInt(index)]?.type || 'content'}`
+        : `${parseInt(index) + 1}`;
+      
+      folder.file(`${prefix}_${safeTitle}.png`, buffer);
+    } catch (error) {
+    }
+  }
 
   // ✅ Updated technical specifications with TikTok support
   const techSpecs = `# Raw Images - Technical Specifications
