@@ -23,8 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       brandVoice 
     } = req.body;
 
-    console.log('Repurposing request:', { sourceJobId, contentTypes, customInstructions, targetAudience, brandVoice });
-
     // 📍 Fetch the original job from BACKEND, not frontend database
     const originalJobResponse = await fetch(`${BACKEND}/jobs/${sourceJobId}`, {
       method: 'GET',
@@ -43,7 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const originalJob = await originalJobResponse.json();
-    console.log('Original job fetched:', { id: originalJob.id, status: originalJob.status });
 
     // Verify job is complete
     if (originalJob.status !== 'complete') {
@@ -82,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const repurposingJob = await repurposingResponse.json();
-    console.log('Repurposing job created:', repurposingJob);
 
     res.status(200).json({ 
       jobId: repurposingJob.job_id || repurposingJob.id,
@@ -91,7 +87,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error: any) {
-    console.error('Repurposing API error:', error);
     res.status(500).json({ 
       error: error.message || 'Internal server error',
       details: error.stack

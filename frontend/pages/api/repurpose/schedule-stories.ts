@@ -233,7 +233,6 @@ async function addToPublishingQueue(posts: any[], userEmail: string): Promise<an
   };
   
   // TODO: Save to actual database
-  console.log('Queue entry created:', queueEntry);
   
   return {
     queueId,

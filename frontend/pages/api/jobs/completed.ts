@@ -15,16 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log(`🔍 Fetching completed jobs for: ${session.user.email}`);
-    
     // ✅ Use query parameter format that matches backend expectation
     const backendRes = await fetch(`${BACKEND}/jobs/completed/${encodeURIComponent(session.user.email)}`);
     
-    console.log(`🔍 Backend response status: ${backendRes.status}`);
-    
     if (!backendRes.ok) {
       const errorText = await backendRes.text();
-      console.error(`❌ Backend error: ${backendRes.status} - ${errorText}`);
       throw new Error(`Backend error: ${backendRes.status}`);
     }
 
