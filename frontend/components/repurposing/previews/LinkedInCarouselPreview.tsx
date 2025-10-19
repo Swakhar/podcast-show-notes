@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 import ContentActions from '../ContentActions';
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -8,13 +9,14 @@ interface LinkedInCarouselPreviewProps {
 }
 
 export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPreviewProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
   const [generatedSlides, setGeneratedSlides] = useState<{ [key: number]: string }>({});
   
   const slides = data?.structured_data?.slides || data?.slides || [];
-  const title = data?.structured_data?.title || data?.title || 'LinkedIn Carousel';
+  const title = data?.structured_data?.title || data?.title || t('linkedInCarouselPreview.defaults.title');
   const hashtags = data?.structured_data?.hashtags || data?.hashtags || [];
   const designSpecs = data?.design_specs || {};
 
@@ -28,7 +30,7 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType: 'linkedin_carousel',
-          slides: [{ title, content: 'Cover slide' }, ...slides],
+          slides: [{ title, content: t('linkedInCarouselPreview.defaults.coverSlide') }, ...slides],
           designSpecs: {
             dimensions: '1080x1080',
             format: 'carousel',
@@ -45,16 +47,16 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
 
       const result = await response.json();
       setGeneratedSlides(result.images || {});
-      showToast('Carousel slides generated successfully!', 'success');
+      showToast(t('linkedInCarouselPreview.messages.slideGenerationSuccess'), 'success');
     } catch (error: any) {
       console.error('Error generating carousel slides:', error);
-      showToast(`Error generating slides: ${error.message}`, 'error');
+      showToast(t('linkedInCarouselPreview.messages.slideGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingSlides(false);
     }
   };
 
-  const allSlides = [{ title, content: 'Cover slide', type: 'cover' }, ...slides];
+  const allSlides = [{ title, content: t('linkedInCarouselPreview.defaults.coverSlide'), type: 'cover' }, ...slides];
 
   return (
     <div className="p-6">
@@ -65,8 +67,10 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
             <span className="text-xl">📊</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">LinkedIn Carousel</h3>
-            <p className="text-sm text-gray-600">{allSlides.length} slides • Professional format</p>
+            <h3 className="text-xl font-bold text-gray-900">{t('linkedInCarouselPreview.header.title')}</h3>
+            <p className="text-sm text-gray-600">
+              {t('linkedInCarouselPreview.header.subtitle', { count: allSlides.length })}
+            </p>
           </div>
         </div>
         
@@ -80,11 +84,11 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
             {isGeneratingSlides ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating...
+                {t('linkedInCarouselPreview.buttons.generating')}
               </>
             ) : (
               <>
-                🎨 Generate Slides
+                🎨 {t('linkedInCarouselPreview.buttons.generateSlides')}
               </>
             )}
           </button>
@@ -102,9 +106,9 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                   <span className="text-white font-bold">YP</span>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Your Name</div>
-                  <div className="text-sm text-gray-500">Founder at Your Company • 1st</div>
-                  <div className="text-xs text-gray-400">2h • 🌍</div>
+                  <div className="font-semibold text-gray-900">{t('linkedInCarouselPreview.mockup.profileName')}</div>
+                  <div className="text-sm text-gray-500">{t('linkedInCarouselPreview.mockup.profileTitle')}</div>
+                  <div className="text-xs text-gray-400">{t('linkedInCarouselPreview.mockup.postTime')}</div>
                 </div>
               </div>
             </div>
@@ -141,20 +145,23 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
                   >
                     {generatedSlides[currentSlide] ? (
                       <div className="text-center">
-                        <div className="text-lg font-bold mb-2">✨ Generated Slide</div>
-                        <div className="text-sm opacity-80">Ready for LinkedIn</div>
+                        <div className="text-lg font-bold mb-2">✨ {t('linkedInCarouselPreview.slideContent.generatedSlide')}</div>
+                        <div className="text-sm opacity-80">{t('linkedInCarouselPreview.slideContent.readyForLinkedIn')}</div>
                       </div>
                     ) : (
                       <>
                         {currentSlide === 0 ? (
                           <div className="text-center">
                             <h2 className="text-2xl font-bold mb-4">{title}</h2>
-                            <div className="text-blue-100">Swipe to see insights →</div>
+                            <div className="text-blue-100">{t('linkedInCarouselPreview.slideContent.swipePrompt')}</div>
                           </div>
                         ) : (
                           <div>
                             <div className="text-sm mb-2 opacity-80">
-                              {currentSlide}/{allSlides.length - 1}
+                              {t('linkedInCarouselPreview.slideContent.slideNumber', { 
+                                current: currentSlide, 
+                                total: allSlides.length - 1 
+                              })}
                             </div>
                             <h3 className="text-lg font-bold mb-3">
                               {allSlides[currentSlide]?.title}
@@ -194,18 +201,18 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
             {/* LinkedIn Engagement */}
             <div className="p-4">
               <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                <span>👍 You and 47 others</span>
-                <span>12 comments • 8 shares</span>
+                <span>{t('linkedInCarouselPreview.engagement.likes')}</span>
+                <span>{t('linkedInCarouselPreview.engagement.commentsShares')}</span>
               </div>
               <div className="flex gap-4 text-gray-600">
                 <button className="flex items-center gap-1 hover:text-blue-600">
-                  👍 Like
+                  👍 {t('linkedInCarouselPreview.engagement.likeButton')}
                 </button>
                 <button className="flex items-center gap-1 hover:text-blue-600">
-                  💬 Comment
+                  💬 {t('linkedInCarouselPreview.engagement.commentButton')}
                 </button>
                 <button className="flex items-center gap-1 hover:text-blue-600">
-                  🔄 Share
+                  🔄 {t('linkedInCarouselPreview.engagement.shareButton')}
                 </button>
               </div>
             </div>
@@ -243,12 +250,12 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
             <div className="p-2 text-white h-full flex flex-col justify-between">
               <div className="text-center">
                 <p className="text-xs leading-tight">
-                  {index === 0 ? 'Cover' : `Slide ${index}`}
+                  {index === 0 ? t('linkedInCarouselPreview.slideGrid.cover') : t('linkedInCarouselPreview.slideGrid.slideNumber', { number: index })}
                 </p>
               </div>
               <div className="text-center">
                 <div className="text-xs opacity-70">
-                  {generatedSlides[index] ? 'Ready' : 'Text'}
+                  {generatedSlides[index] ? t('linkedInCarouselPreview.slideGrid.ready') : t('linkedInCarouselPreview.slideGrid.text')}
                 </div>
               </div>
             </div>
@@ -259,28 +266,35 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
       {/* Analytics & ContentActions */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-3">📊 Performance Predictions</h4>
+          <h4 className="font-medium text-blue-900 mb-3">📊 {t('linkedInCarouselPreview.analytics.title')}</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
-                👁️ Expected impressions: {Math.floor(Math.random() * 10000) + 5000}
+                👁️ {t('linkedInCarouselPreview.analytics.expectedImpressions', { 
+                  count: Math.floor(Math.random() * 10000) + 5000 
+                })}
               </div>
             </div>
             <div className="p-3 bg-white border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
-                💬 Expected engagement: {Math.floor(Math.random() * 15) + 10}%
+                💬 {t('linkedInCarouselPreview.analytics.expectedEngagement', { 
+                  percentage: Math.floor(Math.random() * 15) + 10 
+                })}
               </div>
             </div>
             <div className="p-3 bg-white border border-blue-200 rounded-lg">
               <div className="text-sm text-blue-800">
-                🎨 Slides generated: {Object.keys(generatedSlides).length}/{allSlides.length}
+                🎨 {t('linkedInCarouselPreview.analytics.slidesGenerated', { 
+                  generated: Object.keys(generatedSlides).length, 
+                  total: allSlides.length 
+                })}
               </div>
             </div>
           </div>
         </div>
 
         <div className="bg-green-50 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-3">🚀 Export Options</h4>
+          <h4 className="font-medium text-green-900 mb-3">🚀 {t('linkedInCarouselPreview.exportOptions.title')}</h4>
           <ContentActions 
             content={{
               ...data,

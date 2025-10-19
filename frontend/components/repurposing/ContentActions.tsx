@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useToast } from '../../contexts/ToastContext';
+import { useTranslation } from 'next-i18next';
 
 export interface ContentActionsProps {
   content: any;
@@ -72,6 +73,7 @@ export default function ContentActions({
   contentType, 
   filename
 }: ContentActionsProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -176,9 +178,9 @@ export default function ContentActions({
     try {
       const textContent = extractTextContent();
       await navigator.clipboard.writeText(textContent);
-      showToast('Content copied to clipboard!', 'success');
+      showToast(t('contentActions.copySuccess'), 'success');
     } catch (error) {
-      showToast('Failed to copy content to clipboard', 'error');
+      showToast(t('contentActions.copyError'), 'error');
     }
   };
 
@@ -198,9 +200,9 @@ export default function ContentActions({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      showToast('Content downloaded successfully!', 'success');
+      showToast(t('contentActions.downloadSuccess'), 'success');
     } catch (error) {
-      showToast('Failed to download content', 'error');
+      showToast(t('contentActions.downloadError'), 'error');
     }
   };
 
@@ -212,7 +214,7 @@ export default function ContentActions({
       const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || content?.generatedDesigns || {};
       
       if (Object.keys(generatedImages).length === 0) {
-        showToast('No generated content found. Generate content first!', 'warning');
+        showToast(t('contentActions.noGeneratedContent'), 'warning');
         return;
       }
 
@@ -235,7 +237,7 @@ export default function ContentActions({
 
         const filesExist = fileChecks.every(exists => exists);
         if (!filesExist) {
-          showToast('TikTok scene files have expired. Please regenerate the content to download.', 'error');
+          showToast(t('contentActions.tiktokFilesExpired'), 'error');
           setIsDownloading(false);
           return;
         }
@@ -269,7 +271,7 @@ export default function ContentActions({
         a.remove();
         window.URL.revokeObjectURL(url);
         
-        showToast('Infographic design package downloaded successfully!', 'success');
+        showToast(t('contentActions.infographicDownloadSuccess'), 'success');
         return;
       }
 
@@ -308,7 +310,7 @@ export default function ContentActions({
       a.remove();
       window.URL.revokeObjectURL(url);
       
-      showToast(`${contentType === 'tiktok_script' ? 'Scene frames' : contentType === 'infographic_data' ? 'Design files' : 'Images'} downloaded successfully!`, 'success');
+      showToast(t('contentActions.imagesDownloadSuccess'), 'success');
     } catch (error: any) {
       showToast(`Error downloading content: ${error.message}`, 'error');
     } finally {
@@ -324,7 +326,7 @@ export default function ContentActions({
       const generatedImages = content?.generatedImages || content?.generatedSlides || content?.generatedVideos || {};
       
       if (Object.keys(generatedImages).length === 0) {
-        showToast('No generated content found. Generate content first!', 'warning');
+        showToast(t('contentActions.noGeneratedContent'), 'warning');
         return;
       }
 
@@ -333,7 +335,7 @@ export default function ContentActions({
       if (contentType === 'tiktok_script') {
         processedImages = {};
         
-        showToast('Compressing images for export...', 'info');
+        showToast(t('contentActions.compressingImages'), 'info');
         
         for (const [key, imageData] of Object.entries(generatedImages)) {
           if (typeof imageData === 'string' && imageData.startsWith('data:image/')) {
@@ -359,7 +361,7 @@ export default function ContentActions({
         }).length;
         
         if (totalSize > 10000000) { // ~10MB limit for exports
-          showToast('Content is large, using simpler export...', 'info');
+          showToast(t('contentActions.largeContentExport'), 'info');
           
           // ✅ Fallback: Export only essential formats
           return await exportForPlatformsSimple(processedImages);
@@ -400,7 +402,7 @@ export default function ContentActions({
       a.remove();
       window.URL.revokeObjectURL(url);
 
-      showToast('Platform exports downloaded successfully!', 'success');
+      showToast(t('contentActions.platformExportSuccess'), 'success');
     } catch (error: any) {
       showToast(`Error exporting: ${error.message}`, 'error');
     } finally {
@@ -411,7 +413,7 @@ export default function ContentActions({
   // ✅ Add fallback simple export function:
   const exportForPlatformsSimple = async (images: any) => {
     try {
-      showToast('Creating simplified export...', 'info');
+      showToast(t('contentActions.simplifiedExport'), 'info');
       
       const response = await fetch('/api/repurpose/export-platforms', {
         method: 'POST',
@@ -436,7 +438,7 @@ export default function ContentActions({
       a.remove();
       window.URL.revokeObjectURL(url);
 
-      showToast('Essential exports downloaded successfully!', 'success');
+      showToast(t('contentActions.essentialExportSuccess'), 'success');
     } catch (error: any) {
       showToast(`Simple export failed: ${error.message}`, 'error');
     }
@@ -466,14 +468,14 @@ export default function ContentActions({
           onClick={copyToClipboard}
           className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex items-center gap-2 justify-center"
         >
-          📋 Copy Text
+          📋 {t('contentActions.copyText')}
         </button>
         
         <button
           onClick={downloadAsFile}
           className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium flex items-center gap-2 justify-center"
         >
-          💾 Download Text
+          💾 {t('contentActions.downloadText')}
         </button>
       </div>
 
@@ -481,7 +483,7 @@ export default function ContentActions({
       {(contentType === 'instagram_story' || contentType === 'linkedin_carousel') && (
         <div className="space-y-2">
           <div className="border-t border-gray-200 pt-3">
-            <h5 className="font-medium text-gray-700 mb-2 text-sm">📱 Generated Images</h5>
+            <h5 className="font-medium text-gray-700 mb-2 text-sm">📱 {t('contentActions.generatedImages')}</h5>
             
             {hasGeneratedImages() ? (
               <div className="space-y-2">
@@ -494,10 +496,10 @@ export default function ContentActions({
                     <span className="text-lg">📥</span>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {isDownloading ? 'Downloading...' : 'Download Images'}
+                        {isDownloading ? t('contentActions.downloading') : t('contentActions.downloadImages')}
                       </div>
                       <div className="text-xs text-gray-600">
-                        High-resolution {contentType === 'instagram_story' ? '1080x1920' : '1080x1080'} PNG files
+                        {t('contentActions.highResolutionFiles')} {contentType === 'instagram_story' ? '1080x1920' : '1080x1080'} PNG files
                       </div>
                     </div>
                     {isDownloading && (
@@ -515,10 +517,10 @@ export default function ContentActions({
                     <span className="text-lg">📦</span>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {isDownloading ? 'Exporting...' : 'Export for Platforms'}
+                        {isDownloading ? t('contentActions.exporting') : t('contentActions.exportForPlatforms')}
                       </div>
                       <div className="text-xs text-gray-600">
-                        Canva, Buffer, Later, Hootsuite formats
+                        {t('contentActions.platformFormats')}
                       </div>
                     </div>
                     {isDownloading && (
@@ -530,7 +532,7 @@ export default function ContentActions({
             ) : (
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
                 <div className="text-sm text-gray-600">
-                  Generate images first to unlock export options
+                  {t('contentActions.generateFirst')}
                 </div>
               </div>
             )}
@@ -541,7 +543,7 @@ export default function ContentActions({
       {/* TikTok-specific Actions */}
       {contentType === 'tiktok_script' && (
         <div className="border-t border-gray-200 pt-3">
-          <h5 className="font-medium text-gray-700 mb-2 text-sm">🎬 TikTok Content</h5>
+          <h5 className="font-medium text-gray-700 mb-2 text-sm">🎬 {t('contentActions.tiktokContent')}</h5>
           
           {hasGeneratedImages() ? (
             <div className="space-y-2">
@@ -554,10 +556,10 @@ export default function ContentActions({
                   <span className="text-lg">🎬</span>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {isDownloading ? 'Downloading...' : 'Download Scene Frames'}
+                      {isDownloading ? t('contentActions.downloading') : t('contentActions.downloadSceneFrames')}
                     </div>
                     <div className="text-xs text-gray-600">
-                      High-resolution 1080x1920 scene images
+                      {t('contentActions.highResolutionFiles')} 1080x1920 scene images
                     </div>
                   </div>
                   {isDownloading && (
@@ -575,7 +577,7 @@ export default function ContentActions({
                   <span className="text-lg">📱</span>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {isDownloading ? 'Exporting...' : 'Export for Video Editing'}
+                      {isDownloading ? t('contentActions.exporting') : t('contentActions.exportForVideoEditing')}
                     </div>
                     <div className="text-xs text-gray-600">
                       CapCut, InShot, Adobe Premiere formats
@@ -590,7 +592,7 @@ export default function ContentActions({
           ) : (
             <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
               <div className="text-sm text-gray-600">
-                Generate scene frames first to unlock export options
+                {t('contentActions.generateSceneFrames')}
               </div>
             </div>
           )}
@@ -600,7 +602,7 @@ export default function ContentActions({
       {/* Content-specific Actions */}
       {contentType === 'blog_outline' && (
         <div className="border-t border-gray-200 pt-3">
-          <h5 className="font-medium text-gray-700 mb-2 text-sm">📝 Blog Content</h5>
+          <h5 className="font-medium text-gray-700 mb-2 text-sm">📝 {t('contentActions.blogContent')}</h5>
           
           <div className="space-y-2">
             <button
@@ -610,8 +612,8 @@ export default function ContentActions({
               <div className="flex items-center gap-2">
                 <span className="text-lg">📝</span>
                 <div>
-                  <div className="font-medium text-green-900">Export as Markdown</div>
-                  <div className="text-xs text-green-700">WordPress/CMS ready format</div>
+                  <div className="font-medium text-green-900">{t('contentActions.exportMarkdown')}</div>
+                  <div className="text-xs text-green-700">{t('contentActions.wordpressCmsReady')}</div>
                 </div>
               </div>
             </button>
@@ -630,15 +632,15 @@ export default function ContentActions({
                   a.click();
                   document.body.removeChild(a);
                   URL.revokeObjectURL(url);
-                  showToast('Enhanced content downloaded!', 'success');
+                  showToast(t('contentActions.enhancedContentDownloaded'), 'success');
                 }}
                 className="w-full p-3 bg-white border border-blue-200 rounded-lg hover:border-blue-300 transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-lg">✨</span>
                   <div>
-                    <div className="font-medium text-blue-900">Download Enhanced Content</div>
-                    <div className="text-xs text-blue-700">WordPress, social snippets, SEO data</div>
+                    <div className="font-medium text-blue-900">{t('contentActions.downloadEnhancedContent')}</div>
+                    <div className="text-xs text-blue-700">{t('contentActions.wordpressSocialSeo')}</div>
                   </div>
                 </div>
               </button>
@@ -685,15 +687,15 @@ RECOMMENDATIONS:
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showToast('SEO report downloaded!', 'success');
+                showToast(t('contentActions.seoReportDownloaded'), 'success');
               }}
               className="w-full p-3 bg-white border border-purple-200 rounded-lg hover:border-purple-300 transition-colors text-left"
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">🎯</span>
                 <div>
-                  <div className="font-medium text-purple-900">SEO Analysis Report</div>
-                  <div className="text-xs text-purple-700">Detailed optimization insights</div>
+                  <div className="font-medium text-purple-900">{t('contentActions.seoAnalysisReport')}</div>
+                  <div className="text-xs text-purple-700">{t('contentActions.optimizationInsights')}</div>
                 </div>
               </div>
             </button>
@@ -708,14 +710,14 @@ RECOMMENDATIONS:
             onClick={copyToClipboard}
             className="w-full flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors text-sm"
           >
-            📋 Copy Email Sequence
+            📋 {t('contentActions.copyEmailSequence')}
           </button>
           
           <button
             onClick={downloadAsFile}
             className="w-full flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
           >
-            📧 Download Email Course
+            📧 {t('contentActions.downloadEmailCourse')}
           </button>
 
           {hasGeneratedContent() && (
@@ -739,8 +741,8 @@ RECOMMENDATIONS:
             <div className="flex items-center gap-2">
               <span className="text-lg">🧵</span>
               <div>
-                <div className="font-medium text-blue-900">Export Thread</div>
-                <div className="text-xs text-blue-700">Numbered tweets ready to post</div>
+                <div className="font-medium text-blue-900">{t('contentActions.exportThread')}</div>
+                <div className="text-xs text-blue-700">{t('contentActions.numberedTweets')}</div>
               </div>
             </div>
           </button>

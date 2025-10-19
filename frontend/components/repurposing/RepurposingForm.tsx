@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import { RepurposingSectionMode, RepurposingConfig } from './types';
 
 interface Job {
@@ -18,17 +19,56 @@ interface RepurposingFormProps {
   sourceJobId?: string;
 }
 
-const CONTENT_TYPES = [
-  { id: 'linkedin_carousel', label: 'LinkedIn Carousel', icon: '📊', description: 'Professional slides for LinkedIn' },
-  { id: 'twitter_thread', label: 'Twitter Thread', icon: '🧵', description: 'Engaging thread posts' },
-  { id: 'instagram_story', label: 'Instagram Stories', icon: '📱', description: 'Visual story sequence' },
-  { id: 'tiktok_script', label: 'TikTok Script', icon: '🎬', description: 'Short-form video script' },
-  { id: 'blog_outline', label: 'Blog Outline', icon: '📝', description: 'SEO-optimized blog structure' },
-  { id: 'email_course', label: 'Email Course', icon: '📧', description: 'Educational email sequence' },
-  { id: 'infographic_data', label: 'Infographic Data', icon: '📈', description: 'Visual data representation' },
-];
-
+// Replace the hardcoded CONTENT_TYPES array with translation-based one
 export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: propSourceJobId }: RepurposingFormProps) {
+  const { t } = useTranslation('common');
+  
+  // Use translation for content types
+  const CONTENT_TYPES = [
+    { 
+      id: 'linkedin_carousel', 
+      label: t('repurposingForm.contentTypes.linkedinCarousel.label'), 
+      icon: '📊', 
+      description: t('repurposingForm.contentTypes.linkedinCarousel.description') 
+    },
+    { 
+      id: 'twitter_thread', 
+      label: t('repurposingForm.contentTypes.twitterThread.label'), 
+      icon: '🧵', 
+      description: t('repurposingForm.contentTypes.twitterThread.description') 
+    },
+    { 
+      id: 'instagram_story', 
+      label: t('repurposingForm.contentTypes.instagramStory.label'), 
+      icon: '📱', 
+      description: t('repurposingForm.contentTypes.instagramStory.description') 
+    },
+    { 
+      id: 'tiktok_script', 
+      label: t('repurposingForm.contentTypes.tiktokScript.label'), 
+      icon: '🎬', 
+      description: t('repurposingForm.contentTypes.tiktokScript.description') 
+    },
+    { 
+      id: 'blog_outline', 
+      label: t('repurposingForm.contentTypes.blogOutline.label'), 
+      icon: '📝', 
+      description: t('repurposingForm.contentTypes.blogOutline.description') 
+    },
+    { 
+      id: 'email_course', 
+      label: t('repurposingForm.contentTypes.emailCourse.label'), 
+      icon: '📧', 
+      description: t('repurposingForm.contentTypes.emailCourse.description') 
+    },
+    { 
+      id: 'infographic_data', 
+      label: t('repurposingForm.contentTypes.infographicData.label'), 
+      icon: '📈', 
+      description: t('repurposingForm.contentTypes.infographicData.description') 
+    },
+  ];
+
   const [selectedTypes, setSelectedTypes] = useState<string[]>(['linkedin_carousel']);
   const [customInstructions, setCustomInstructions] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
@@ -90,13 +130,13 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
     e.preventDefault();
     
     if (selectedTypes.length === 0) {
-      alert('Please select at least one content type');
+      alert(t('repurposingForm.validation.selectContentType'));
       return;
     }
 
     const finalSourceJobId = propSourceJobId || sourceJobId;
     if (!finalSourceJobId) {
-      alert('Please select a source job to repurpose');
+      alert(t('repurposingForm.validation.selectSourceJob'));
       return;
     }
 
@@ -116,13 +156,13 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
   const formatJobTitle = (job: Job) => {
     // ✅ Add safety checks
     if (!job || !job.id) {
-      return 'Unknown Job';
+      return t('repurposingForm.unknownJob');
     }
-    return job.result?.seo?.title || `Job ${job.id.slice(0, 8)}`;
+    return job.result?.seo?.title || t('repurposingForm.jobPrefix', { id: job.id.slice(0, 8) });
   };
 
   const formatJobDate = (dateString: string) => {
-    if (!dateString) return 'Unknown date';
+    if (!dateString) return t('repurposingForm.unknownDate');
     return new Date(dateString).toLocaleDateString();
   };
 
@@ -149,10 +189,10 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
           </div>
           <div>
             <h3 className={`font-bold text-gray-900 ${mode === 'standalone' ? 'text-2xl' : 'text-lg'}`}>
-              Content Repurposing
+              {t('repurposingForm.header.title')}
             </h3>
             <p className="text-sm text-gray-600">
-              Transform your content into multiple formats
+              {t('repurposingForm.header.subtitle')}
             </p>
           </div>
         </div>
@@ -160,7 +200,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
         {mode === 'sidebar' && (
           <div className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
             <span className="animate-pulse">🚀</span>
-            Most Popular Feature
+            {t('repurposingForm.header.popularFeature')}
           </div>
         )}
       </div>
@@ -169,29 +209,29 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
       {(mode === 'sidebar' || !propSourceJobId) && (
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Source Content
+            {t('repurposingForm.sourceContent.label')}
           </label>
           
           {loadingJobs ? (
             <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg">
               <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Loading your content...</span>
+              <span className="text-sm text-gray-600">{t('repurposingForm.sourceContent.loading')}</span>
             </div>
           ) : availableJobs.length === 0 ? (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">⚠️</span>
-                <span className="font-medium text-yellow-800">No Content Available</span>
+                <span className="font-medium text-yellow-800">{t('repurposingForm.sourceContent.noContent.title')}</span>
               </div>
               <p className="text-sm text-yellow-700 mb-3">
-                You need to process some audio content first before you can repurpose it.
+                {t('repurposingForm.sourceContent.noContent.description')}
               </p>
               <button
                 type="button"
                 onClick={() => window.location.href = '#audio'}
                 className="text-sm text-yellow-800 underline hover:text-yellow-900"
               >
-                Go to Audio Content tab to upload content
+                {t('repurposingForm.sourceContent.noContent.goToAudio')}
               </button>
             </div>
           ) : (
@@ -201,7 +241,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
               required
             >
-              <option value="">Select content to repurpose...</option>
+              <option value="">{t('repurposingForm.sourceContent.selectPlaceholder')}</option>
               {availableJobs.map(job => (
                 <option key={job.id} value={job.id}>
                   {formatJobTitle(job)} • {formatJobDate(job.created_at)} • {job.billed_minutes || 1}min
@@ -215,12 +255,12 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
               <div className="flex items-center gap-2">
                 <span className="text-lg">✅</span>
                 <span className="text-sm font-medium text-purple-800">
-                  Source selected: {(() => {
+                  {t('repurposingForm.sourceContent.sourceSelected')}: {(() => {
                     const selectedJob = availableJobs.find(j => j.id === sourceJobId);
                     if (selectedJob) {
                       return formatJobTitle(selectedJob);
                     }
-                    return `Job ${sourceJobId.slice(0, 8)}`;
+                    return t('repurposingForm.jobPrefix', { id: sourceJobId.slice(0, 8) });
                   })()}
                 </span>
               </div>
@@ -232,7 +272,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
       {/* Content Type Selection */}
       <div className="space-y-4">
         <label className="block text-sm font-semibold text-gray-700">
-          Content Types ({selectedTypes.length} selected)
+          {t('repurposingForm.contentTypeSelection.label', { count: selectedTypes.length })}
         </label>
         
         <div className={`grid gap-3 ${mode === 'standalone' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
@@ -268,44 +308,44 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
 
       {/* Advanced Options */}
       <div className="space-y-4">
-        <label className="block text-sm font-semibold text-gray-700">Advanced Options</label>
+        <label className="block text-sm font-semibold text-gray-700">{t('repurposingForm.advancedOptions.title')}</label>
         
         <div className={`grid gap-4 ${mode === 'standalone' ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('repurposingForm.advancedOptions.targetAudience.label')}</label>
             <input
               type="text"
               value={targetAudience}
               onChange={(e) => setTargetAudience(e.target.value)}
-              placeholder="e.g., entrepreneurs, marketers..."
+              placeholder={t('repurposingForm.advancedOptions.targetAudience.placeholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Brand Voice</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('repurposingForm.advancedOptions.brandVoice.label')}</label>
             <select
               value={brandVoice}
               onChange={(e) => setBrandVoice(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
             >
-              <option value="professional">Professional</option>
-              <option value="casual">Casual</option>
-              <option value="friendly">Friendly</option>
-              <option value="authoritative">Authoritative</option>
-              <option value="humorous">Humorous</option>
-              <option value="inspirational">Inspirational</option>
-              <option value="educational">Educational</option>
+              <option value="professional">{t('repurposingForm.advancedOptions.brandVoice.options.professional')}</option>
+              <option value="casual">{t('repurposingForm.advancedOptions.brandVoice.options.casual')}</option>
+              <option value="friendly">{t('repurposingForm.advancedOptions.brandVoice.options.friendly')}</option>
+              <option value="authoritative">{t('repurposingForm.advancedOptions.brandVoice.options.authoritative')}</option>
+              <option value="humorous">{t('repurposingForm.advancedOptions.brandVoice.options.humorous')}</option>
+              <option value="inspirational">{t('repurposingForm.advancedOptions.brandVoice.options.inspirational')}</option>
+              <option value="educational">{t('repurposingForm.advancedOptions.brandVoice.options.educational')}</option>
             </select>
           </div>
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Custom Instructions</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('repurposingForm.advancedOptions.customInstructions.label')}</label>
           <textarea
             value={customInstructions}
             onChange={(e) => setCustomInstructions(e.target.value)}
-            placeholder="Any specific requirements or style preferences..."
+            placeholder={t('repurposingForm.advancedOptions.customInstructions.placeholder')}
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm resize-none"
           />
@@ -321,7 +361,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
                 onChange={(e) => setIncludeDesignSpecs(e.target.checked)}
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
-              <span className="text-sm text-gray-700">Include design specifications</span>
+              <span className="text-sm text-gray-700">{t('repurposingForm.advancedOptions.featureToggles.includeDesignSpecs')}</span>
             </label>
             
             <label className="flex items-center gap-2">
@@ -331,7 +371,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
                 onChange={(e) => setIncludeAnalytics(e.target.checked)}
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
-              <span className="text-sm text-gray-700">Include analytics predictions</span>
+              <span className="text-sm text-gray-700">{t('repurposingForm.advancedOptions.featureToggles.includeAnalytics')}</span>
             </label>
             
             <label className="flex items-center gap-2">
@@ -341,7 +381,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
                 onChange={(e) => setIncludeScheduling(e.target.checked)}
                 className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
               />
-              <span className="text-sm text-gray-700">Include scheduling recommendations</span>
+              <span className="text-sm text-gray-700">{t('repurposingForm.advancedOptions.featureToggles.includeScheduling')}</span>
             </label>
           </div>
         )}
@@ -358,24 +398,24 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
         {isSubmitting ? (
           <>
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Generating Content...</span>
+            <span>{t('repurposingForm.submitButton.generating')}</span>
           </>
         ) : (
           <>
             <span>🚀</span>
-            <span>Generate {selectedTypes.length} Content Type{selectedTypes.length !== 1 ? 's' : ''}</span>
+            <span>{t('repurposingForm.submitButton.generate', { count: selectedTypes.length })}</span>
           </>
         )}
       </button>
 
       {/* Info */}
       <div className="text-xs text-gray-500 text-center">
-        Cost: {selectedTypes.length} minute{selectedTypes.length !== 1 ? 's' : ''} from your quota
+        {t('repurposingForm.info.cost', { count: selectedTypes.length })}
       </div>
 
       {selectedTypes.length === 0 && (
         <p className="text-sm text-gray-500 text-center">
-          Select at least one content type to continue
+          {t('repurposingForm.info.selectPrompt')}
         </p>
       )}
     </form>

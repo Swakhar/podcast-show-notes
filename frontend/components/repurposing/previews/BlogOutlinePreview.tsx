@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 import ContentActions from '../ContentActions';
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -8,6 +9,7 @@ interface BlogOutlinePreviewProps {
 }
 
 export default function BlogOutlinePreview({ data }: BlogOutlinePreviewProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [expandedSection, setExpandedSection] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'outline' | 'article' | 'seo'>('outline');
@@ -21,7 +23,7 @@ export default function BlogOutlinePreview({ data }: BlogOutlinePreviewProps) {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showToast('Copied to clipboard!', 'success');
+    showToast(t('blogOutlinePreview.messages.copySuccess'), 'success');
   };
 
   const exportOutline = () => {
@@ -109,10 +111,10 @@ ${seoData.primary_keywords ? `
 
       const result = await response.json();
       setGeneratedContent(result);
-      showToast('Enhanced blog content generated successfully!', 'success');
+      showToast(t('blogOutlinePreview.messages.enhancedContentSuccess'), 'success');
     } catch (error: any) {
       console.error('Error generating enhanced content:', error);
-      showToast(`Error generating content: ${error.message}`, 'error');
+      showToast(t('blogOutlinePreview.messages.enhancedContentError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingContent(false);
     }
@@ -252,10 +254,10 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
         window.URL.revokeObjectURL(url);
       });
 
-      showToast('📄 All blog formats downloaded successfully!', 'success');
+      showToast(t('blogOutlinePreview.messages.downloadSuccess'), 'success');
     } catch (error: any) {
       console.error('Error downloading blog formats:', error);
-      showToast(`Error downloading files: ${error.message}`, 'error');
+      showToast(t('blogOutlinePreview.messages.downloadError', { message: error.message }), 'error');
     }
   };
 
@@ -268,9 +270,12 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
             <span className="text-xl text-white">📝</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Blog Outline</h3>
+            <h3 className="text-xl font-bold text-gray-900">{t('blogOutlinePreview.header.title')}</h3>
             <p className="text-sm text-gray-600">
-              {sections.length} sections • {estimateReadingTime(exportOutline())} min read • SEO optimized
+              {t('blogOutlinePreview.header.subtitle', { 
+                sections: sections.length, 
+                readTime: estimateReadingTime(exportOutline()) 
+              })}
             </p>
           </div>
         </div>
@@ -283,7 +288,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                 viewMode === 'outline' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📋 Outline
+              📋 {t('blogOutlinePreview.viewModes.outline')}
             </button>
             <button
               onClick={() => setViewMode('article')}
@@ -291,7 +296,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                 viewMode === 'article' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📖 Article Preview
+              📖 {t('blogOutlinePreview.viewModes.article')}
             </button>
             <button
               onClick={() => setViewMode('seo')}
@@ -299,7 +304,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                 viewMode === 'seo' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              🎯 SEO
+              🎯 {t('blogOutlinePreview.viewModes.seo')}
             </button>
           </div>
           
@@ -307,14 +312,14 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
             onClick={() => copyToClipboard(exportOutline())}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
           >
-            📋 Copy Outline
+            📋 {t('blogOutlinePreview.buttons.copyOutline')}
           </button>
 
           <button
             onClick={downloadMultipleFormats}
             className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
           >
-            📄 Download All
+            📄 {t('blogOutlinePreview.buttons.downloadAll')}
           </button>
 
           <button
@@ -325,11 +330,11 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
             {isGeneratingContent ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating...
+                {t('blogOutlinePreview.buttons.generating')}
               </>
             ) : (
               <>
-                🚀 Enhance Content
+                🚀 {t('blogOutlinePreview.buttons.enhanceContent')}
               </>
             )}
           </button>
@@ -341,10 +346,10 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">✨</span>
-            <span className="font-medium text-green-900">Enhanced Content Generated!</span>
+            <span className="font-medium text-green-900">{t('blogOutlinePreview.enhancedBanner.title')}</span>
           </div>
           <p className="text-sm text-green-700">
-            WordPress-ready content, social snippets, and SEO optimization now available in export options.
+            {t('blogOutlinePreview.enhancedBanner.description')}
           </p>
         </div>
       )}
@@ -355,25 +360,25 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
           {/* Article Header */}
           <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {outline.title || 'Blog Post Title'}
+              {outline.title || t('blogOutlinePreview.outline.defaultTitle')}
             </h1>
             <p className="text-gray-600 mb-4">
-              {outline.subtitle || outline.meta_description || 'Engaging subtitle that draws readers in'}
+              {outline.subtitle || outline.meta_description || t('blogOutlinePreview.outline.defaultSubtitle')}
             </p>
             
             <div className="flex items-center gap-4 text-sm text-gray-500 flex-wrap">
               <span className="flex items-center gap-1">
-                📊 {formatWordCount(exportOutline())} words
+                📊 {t('blogOutlinePreview.stats.words', { count: formatWordCount(exportOutline()) })}
               </span>
               <span className="flex items-center gap-1">
-                ⏱️ {estimateReadingTime(exportOutline())} min read
+                ⏱️ {t('blogOutlinePreview.stats.readTime', { time: estimateReadingTime(exportOutline()) })}
               </span>
               <span className="flex items-center gap-1">
-                🎯 SEO Score: {seoData.score || '95'}/100
+                🎯 {t('blogOutlinePreview.stats.seoScore', { score: seoData.score || '95' })}
               </span>
               {Object.keys(generatedContent).length > 0 && (
                 <span className="flex items-center gap-1 text-green-600">
-                  ✨ Enhanced content ready
+                  ✨ {t('blogOutlinePreview.stats.enhancedReady')}
                 </span>
               )}
             </div>
@@ -382,7 +387,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
           {/* Introduction */}
           {outline.introduction && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-medium text-blue-900 mb-2">📝 Introduction</h3>
+              <h3 className="font-medium text-blue-900 mb-2">📝 {t('blogOutlinePreview.sections.introduction')}</h3>
               <p className="text-blue-800">{outline.introduction}</p>
             </div>
           )}
@@ -412,7 +417,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                         <div>
                           <h4 className="font-medium text-gray-900">{section.heading}</h4>
                           <p className="text-sm text-gray-600">
-                            {section.word_count || '~300'} words • {section.type || 'Content Section'}
+                            {section.word_count || '~300'} {t('blogOutlinePreview.sections.words')} • {section.type || t('blogOutlinePreview.sections.contentSection')}
                           </p>
                         </div>
                       </div>
@@ -425,7 +430,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                           }}
                           className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                         >
-                          Copy
+                          {t('blogOutlinePreview.sections.copy')}
                         </button>
                         <span className="text-gray-400">
                           {isExpanded ? '▲' : '▼'}
@@ -443,13 +448,13 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                     >
                       <div className="space-y-3">
                         <div>
-                          <div className="text-sm font-medium text-gray-700 mb-1">Content Summary</div>
+                          <div className="text-sm font-medium text-gray-700 mb-1">{t('blogOutlinePreview.sections.contentSummary')}</div>
                           <p className="text-gray-800">{section.content || section.summary}</p>
                         </div>
                         
                         {section.key_points && (
                           <div>
-                            <div className="text-sm font-medium text-gray-700 mb-2">Key Points to Cover</div>
+                            <div className="text-sm font-medium text-gray-700 mb-2">{t('blogOutlinePreview.sections.keyPoints')}</div>
                             <ul className="list-disc list-inside text-gray-800 space-y-1">
                               {section.key_points.map((point: string, pointIndex: number) => (
                                 <li key={pointIndex} className="text-sm">{point}</li>
@@ -460,7 +465,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                         
                         {section.subsections && section.subsections.length > 0 && (
                           <div>
-                            <div className="text-sm font-medium text-gray-700 mb-2">Subsections</div>
+                            <div className="text-sm font-medium text-gray-700 mb-2">{t('blogOutlinePreview.sections.subsections')}</div>
                             <div className="space-y-2">
                               {section.subsections.map((subsection: any, subIndex: number) => (
                                 <div key={subIndex} className="p-3 bg-white border border-gray-200 rounded-lg">
@@ -482,7 +487,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
           {/* Conclusion */}
           {outline.conclusion && (
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <h3 className="font-medium text-purple-900 mb-2">🎯 Conclusion</h3>
+              <h3 className="font-medium text-purple-900 mb-2">🎯 {t('blogOutlinePreview.sections.conclusion')}</h3>
               <p className="text-purple-800">{outline.conclusion}</p>
             </div>
           )}
@@ -501,10 +506,10 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                 {outline.subtitle || outline.meta_description}
               </p>
               <div className="flex items-center justify-center gap-6 text-sm text-gray-500 flex-wrap">
-                <span>📅 Published today</span>
-                <span>👤 By Your Name</span>
-                <span>⏱️ {estimateReadingTime(exportOutline())} min read</span>
-                <span>🎯 SEO Score: {seoData.score || '95'}/100</span>
+                <span>📅 {t('blogOutlinePreview.article.publishedToday')}</span>
+                <span>👤 {t('blogOutlinePreview.article.byAuthor')}</span>
+                <span>⏱️ {t('blogOutlinePreview.stats.readTime', { time: estimateReadingTime(exportOutline()) })}</span>
+                <span>🎯 {t('blogOutlinePreview.stats.seoScore', { score: seoData.score || '95' })}</span>
               </div>
             </header>
             
@@ -524,7 +529,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
                   
                   {section.key_points && (
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
-                      <h4 className="font-semibold text-yellow-800 mb-2">Key Takeaways:</h4>
+                      <h4 className="font-semibold text-yellow-800 mb-2">{t('blogOutlinePreview.article.keyTakeaways')}:</h4>
                       <ul className="list-disc list-inside text-yellow-700 space-y-1">
                         {section.key_points.map((point: string, pointIndex: number) => (
                           <li key={pointIndex}>{point}</li>
@@ -558,14 +563,14 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
           {/* SEO Score Card */}
           <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">SEO Analysis</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('blogOutlinePreview.seo.title')}</h3>
               <div className="flex items-center gap-2">
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-lg">{seoData.score || '95'}</span>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-green-700">Excellent</div>
-                  <div className="text-xs text-green-600">SEO Score</div>
+                  <div className="text-sm font-medium text-green-700">{t('blogOutlinePreview.seo.excellent')}</div>
+                  <div className="text-xs text-green-600">{t('blogOutlinePreview.seo.scoreLabel')}</div>
                 </div>
               </div>
             </div>
@@ -573,18 +578,18 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
             <div className="grid md:grid-cols-3 gap-4">
               <div className="p-3 bg-white rounded-lg border border-green-200">
                 <div className="text-green-600 text-2xl mb-1">📊</div>
-                <div className="font-medium text-gray-900">Readability</div>
-                <div className="text-sm text-green-600">Grade 8 level</div>
+                <div className="font-medium text-gray-900">{t('blogOutlinePreview.seo.readability')}</div>
+                <div className="text-sm text-green-600">{t('blogOutlinePreview.seo.gradeLevel')}</div>
               </div>
               <div className="p-3 bg-white rounded-lg border border-green-200">
                 <div className="text-blue-600 text-2xl mb-1">🎯</div>
-                <div className="font-medium text-gray-900">Focus Keywords</div>
-                <div className="text-sm text-blue-600">{(seoData.keywords || seoData.primary_keywords || []).length || 5} identified</div>
+                <div className="font-medium text-gray-900">{t('blogOutlinePreview.seo.focusKeywords')}</div>
+                <div className="text-sm text-blue-600">{t('blogOutlinePreview.seo.keywordsIdentified', { count: (seoData.keywords || seoData.primary_keywords || []).length || 5 })}</div>
               </div>
               <div className="p-3 bg-white rounded-lg border border-green-200">
                 <div className="text-purple-600 text-2xl mb-1">🔗</div>
-                <div className="font-medium text-gray-900">Internal Links</div>
-                <div className="text-sm text-purple-600">{seoData.internal_links || 8} suggestions</div>
+                <div className="font-medium text-gray-900">{t('blogOutlinePreview.seo.internalLinks')}</div>
+                <div className="text-sm text-purple-600">{t('blogOutlinePreview.seo.suggestions', { count: seoData.internal_links || 8 })}</div>
               </div>
             </div>
           </div>
@@ -592,13 +597,13 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
           {/* Keywords & Meta */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-3">🎯 Target Keywords</h4>
+              <h4 className="font-medium text-blue-900 mb-3">🎯 {t('blogOutlinePreview.seo.targetKeywords')}</h4>
               <div className="space-y-2">
                 {(seoData.primary_keywords || ['podcast insights', 'business growth', 'content marketing']).map((keyword: string, index: number) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-white border border-blue-200 rounded">
                     <span className="text-blue-800">{keyword}</span>
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      {index === 0 ? 'Primary' : 'Secondary'}
+                      {index === 0 ? t('blogOutlinePreview.seo.primary') : t('blogOutlinePreview.seo.secondary')}
                     </span>
                   </div>
                 ))}
@@ -606,18 +611,22 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
             </div>
 
             <div className="bg-purple-50 rounded-lg p-4">
-              <h4 className="font-medium text-purple-900 mb-3">📝 Meta Data</h4>
+              <h4 className="font-medium text-purple-900 mb-3">📝 {t('blogOutlinePreview.seo.metaData')}</h4>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-purple-800 mb-1">Title Tag ({(seoData.title || outline.title || '').length}/60)</label>
+                  <label className="block text-sm font-medium text-purple-800 mb-1">
+                    {t('blogOutlinePreview.seo.titleTag', { length: (seoData.title || outline.title || '').length })}
+                  </label>
                   <div className="p-2 bg-white border border-purple-200 rounded text-sm text-purple-700">
                     {seoData.title || outline.title}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-purple-800 mb-1">Meta Description ({(seoData.meta_description || '').length}/160)</label>
+                  <label className="block text-sm font-medium text-purple-800 mb-1">
+                    {t('blogOutlinePreview.seo.metaDescription', { length: (seoData.meta_description || '').length })}
+                  </label>
                   <div className="p-2 bg-white border border-purple-200 rounded text-sm text-purple-700">
-                    {seoData.meta_description || outline.meta_description || 'Compelling meta description...'}
+                    {seoData.meta_description || outline.meta_description || t('blogOutlinePreview.seo.defaultMetaDescription')}
                   </div>
                 </div>
               </div>
@@ -626,24 +635,24 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
 
           {/* Content Optimization */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-medium text-yellow-900 mb-3">⚡ Optimization Suggestions</h4>
+            <h4 className="font-medium text-yellow-900 mb-3">⚡ {t('blogOutlinePreview.seo.optimizationSuggestions')}</h4>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h5 className="font-medium text-yellow-800 mb-2">✅ Good</h5>
+                <h5 className="font-medium text-yellow-800 mb-2">✅ {t('blogOutlinePreview.seo.good')}</h5>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Title contains focus keyword</li>
-                  <li>• Good content length (2000+ words)</li>
-                  <li>• Headers use semantic structure</li>
-                  <li>• Internal linking opportunities identified</li>
+                  <li>• {t('blogOutlinePreview.seo.goodPoints.titleKeyword')}</li>
+                  <li>• {t('blogOutlinePreview.seo.goodPoints.contentLength')}</li>
+                  <li>• {t('blogOutlinePreview.seo.goodPoints.headerStructure')}</li>
+                  <li>• {t('blogOutlinePreview.seo.goodPoints.internalLinking')}</li>
                 </ul>
               </div>
               <div>
-                <h5 className="font-medium text-yellow-800 mb-2">🔧 Improvements</h5>
+                <h5 className="font-medium text-yellow-800 mb-2">🔧 {t('blogOutlinePreview.seo.improvements')}</h5>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Add focus keyword to first paragraph</li>
-                  <li>• Include 2-3 related keywords naturally</li>
-                  <li>• Add alt text for images</li>
-                  <li>• Consider adding FAQ section</li>
+                  <li>• {t('blogOutlinePreview.seo.improvementPoints.firstParagraph')}</li>
+                  <li>• {t('blogOutlinePreview.seo.improvementPoints.relatedKeywords')}</li>
+                  <li>• {t('blogOutlinePreview.seo.improvementPoints.altText')}</li>
+                  <li>• {t('blogOutlinePreview.seo.improvementPoints.faqSection')}</li>
                 </ul>
               </div>
             </div>
@@ -654,27 +663,27 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
       {/* Action Buttons */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div className="bg-green-50 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-3">📝 Content Analytics</h4>
+          <h4 className="font-medium text-green-900 mb-3">📝 {t('blogOutlinePreview.analytics.title')}</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-green-200 rounded-lg">
               <div className="text-sm text-green-800">
-                📊 SEO Score: {seoData.score || '95'}/100
+                📊 {t('blogOutlinePreview.stats.seoScore', { score: seoData.score || '95' })}
               </div>
             </div>
             <div className="p-3 bg-white border border-green-200 rounded-lg">
               <div className="text-sm text-green-800">
-                ⏱️ Reading time: {estimateReadingTime(exportOutline())} minutes
+                ⏱️ {t('blogOutlinePreview.analytics.readingTime', { time: estimateReadingTime(exportOutline()) })}
               </div>
             </div>
             <div className="p-3 bg-white border border-green-200 rounded-lg">
               <div className="text-sm text-green-800">
-                💬 Expected engagement: {Math.floor(Math.random() * 20) + 15}% above average
+                💬 {t('blogOutlinePreview.analytics.expectedEngagement', { percentage: Math.floor(Math.random() * 20) + 15 })}
               </div>
             </div>
             {Object.keys(generatedContent).length > 0 && (
               <div className="p-3 bg-white border border-green-200 rounded-lg">
                 <div className="text-sm text-green-800">
-                  ✨ Enhanced content: WordPress ready
+                  ✨ {t('blogOutlinePreview.analytics.enhancedContent')}
                 </div>
               </div>
             )}
@@ -682,7 +691,7 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
         </div>
 
         <div className="bg-blue-50 rounded-lg p-4">
-          <h4 className="font-medium text-blue-900 mb-3">🚀 Export Options</h4>
+          <h4 className="font-medium text-blue-900 mb-3">🚀 {t('blogOutlinePreview.exportOptions.title')}</h4>
           <ContentActions 
             content={{
               ...data,

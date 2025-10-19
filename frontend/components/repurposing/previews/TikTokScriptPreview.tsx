@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 import ContentActions from '../ContentActions';
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -8,6 +9,7 @@ interface TikTokScriptPreviewProps {
 }
 
 export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -108,10 +110,10 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
 
       const result = await response.json();
       setGeneratedVideos(result.images || {});
-      showToast('TikTok video content generated successfully!', 'success');
+      showToast(t('tikTokScriptPreview.messages.videoGenerationSuccess'), 'success');
     } catch (error: any) {
       console.error('Error generating video content:', error);
-      showToast(`Error generating content: ${error.message}`, 'error');
+      showToast(t('tikTokScriptPreview.messages.videoGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingVideos(false);
     }
@@ -123,12 +125,12 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showToast('Copied to clipboard!', 'success');
+    showToast(t('tikTokScriptPreview.messages.copySuccess'), 'success');
   };
 
   const exportFullScript = () => {
     const fullScript = scenes.map((scene: any, index: number) => {
-      return `SCENE ${index + 1}:\n${scene.action || ''}\n\nDIALOGUE:\n${scene.dialogue || scene.content || ''}`;
+      return `${t('tikTokScriptPreview.export.sceneLabel', { number: index + 1 })}:\n${scene.action || ''}\n\n${t('tikTokScriptPreview.export.dialogueLabel')}:\n${scene.dialogue || scene.content || ''}`;
     }).join('\n\n---\n\n');
     return fullScript;
   };
@@ -142,8 +144,13 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
             <span className="text-xl text-white">🎬</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">TikTok Script</h3>
-            <p className="text-sm text-gray-600">{scenes.length} scenes • {formatDuration(script.estimated_duration || 30)} video</p>
+            <h3 className="text-xl font-bold text-gray-900">{t('tikTokScriptPreview.header.title')}</h3>
+            <p className="text-sm text-gray-600">
+              {t('tikTokScriptPreview.header.subtitle', { 
+                scenes: scenes.length, 
+                duration: formatDuration(script.estimated_duration || 30) 
+              })}
+            </p>
           </div>
         </div>
         
@@ -156,7 +163,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 viewMode === 'script' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📝 Script
+              📝 {t('tikTokScriptPreview.viewModes.script')}
             </button>
             <button
               onClick={() => setViewMode('video')}
@@ -164,7 +171,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 viewMode === 'video' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📱 Preview
+              📱 {t('tikTokScriptPreview.viewModes.preview')}
             </button>
             <button
               onClick={() => setViewMode('production')}
@@ -172,7 +179,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 viewMode === 'production' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              🎭 Production
+              🎭 {t('tikTokScriptPreview.viewModes.production')}
             </button>
           </div>
 
@@ -185,11 +192,11 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
             {isGeneratingVideos ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating...
+                {t('tikTokScriptPreview.buttons.generating')}
               </>
             ) : (
               <>
-                🎨 Generate Content
+                🎨 {t('tikTokScriptPreview.buttons.generateContent')}
               </>
             )}
           </button>
@@ -202,20 +209,22 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
           {/* Hook Variations */}
           {hooks.length > 0 && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="font-medium text-yellow-900 mb-3">🎯 Hook Variations (Test These)</h4>
+              <h4 className="font-medium text-yellow-900 mb-3">🎯 {t('tikTokScriptPreview.hookVariations.title')}</h4>
               <div className="space-y-3">
                 {hooks.slice(0, 3).map((hook: string, index: number) => (
                   <div key={index} className="bg-white border border-yellow-200 rounded-lg p-3">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-yellow-800 mb-1">Hook {index + 1}</div>
+                        <div className="text-sm font-medium text-yellow-800 mb-1">
+                          {t('tikTokScriptPreview.hookVariations.hookLabel', { number: index + 1 })}
+                        </div>
                         <p className="text-yellow-900">{hook}</p>
                       </div>
                       <button
                         onClick={() => copyToClipboard(hook)}
                         className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs hover:bg-yellow-200 transition-colors"
                       >
-                        Copy
+                        {t('tikTokScriptPreview.buttons.copy')}
                       </button>
                     </div>
                   </div>
@@ -227,7 +236,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
           {/* Scene-by-Scene Breakdown */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-              <h4 className="font-medium text-gray-900">Scene Breakdown</h4>
+              <h4 className="font-medium text-gray-900">{t('tikTokScriptPreview.sceneBreakdown.title')}</h4>
             </div>
             
             <div className="divide-y divide-gray-200">
@@ -241,36 +250,36 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-medium text-gray-900">
-                          Scene {index + 1}
+                          {t('tikTokScriptPreview.sceneBreakdown.sceneLabel', { number: index + 1 })}
                         </span>
                         <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
                           {formatDuration(scene.duration || 5)}
                         </span>
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                          {scene.type || 'dialogue'}
+                          {scene.type || t('tikTokScriptPreview.sceneBreakdown.defaultType')}
                         </span>
                         {generatedVideos[index] && (
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                            ✓ Generated
+                            ✓ {t('tikTokScriptPreview.sceneBreakdown.generated')}
                           </span>
                         )}
                       </div>
                       
                       {scene.action && (
                         <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="text-sm font-medium text-blue-900 mb-1">📋 ACTION</div>
+                          <div className="text-sm font-medium text-blue-900 mb-1">📋 {t('tikTokScriptPreview.sceneBreakdown.actionLabel')}</div>
                           <p className="text-blue-800 text-sm">{scene.action}</p>
                         </div>
                       )}
                       
                       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div className="text-sm font-medium text-gray-900 mb-1">🎤 DIALOGUE</div>
+                        <div className="text-sm font-medium text-gray-900 mb-1">🎤 {t('tikTokScriptPreview.sceneBreakdown.dialogueLabel')}</div>
                         <p className="text-gray-800">{scene.dialogue || scene.content}</p>
                       </div>
                       
                       {scene.visual_cues && (
                         <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                          <div className="text-sm font-medium text-purple-900 mb-1">🎨 VISUAL CUES</div>
+                          <div className="text-sm font-medium text-purple-900 mb-1">🎨 {t('tikTokScriptPreview.sceneBreakdown.visualCuesLabel')}</div>
                           <p className="text-purple-800 text-sm">{scene.visual_cues}</p>
                         </div>
                       )}
@@ -280,7 +289,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                       onClick={() => copyToClipboard(scene.dialogue || scene.content)}
                       className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors text-sm"
                     >
-                      Copy
+                      {t('tikTokScriptPreview.buttons.copy')}
                     </button>
                   </div>
                 </div>
@@ -307,11 +316,11 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 {isPlaying ? (
                   <>
                     <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                    ⏸️ Pause
+                    ⏸️ {t('tikTokScriptPreview.videoPreview.pause')}
                   </>
                 ) : (
                   <>
-                    ▶️ Play Preview
+                    ▶️ {t('tikTokScriptPreview.videoPreview.playPreview')}
                   </>
                 )}
               </button>
@@ -324,8 +333,8 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                 <div className="absolute top-0 left-0 right-0 z-20 p-4">
                   <div className="flex items-center justify-between text-white">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm opacity-70">Following</span>
-                      <span className="text-sm font-bold">For You</span>
+                      <span className="text-sm opacity-70">{t('tikTokScriptPreview.tikTokInterface.following')}</span>
+                      <span className="text-sm font-bold">{t('tikTokScriptPreview.tikTokInterface.forYou')}</span>
                     </div>
                     <span className="text-lg">🔍</span>
                   </div>
@@ -367,18 +376,18 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                       {generatedVideos[currentScene] ? (
                         <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-lg font-bold mb-2">✨ Generated Frame</div>
-                            <div className="text-sm opacity-80">Ready for TikTok</div>
+                            <div className="text-lg font-bold mb-2">✨ {t('tikTokScriptPreview.videoContent.generatedFrame')}</div>
+                            <div className="text-sm opacity-80">{t('tikTokScriptPreview.videoContent.readyForTikTok')}</div>
                           </div>
                         </div>
                       ) : (
                         <div className="text-center">
                           <div className="text-6xl mb-4">🎬</div>
                           <p className="text-lg font-bold leading-tight mb-2">
-                            Scene {currentScene + 1}
+                            {t('tikTokScriptPreview.videoContent.sceneLabel', { number: currentScene + 1 })}
                           </p>
                           <p className="text-base leading-relaxed">
-                            {scenes[currentScene]?.dialogue || scenes[currentScene]?.content || 'No content available'}
+                            {scenes[currentScene]?.dialogue || scenes[currentScene]?.content || t('tikTokScriptPreview.videoContent.noContent')}
                           </p>
                           
                           {scenes[currentScene]?.action && (
@@ -430,15 +439,15 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                       <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
                         <span className="text-xs font-bold">YP</span>
                       </div>
-                      <span className="font-bold">@yourprofile</span>
+                      <span className="font-bold">{t('tikTokScriptPreview.profile.username')}</span>
                       {isPlaying && (
                         <div className="ml-auto flex items-center gap-1 text-xs bg-black bg-opacity-50 px-2 py-1 rounded-full">
                           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                          AUTO-PLAYING
+                          {t('tikTokScriptPreview.profile.autoPlaying')}
                         </div>
                       )}
                     </div>
-                    <p className="text-sm">{script.description || 'Key insights from our latest podcast episode! 🎙️'}</p>
+                    <p className="text-sm">{script.description || t('tikTokScriptPreview.profile.defaultDescription')}</p>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -453,7 +462,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
                       <span className="text-sm">{currentScene + 1}/{scenes.length}</span>
                       {isPlaying && (
                         <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
-                          Auto-playing
+                          {t('tikTokScriptPreview.videoPreview.autoPlaying')}
                         </div>
                       )}
                     </div>
@@ -477,42 +486,42 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
         <div className="space-y-6">
           {/* Production Checklist */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h4 className="font-medium text-green-900 mb-3">🎭 Production Checklist</h4>
+            <h4 className="font-medium text-green-900 mb-3">🎭 {t('tikTokScriptPreview.production.checklistTitle')}</h4>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Set up lighting</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.lighting')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Test audio quality</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.audio')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Prepare props/visual aids</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.props')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Practice hook delivery</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.hook')}</span>
                 </label>
               </div>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Check camera angle</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.camera')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Rehearse scene transitions</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.transitions')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Prepare captions/text overlay</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.captions')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-green-800">Plan engagement elements</span>
+                  <span className="text-green-800">{t('tikTokScriptPreview.production.checklist.engagement')}</span>
                 </label>
               </div>
             </div>
@@ -521,45 +530,45 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
           {/* Equipment & Settings */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-3">📱 Recommended Settings</h4>
+              <h4 className="font-medium text-blue-900 mb-3">📱 {t('tikTokScriptPreview.production.settings.title')}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-blue-800">Resolution:</span>
+                  <span className="text-blue-800">{t('tikTokScriptPreview.production.settings.resolution')}:</span>
                   <span className="text-blue-700">1080x1920 (9:16)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-800">Frame Rate:</span>
-                  <span className="text-blue-700">30fps or 60fps</span>
+                  <span className="text-blue-800">{t('tikTokScriptPreview.production.settings.frameRate')}:</span>
+                  <span className="text-blue-700">{t('tikTokScriptPreview.production.settings.frameRateValue')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-800">Duration:</span>
+                  <span className="text-blue-800">{t('tikTokScriptPreview.production.settings.duration')}:</span>
                   <span className="text-blue-700">{formatDuration(script.estimated_duration || 30)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-blue-800">Format:</span>
-                  <span className="text-blue-700">MP4 or MOV</span>
+                  <span className="text-blue-800">{t('tikTokScriptPreview.production.settings.format')}:</span>
+                  <span className="text-blue-700">{t('tikTokScriptPreview.production.settings.formatValue')}</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-purple-50 rounded-lg p-4">
-              <h4 className="font-medium text-purple-900 mb-3">🎨 Visual Guidelines</h4>
+              <h4 className="font-medium text-purple-900 mb-3">🎨 {t('tikTokScriptPreview.production.visual.title')}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-purple-800">Lighting:</span>
-                  <span className="text-purple-700">Natural or ring light</span>
+                  <span className="text-purple-800">{t('tikTokScriptPreview.production.visual.lighting')}:</span>
+                  <span className="text-purple-700">{t('tikTokScriptPreview.production.visual.lightingValue')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-purple-800">Background:</span>
-                  <span className="text-purple-700">Clean, minimal</span>
+                  <span className="text-purple-800">{t('tikTokScriptPreview.production.visual.background')}:</span>
+                  <span className="text-purple-700">{t('tikTokScriptPreview.production.visual.backgroundValue')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-purple-800">Text Overlay:</span>
-                  <span className="text-purple-700">Large, readable font</span>
+                  <span className="text-purple-800">{t('tikTokScriptPreview.production.visual.textOverlay')}:</span>
+                  <span className="text-purple-700">{t('tikTokScriptPreview.production.visual.textOverlayValue')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-purple-800">Colors:</span>
-                  <span className="text-purple-700">High contrast</span>
+                  <span className="text-purple-800">{t('tikTokScriptPreview.production.visual.colors')}:</span>
+                  <span className="text-purple-700">{t('tikTokScriptPreview.production.visual.colorsValue')}</span>
                 </div>
               </div>
             </div>
@@ -567,30 +576,30 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
 
           {/* Engagement Strategy */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-medium text-yellow-900 mb-3">🚀 Engagement Strategy</h4>
+            <h4 className="font-medium text-yellow-900 mb-3">🚀 {t('tikTokScriptPreview.production.engagement.title')}</h4>
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <h5 className="font-medium text-yellow-800 mb-2">Hook Optimization</h5>
+                <h5 className="font-medium text-yellow-800 mb-2">{t('tikTokScriptPreview.production.engagement.hookOptimization')}</h5>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• First 3 seconds are crucial</li>
-                  <li>• Use pattern interrupts</li>
-                  <li>• Ask compelling questions</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.hookTips.firstSeconds')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.hookTips.patternInterrupts')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.hookTips.questions')}</li>
                 </ul>
               </div>
               <div>
-                <h5 className="font-medium text-yellow-800 mb-2">Visual Elements</h5>
+                <h5 className="font-medium text-yellow-800 mb-2">{t('tikTokScriptPreview.production.engagement.visualElements')}</h5>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Add text overlays for key points</li>
-                  <li>• Use trending sounds/music</li>
-                  <li>• Include quick cuts for pacing</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.visualTips.textOverlays')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.visualTips.trendingSounds')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.visualTips.quickCuts')}</li>
                 </ul>
               </div>
               <div>
-                <h5 className="font-medium text-yellow-800 mb-2">Call-to-Action</h5>
+                <h5 className="font-medium text-yellow-800 mb-2">{t('tikTokScriptPreview.production.engagement.callToAction')}</h5>
                 <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Like if you agree</li>
-                  <li>• Comment your thoughts</li>
-                  <li>• Follow for more tips</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.ctaTips.likeIfAgree')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.ctaTips.commentThoughts')}</li>
+                  <li>• {t('tikTokScriptPreview.production.engagement.ctaTips.followForMore')}</li>
                 </ul>
               </div>
             </div>
@@ -635,7 +644,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
               </div>
               <div className="text-center">
                 <div className="text-xs opacity-70">
-                  Scene {index + 1} {generatedVideos[index] && '• Ready'}
+                  {t('tikTokScriptPreview.sceneGrid.sceneLabel', { number: index + 1 })} {generatedVideos[index] && `• ${t('tikTokScriptPreview.sceneGrid.ready')}`}
                 </div>
               </div>
             </div>
@@ -646,28 +655,33 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
       {/* Analytics & ContentActions */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-red-50 rounded-lg p-4">
-          <h4 className="font-medium text-red-900 mb-3">🎬 Production Tips</h4>
+          <h4 className="font-medium text-red-900 mb-3">🎬 {t('tikTokScriptPreview.analytics.title')}</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-red-200 rounded-lg">
               <div className="text-sm text-red-800">
-                📱 Optimal duration: {formatDuration(script.estimated_duration || 30)}
+                📱 {t('tikTokScriptPreview.analytics.optimalDuration', { 
+                  duration: formatDuration(script.estimated_duration || 30) 
+                })}
               </div>
             </div>
             <div className="p-3 bg-white border border-red-200 rounded-lg">
               <div className="text-sm text-red-800">
-                🎯 Hook success rate: 85% with first 3 seconds
+                🎯 {t('tikTokScriptPreview.analytics.hookSuccessRate')}
               </div>
             </div>
             <div className="p-3 bg-white border border-red-200 rounded-lg">
               <div className="text-sm text-red-800">
-                🎨 Content generated: {Object.keys(generatedVideos).length}/{scenes.length}
+                🎨 {t('tikTokScriptPreview.analytics.contentGenerated', { 
+                  generated: Object.keys(generatedVideos).length, 
+                  total: scenes.length 
+                })}
               </div>
             </div>
             {isPlaying && (
               <div className="p-3 bg-white border border-red-200 rounded-lg">
                 <div className="text-sm text-red-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  Currently auto-playing
+                  {t('tikTokScriptPreview.analytics.currentlyAutoPlaying')}
                 </div>
               </div>
             )}
@@ -675,7 +689,7 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
-          <h4 className="font-medium text-pink-900 mb-3">🚀 Export Options</h4>
+          <h4 className="font-medium text-pink-900 mb-3">🚀 {t('tikTokScriptPreview.exportOptions.title')}</h4>
           <ContentActions 
             content={{
               ...data,

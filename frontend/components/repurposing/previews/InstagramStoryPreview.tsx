@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 import ContentActions from '../ContentActions';
 import { useToast } from "../../../contexts/ToastContext";
 
@@ -8,6 +9,7 @@ interface InstagramStoryPreviewProps {
 }
 
 export default function InstagramStoryPreview({ data }: InstagramStoryPreviewProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [currentStory, setCurrentStory] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -118,10 +120,10 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
 
       const result = await response.json();
       setGeneratedImages(result.images || {});
-      showToast('Story images generated successfully!', 'success');
+      showToast(t('instagramStoryPreview.messages.imageGenerationSuccess'), 'success');
     } catch (error: any) {
       console.error('Error generating story images:', error);
-      showToast(`Error generating images: ${error.message}`, 'error');
+      showToast(t('instagramStoryPreview.messages.imageGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingImages(false);
     }
@@ -153,8 +155,10 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
             <span className="text-xl text-white">📱</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Instagram Stories</h3>
-            <p className="text-sm text-gray-600">{enhancedStories.length} stories • Interactive preview</p>
+            <h3 className="text-xl font-bold text-gray-900">{t('instagramStoryPreview.header.title')}</h3>
+            <p className="text-sm text-gray-600">
+              {t('instagramStoryPreview.header.subtitle', { count: enhancedStories.length })}
+            </p>
           </div>
         </div>
         
@@ -171,11 +175,11 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
             {isPlaying ? (
               <>
                 <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
-                ⏸️ Pause
+                ⏸️ {t('instagramStoryPreview.buttons.pause')}
               </>
             ) : (
               <>
-                ▶️ Preview
+                ▶️ {t('instagramStoryPreview.buttons.preview')}
               </>
             )}
           </button>
@@ -189,11 +193,11 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
             {isGeneratingImages ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating...
+                {t('instagramStoryPreview.buttons.generating')}
               </>
             ) : (
               <>
-                🎨 Generate Images
+                🎨 {t('instagramStoryPreview.buttons.generateImages')}
               </>
             )}
           </button>
@@ -247,12 +251,12 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                       <div className="absolute -inset-1 border-2 border-white rounded-full animate-pulse"></div>
                     )}
                   </div>
-                  <span className="text-white text-sm font-medium">yourprofile</span>
-                  <span className="text-white text-sm opacity-70">2h</span>
+                  <span className="text-white text-sm font-medium">{t('instagramStoryPreview.mockup.profileName')}</span>
+                  <span className="text-white text-sm opacity-70">{t('instagramStoryPreview.mockup.timeAgo')}</span>
                   {isPlaying && (
                     <div className="ml-auto flex items-center gap-1 text-white text-xs bg-black bg-opacity-30 px-2 py-1 rounded-full">
                       <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      LIVE
+                      {t('instagramStoryPreview.mockup.live')}
                     </div>
                   )}
                 </div>
@@ -277,8 +281,8 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                     {generatedImages[currentStory] ? (
                       <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-lg font-bold mb-2">✨ Generated Story</div>
-                          <div className="text-sm opacity-80">Ready for Instagram</div>
+                          <div className="text-lg font-bold mb-2">✨ {t('instagramStoryPreview.storyContent.generatedStory')}</div>
+                          <div className="text-sm opacity-80">{t('instagramStoryPreview.storyContent.readyForInstagram')}</div>
                         </div>
                       </div>
                     ) : (
@@ -290,7 +294,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                             <p className="text-xl font-bold leading-tight mb-4">
                               "{enhancedStories[currentStory]?.content}"
                             </p>
-                            <div className="text-sm opacity-80">Swipe up for more insights</div>
+                            <div className="text-sm opacity-80">{t('instagramStoryPreview.storyTypes.quote.cta')}</div>
                           </div>
                         )}
                         
@@ -303,14 +307,14 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                             <p className="text-lg mb-4">
                               {enhancedStories[currentStory]?.content}
                             </p>
-                            <div className="text-sm opacity-80">Source: Our podcast research</div>
+                            <div className="text-sm opacity-80">{t('instagramStoryPreview.storyTypes.stat.source')}</div>
                           </div>
                         )}
                         
                         {enhancedStories[currentStory]?.type === 'tip' && (
                           <div>
                             <div className="text-6xl mb-4">💡</div>
-                            <div className="text-lg font-bold mb-2">Pro Tip</div>
+                            <div className="text-lg font-bold mb-2">{t('instagramStoryPreview.storyTypes.tip.title')}</div>
                             <p className="text-lg leading-relaxed">
                               {enhancedStories[currentStory]?.content}
                             </p>
@@ -325,10 +329,10 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                             </p>
                             <div className="flex gap-2 justify-center">
                               <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
-                                Yes
+                                {t('instagramStoryPreview.storyTypes.question.yes')}
                               </div>
                               <div className="px-4 py-2 bg-white bg-opacity-20 rounded-full text-sm">
-                                No
+                                {t('instagramStoryPreview.storyTypes.question.no')}
                               </div>
                             </div>
                           </div>
@@ -369,7 +373,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
                     </div>
                     {isPlaying && (
                       <div className="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
-                        Auto-playing
+                        {t('instagramStoryPreview.mockup.autoPlaying')}
                       </div>
                     )}
                   </div>
@@ -430,7 +434,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
               </div>
               <div className="text-center">
                 <div className="text-xs opacity-70">
-                  Story {index + 1} {generatedImages[index] && '• Ready'}
+                  {t('instagramStoryPreview.storyGrid.storyNumber', { number: index + 1 })} {generatedImages[index] && t('instagramStoryPreview.storyGrid.ready')}
                 </div>
               </div>
             </div>
@@ -441,28 +445,31 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
       {/* Analytics & ContentActions */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-purple-50 rounded-lg p-4">
-          <h4 className="font-medium text-purple-900 mb-3">📊 Story Analytics</h4>
+          <h4 className="font-medium text-purple-900 mb-3">📊 {t('instagramStoryPreview.analytics.title')}</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-purple-200 rounded-lg">
               <div className="text-sm text-purple-800">
-                📈 Expected reach: {Math.floor(Math.random() * 5000) + 2000} views
+                📈 {t('instagramStoryPreview.analytics.expectedReach', { views: Math.floor(Math.random() * 5000) + 2000 })}
               </div>
             </div>
             <div className="p-3 bg-white border border-purple-200 rounded-lg">
               <div className="text-sm text-purple-800">
-                💬 Expected engagement: {Math.floor(Math.random() * 20) + 15}%
+                💬 {t('instagramStoryPreview.analytics.expectedEngagement', { percentage: Math.floor(Math.random() * 20) + 15 })}
               </div>
             </div>
             <div className="p-3 bg-white border border-purple-200 rounded-lg">
               <div className="text-sm text-purple-800">
-                🎨 Images generated: {Object.keys(generatedImages).length}/{enhancedStories.length}
+                🎨 {t('instagramStoryPreview.analytics.imagesGenerated', { 
+                  generated: Object.keys(generatedImages).length, 
+                  total: enhancedStories.length 
+                })}
               </div>
             </div>
             {isPlaying && (
               <div className="p-3 bg-white border border-purple-200 rounded-lg">
                 <div className="text-sm text-purple-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                  Currently auto-playing
+                  {t('instagramStoryPreview.analytics.currentlyAutoPlaying')}
                 </div>
               </div>
             )}
@@ -470,7 +477,7 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
-          <h4 className="font-medium text-pink-900 mb-3">🚀 Export Options</h4>
+          <h4 className="font-medium text-pink-900 mb-3">🚀 {t('instagramStoryPreview.exportOptions.title')}</h4>
           <ContentActions 
             content={{
               ...data,

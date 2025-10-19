@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { RepurposingSectionMode } from './types';
 import LinkedInCarouselPreview from './previews/LinkedInCarouselPreview';
 import TwitterThreadPreview from './previews/TwitterThreadPreview';
@@ -14,20 +15,50 @@ interface RepurposingResultsProps {
   mode: RepurposingSectionMode;
 }
 
-const CONTENT_TYPE_INFO = {
-  linkedin_carousel: { label: 'LinkedIn Carousel', icon: '📊', color: 'blue' },
-  twitter_thread: { label: 'Twitter Thread', icon: '🧵', color: 'blue' },
-  instagram_story: { label: 'Instagram Stories', icon: '📱', color: 'pink' },
-  tiktok_script: { label: 'TikTok Script', icon: '🎬', color: 'red' },
-  blog_outline: { label: 'Blog Outline', icon: '📝', color: 'green' },
-  email_course: { label: 'Email Course', icon: '📧', color: 'orange' },
-  infographic_data: { label: 'Infographic Data', icon: '📈', color: 'purple' },
-};
-
 export function RepurposingResults({ results, jobId, mode }: RepurposingResultsProps) {
+  const { t } = useTranslation('common');
   const [activeContentType, setActiveContentType] = useState<string | null>(
     Object.keys(results)[0] || null
   );
+
+  // Use translation for content type info
+  const CONTENT_TYPE_INFO = {
+    linkedin_carousel: { 
+      label: t('repurposingResults.contentTypes.linkedinCarousel'), 
+      icon: '📊', 
+      color: 'blue' 
+    },
+    twitter_thread: { 
+      label: t('repurposingResults.contentTypes.twitterThread'), 
+      icon: '🧵', 
+      color: 'blue' 
+    },
+    instagram_story: { 
+      label: t('repurposingResults.contentTypes.instagramStory'), 
+      icon: '📱', 
+      color: 'pink' 
+    },
+    tiktok_script: { 
+      label: t('repurposingResults.contentTypes.tiktokScript'), 
+      icon: '🎬', 
+      color: 'red' 
+    },
+    blog_outline: { 
+      label: t('repurposingResults.contentTypes.blogOutline'), 
+      icon: '📝', 
+      color: 'green' 
+    },
+    email_course: { 
+      label: t('repurposingResults.contentTypes.emailCourse'), 
+      icon: '📧', 
+      color: 'orange' 
+    },
+    infographic_data: { 
+      label: t('repurposingResults.contentTypes.infographicData'), 
+      icon: '📈', 
+      color: 'purple' 
+    },
+  };
 
   const contentTypes = Object.keys(results).filter(key => results[key]);
 
@@ -37,8 +68,8 @@ export function RepurposingResults({ results, jobId, mode }: RepurposingResultsP
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-2xl">📝</span>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Content Generated</h3>
-        <p className="text-gray-600">It looks like the repurposing process didn't generate any content yet.</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('repurposingResults.noContent.title')}</h3>
+        <p className="text-gray-600">{t('repurposingResults.noContent.description')}</p>
       </div>
     );
   }
@@ -62,7 +93,7 @@ export function RepurposingResults({ results, jobId, mode }: RepurposingResultsP
       default:
         return (
           <div className="p-6 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">Preview not available for {contentType}</p>
+            <p className="text-gray-600">{t('repurposingResults.previewNotAvailable', { contentType })}</p>
             <pre className="mt-4 text-xs overflow-auto">{JSON.stringify(data, null, 2)}</pre>
           </div>
         );
@@ -124,10 +155,10 @@ export function RepurposingResults({ results, jobId, mode }: RepurposingResultsP
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900">
-                Generated {contentTypes.length} content types
+                {t('repurposingResults.summary.generated', { count: contentTypes.length })}
               </p>
               <p className="text-xs text-gray-600">
-                Total estimated reach: {contentTypes.length * 2500}+ people across platforms
+                {t('repurposingResults.summary.estimatedReach', { reach: contentTypes.length * 2500 })}
               </p>
             </div>
             <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { RepurposingForm } from './RepurposingForm';
 import { RepurposingResults } from './RepurposingResults';
 import { useRepurposing } from './useRepurposing';
@@ -17,6 +18,7 @@ export function RepurposingSection({
   mode,
   onJobCreated 
 }: RepurposingSectionProps) {
+  const { t } = useTranslation('common');
   const { submitRepurposingJob, isSubmitting } = useRepurposing();
   const [showForm, setShowForm] = useState(!existingRepurposedContent);
 
@@ -37,12 +39,12 @@ export function RepurposingSection({
         {/* ✅ Only show "Create More Content" button for standalone mode (jobId page) */}
         {mode === 'standalone' && (
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-900">🔄 Repurposed Content</h3>
+            <h3 className="text-xl font-bold text-gray-900">🔄 {t('repurposingSection.existingContent.title')}</h3>
             <button
               onClick={() => setShowForm(true)}
               className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
             >
-              ➕ Create More Content
+              ➕ {t('repurposingSection.existingContent.createMoreButton')}
             </button>
           </div>
         )}
@@ -71,7 +73,7 @@ export function RepurposingSection({
           onClick={() => setShowForm(false)}
           className="text-gray-600 hover:text-gray-800 text-sm"
         >
-          ← Back to existing content
+          ← {t('repurposingSection.form.backToExistingContent')}
         </button>
       )}
     </div>

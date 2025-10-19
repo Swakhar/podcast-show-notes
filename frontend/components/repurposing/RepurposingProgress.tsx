@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 
 interface RepurposingProgressProps {
   stage: string;
@@ -7,17 +8,35 @@ interface RepurposingProgressProps {
   contentTypes: string[];
 }
 
-const REPURPOSING_STAGES = [
-  { key: 'queued', label: 'Queued', progress: 10 },
-  { key: 'initializing', label: 'Initializing', progress: 20 },
-  { key: 'generating_content', label: 'Generating Content', progress: 60 },
-  { key: 'optimizing', label: 'Optimizing for Platforms', progress: 80 },
-  { key: 'finalizing', label: 'Finalizing', progress: 95 },
-  { key: 'complete', label: 'Complete', progress: 100 }
-];
-
 export default function RepurposingProgress({ stage, progress, contentTypes }: RepurposingProgressProps) {
+  const { t } = useTranslation('common');
+  
+  // Use translation for stages
+  const REPURPOSING_STAGES = [
+    { key: 'queued', label: t('repurposingProgress.stages.queued'), progress: 10 },
+    { key: 'initializing', label: t('repurposingProgress.stages.initializing'), progress: 20 },
+    { key: 'generating_content', label: t('repurposingProgress.stages.generatingContent'), progress: 60 },
+    { key: 'optimizing', label: t('repurposingProgress.stages.optimizing'), progress: 80 },
+    { key: 'finalizing', label: t('repurposingProgress.stages.finalizing'), progress: 95 },
+    { key: 'complete', label: t('repurposingProgress.stages.complete'), progress: 100 }
+  ];
+
   const currentStageIndex = REPURPOSING_STAGES.findIndex(s => s.key === stage) || 0;
+
+  // Helper function to format content type names
+  const formatContentTypeName = (type: string) => {
+    const typeMap: { [key: string]: string } = {
+      'linkedin_carousel': t('repurposingProgress.contentTypes.linkedinCarousel'),
+      'twitter_thread': t('repurposingProgress.contentTypes.twitterThread'),
+      'instagram_story': t('repurposingProgress.contentTypes.instagramStory'),
+      'tiktok_script': t('repurposingProgress.contentTypes.tiktokScript'),
+      'blog_outline': t('repurposingProgress.contentTypes.blogOutline'),
+      'email_course': t('repurposingProgress.contentTypes.emailCourse'),
+      'infographic_data': t('repurposingProgress.contentTypes.infographicData')
+    };
+    
+    return typeMap[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
@@ -27,9 +46,9 @@ export default function RepurposingProgress({ stage, progress, contentTypes }: R
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Repurposing Content</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('repurposingProgress.title')}</h2>
         <p className="text-gray-600">
-          Generating {contentTypes.length} content formats • {progress}% complete
+          {t('repurposingProgress.subtitle', { count: contentTypes.length, progress })}
         </p>
       </div>
 
@@ -80,11 +99,11 @@ export default function RepurposingProgress({ stage, progress, contentTypes }: R
 
       {/* Content Types Being Generated */}
       <div className="mt-8 p-4 bg-purple-50 rounded-lg">
-        <h3 className="font-medium text-purple-900 mb-3">Generating Content Types:</h3>
+        <h3 className="font-medium text-purple-900 mb-3">{t('repurposingProgress.generatingTitle')}:</h3>
         <div className="flex flex-wrap gap-2">
           {contentTypes.map(type => (
             <span key={type} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-              {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              {formatContentTypeName(type)}
             </span>
           ))}
         </div>

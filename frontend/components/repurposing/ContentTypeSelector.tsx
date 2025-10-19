@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 
 interface ContentType {
   id: string;
@@ -12,79 +13,6 @@ interface ContentType {
   category: 'Social' | 'Professional' | 'Marketing' | 'Educational';
 }
 
-const CONTENT_TYPES: ContentType[] = [
-  {
-    id: 'linkedin_carousel',
-    name: 'LinkedIn Carousel',
-    icon: '📊',
-    description: 'Professional multi-slide posts that drive engagement and establish thought leadership',
-    estimatedTime: '2-3 min',
-    difficulty: 'Medium',
-    platforms: ['LinkedIn'],
-    category: 'Professional'
-  },
-  {
-    id: 'twitter_thread',
-    name: 'Twitter Thread',
-    icon: '🧵',
-    description: 'Viral-optimized thread with hooks, value, and engagement tactics',
-    estimatedTime: '1-2 min',
-    difficulty: 'Easy',
-    platforms: ['Twitter/X'],
-    category: 'Social'
-  },
-  {
-    id: 'instagram_story',
-    name: 'Instagram Stories',
-    icon: '📱',
-    description: 'Interactive story sequence with polls, questions, and swipe-ups',
-    estimatedTime: '2-3 min',
-    difficulty: 'Medium',
-    platforms: ['Instagram'],
-    category: 'Social'
-  },
-  {
-    id: 'tiktok_script',
-    name: 'TikTok Script',
-    icon: '🎬',
-    description: 'Viral video script with hooks, transitions, and production notes',
-    estimatedTime: '3-4 min',
-    difficulty: 'Advanced',
-    platforms: ['TikTok', 'Instagram Reels', 'YouTube Shorts'],
-    category: 'Social'
-  },
-  {
-    id: 'blog_outline',
-    name: 'Blog Post Outline',
-    icon: '📝',
-    description: 'SEO-optimized blog structure with headers, keywords, and CTAs',
-    estimatedTime: '4-5 min',
-    difficulty: 'Medium',
-    platforms: ['Website', 'Medium', 'LinkedIn Articles'],
-    category: 'Educational'
-  },
-  {
-    id: 'email_course',
-    name: 'Email Course',
-    icon: '📧',
-    description: '7-part email sequence with automation setup and nurture flow',
-    estimatedTime: '8-10 min',
-    difficulty: 'Advanced',
-    platforms: ['Email Marketing'],
-    category: 'Marketing'
-  },
-  {
-    id: 'infographic_data',
-    name: 'Infographic Data',
-    icon: '📈',
-    description: 'Structured data points and design specifications for visual content',
-    estimatedTime: '3-4 min',
-    difficulty: 'Medium',
-    platforms: ['Social Media', 'Presentations', 'Reports'],
-    category: 'Marketing'
-  }
-];
-
 interface ContentTypeSelectorProps {
   selectedTypes: string[];
   onSelectionChange: (types: string[]) => void;
@@ -96,11 +24,92 @@ export default function ContentTypeSelector({
   onSelectionChange, 
   maxSelections = 4 
 }: ContentTypeSelectorProps) {
+  const { t } = useTranslation('common');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'name' | 'time' | 'difficulty'>('name');
 
-  const categories = ['All', 'Social', 'Professional', 'Marketing', 'Educational'];
-  
+  // Use translation for content types
+  const CONTENT_TYPES: ContentType[] = [
+    {
+      id: 'linkedin_carousel',
+      name: t('contentTypeSelector.types.linkedinCarousel.name'),
+      icon: '📊',
+      description: t('contentTypeSelector.types.linkedinCarousel.description'),
+      estimatedTime: t('contentTypeSelector.types.linkedinCarousel.estimatedTime'),
+      difficulty: 'Medium',
+      platforms: [t('contentTypeSelector.platforms.linkedin')],
+      category: 'Professional'
+    },
+    {
+      id: 'twitter_thread',
+      name: t('contentTypeSelector.types.twitterThread.name'),
+      icon: '🧵',
+      description: t('contentTypeSelector.types.twitterThread.description'),
+      estimatedTime: t('contentTypeSelector.types.twitterThread.estimatedTime'),
+      difficulty: 'Easy',
+      platforms: [t('contentTypeSelector.platforms.twitter')],
+      category: 'Social'
+    },
+    {
+      id: 'instagram_story',
+      name: t('contentTypeSelector.types.instagramStory.name'),
+      icon: '📱',
+      description: t('contentTypeSelector.types.instagramStory.description'),
+      estimatedTime: t('contentTypeSelector.types.instagramStory.estimatedTime'),
+      difficulty: 'Medium',
+      platforms: [t('contentTypeSelector.platforms.instagram')],
+      category: 'Social'
+    },
+    {
+      id: 'tiktok_script',
+      name: t('contentTypeSelector.types.tiktokScript.name'),
+      icon: '🎬',
+      description: t('contentTypeSelector.types.tiktokScript.description'),
+      estimatedTime: t('contentTypeSelector.types.tiktokScript.estimatedTime'),
+      difficulty: 'Advanced',
+      platforms: [t('contentTypeSelector.platforms.tiktok'), t('contentTypeSelector.platforms.instagramReels'), t('contentTypeSelector.platforms.youtubeShorts')],
+      category: 'Social'
+    },
+    {
+      id: 'blog_outline',
+      name: t('contentTypeSelector.types.blogOutline.name'),
+      icon: '📝',
+      description: t('contentTypeSelector.types.blogOutline.description'),
+      estimatedTime: t('contentTypeSelector.types.blogOutline.estimatedTime'),
+      difficulty: 'Medium',
+      platforms: [t('contentTypeSelector.platforms.website'), t('contentTypeSelector.platforms.medium'), t('contentTypeSelector.platforms.linkedinArticles')],
+      category: 'Educational'
+    },
+    {
+      id: 'email_course',
+      name: t('contentTypeSelector.types.emailCourse.name'),
+      icon: '📧',
+      description: t('contentTypeSelector.types.emailCourse.description'),
+      estimatedTime: t('contentTypeSelector.types.emailCourse.estimatedTime'),
+      difficulty: 'Advanced',
+      platforms: [t('contentTypeSelector.platforms.emailMarketing')],
+      category: 'Marketing'
+    },
+    {
+      id: 'infographic_data',
+      name: t('contentTypeSelector.types.infographicData.name'),
+      icon: '📈',
+      description: t('contentTypeSelector.types.infographicData.description'),
+      estimatedTime: t('contentTypeSelector.types.infographicData.estimatedTime'),
+      difficulty: 'Medium',
+      platforms: [t('contentTypeSelector.platforms.socialMedia'), t('contentTypeSelector.platforms.presentations'), t('contentTypeSelector.platforms.reports')],
+      category: 'Marketing'
+    }
+  ];
+
+  const categories = [
+    t('contentTypeSelector.categories.all'),
+    t('contentTypeSelector.categories.social'),
+    t('contentTypeSelector.categories.professional'),
+    t('contentTypeSelector.categories.marketing'),
+    t('contentTypeSelector.categories.educational')
+  ];
+
   const filteredTypes = CONTENT_TYPES.filter(type => 
     filterCategory === 'All' || type.category === filterCategory
   ).sort((a, b) => {
@@ -134,12 +143,12 @@ export default function ContentTypeSelector({
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Content Types</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('contentTypeSelector.header.title')}</h2>
         <p className="text-gray-600">
-          Select up to {maxSelections} content formats to transform your podcast into
+          {t('contentTypeSelector.header.subtitle', { maxSelections })}
         </p>
         <div className="mt-3 text-sm text-gray-500">
-          {selectedTypes.length} of {maxSelections} selected
+          {t('contentTypeSelector.header.selectionCount', { selected: selectedTypes.length, max: maxSelections })}
         </div>
       </div>
 
@@ -147,7 +156,7 @@ export default function ContentTypeSelector({
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
         {/* Category Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Category:</span>
+          <span className="text-sm font-medium text-gray-700">{t('contentTypeSelector.controls.category')}:</span>
           <div className="flex gap-1">
             {categories.map(category => (
               <button
@@ -167,15 +176,15 @@ export default function ContentTypeSelector({
 
         {/* Sort Options */}
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-gray-700">{t('contentTypeSelector.controls.sortBy')}:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="px-3 py-1 text-xs border border-gray-300 rounded-lg bg-white"
           >
-            <option value="name">Name</option>
-            <option value="time">Time</option>
-            <option value="difficulty">Difficulty</option>
+            <option value="name">{t('contentTypeSelector.controls.sortOptions.name')}</option>
+            <option value="time">{t('contentTypeSelector.controls.sortOptions.time')}</option>
+            <option value="difficulty">{t('contentTypeSelector.controls.sortOptions.difficulty')}</option>
           </select>
         </div>
       </div>
@@ -261,9 +270,9 @@ export default function ContentTypeSelector({
         >
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium text-blue-900">Selected Content Types</h4>
+              <h4 className="font-medium text-blue-900">{t('contentTypeSelector.summary.title')}</h4>
               <p className="text-sm text-blue-700">
-                Estimated total time: {selectedTypes.length * 3}-{selectedTypes.length * 5} minutes
+                {t('contentTypeSelector.summary.estimatedTime', { min: selectedTypes.length * 3, max: selectedTypes.length * 5 })}
               </p>
             </div>
             <div className="flex -space-x-2">

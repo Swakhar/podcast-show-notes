@@ -263,7 +263,8 @@
     },
     "tabs": {
       "audio": "🎵 Audio Content",
-      "guest": "🔍 Guest Research"
+      "guest": "🔍 Guest Research",
+      "repurpose": "🔄 Repurpose"
     },
     "ready": {
       "audio": {
@@ -280,6 +281,14 @@
         "features": {
           "research": "Deep Research",
           "questions": "Smart Questions"
+        }
+      },
+      "repurpose": {
+        "title": "Ready to Repurpose Content",
+        "subtitle": "Select existing podcast content from your library to transform into engaging social media posts, LinkedIn carousels, and more.",
+        "features": {
+          "fast": "Lightning Fast",
+          "multiPlatform": "Multi-Platform"
         }
       }
     },
@@ -1236,6 +1245,7 @@
   "jobResults": {
     "title": "Content Results – CastLumen",
     "guestResearchTitle": "Guest Research Results – CastLumen",
+    "repurposedContentTitle": "Repurposed Content Results – CastLumen",
     "metaDescription": "View your generated podcast content and research results",
     "authRequired": {
       "title": "Authentication Required",
@@ -1271,6 +1281,8 @@
     "header": {
       "generatedContent": "Generated Content",
       "guestResearchResults": "Guest Research Results",
+      "repurposedContentResults": "Repurposed Content Results",
+      "contentRepurposedSuccessfully": "Content repurposed successfully",
       "completed": "Completed",
       "researchGenerated": "Research Report Generated",
       "backToGenerate": "Back to Generate",
@@ -1453,6 +1465,1147 @@
       "subtitle": "Start your free trial and experience AI-powered podcast creation",
       "button": "Get Early Access Free",
       "disclaimer": "No credit card required • Full access • Cancel anytime"
+    }
+  },
+  "repurposing": {
+    "title": "Content Repurposing",
+    "subtitle": "Transform your existing podcast content into multiple formats",
+    "selectContent": {
+      "title": "Select Source Content",
+      "subtitle": "Choose from your existing podcast episodes",
+      "searchPlaceholder": "Search episodes...",
+      "noContent": "No content available",
+      "loadMore": "Load more episodes"
+    },
+    "contentTypes": {
+      "title": "Choose Content Types",
+      "subtitle": "Select what you want to create",
+      "linkedinCarousel": {
+        "title": "LinkedIn Carousel",
+        "description": "Professional slide deck for LinkedIn"
+      },
+      "twitterThread": {
+        "title": "Twitter Thread", 
+        "description": "Engaging thread with hook and CTA"
+      },
+      "instagramStory": {
+        "title": "Instagram Stories",
+        "description": "Visual story sequence"
+      },
+      "tiktokScript": {
+        "title": "TikTok Script",
+        "description": "Video script with scenes and hooks"
+      },
+      "blogOutline": {
+        "title": "Blog Outline",
+        "description": "SEO-optimized blog structure"
+      },
+      "emailCourse": {
+        "title": "Email Course",
+        "description": "7-day educational email sequence"
+      },
+      "infographicData": {
+        "title": "Infographic Data",
+        "description": "Data visualization and design specs"
+      }
+    },
+    "customization": {
+      "title": "Customization Options",
+      "targetAudience": {
+        "label": "Target Audience",
+        "placeholder": "e.g., Marketing professionals, startup founders..."
+      },
+      "brandVoice": {
+        "label": "Brand Voice",
+        "options": {
+          "professional": "Professional",
+          "casual": "Casual",
+          "authoritative": "Authoritative",
+          "friendly": "Friendly",
+          "educational": "Educational"
+        }
+      },
+      "customInstructions": {
+        "label": "Custom Instructions",
+        "placeholder": "Any specific requirements or style preferences..."
+      },
+      "includeDesignSpecs": "Include design specifications",
+      "includeAnalytics": "Include performance analytics",
+      "includeScheduling": "Include posting schedule"
+    },
+    "generate": {
+      "button": "🚀 Generate Content",
+      "generating": "Generating content...",
+      "estimatedTime": "Estimated time: 2-3 minutes"
+    },
+    "results": {
+      "title": "Generated Content",
+      "downloadAll": "Download All",
+      "shareResults": "Share Results"
+    }
+  },
+  "contentActions": {
+    "copySuccess": "Content copied to clipboard!",
+    "copyError": "Failed to copy content to clipboard",
+    "downloadSuccess": "Content downloaded successfully!",
+    "downloadError": "Failed to download content",
+    "noGeneratedContent": "No generated content found. Generate content first!",
+    "tiktokFilesExpired": "TikTok scene files have expired. Please regenerate the content to download.",
+    "infographicDownloadSuccess": "Infographic design package downloaded successfully!",
+    "imagesDownloadSuccess": "Images downloaded successfully!",
+    "sceneFramesDownloadSuccess": "Scene frames downloaded successfully!",
+    "compressingImages": "Compressing images for export...",
+    "largeContentExport": "Content is large, using simpler export...",
+    "platformExportSuccess": "Platform exports downloaded successfully!",
+    "simplifiedExport": "Creating simplified export...",
+    "essentialExportSuccess": "Essential exports downloaded successfully!",
+    "copyText": "Copy Text",
+    "downloadText": "Download Text",
+    "generatedImages": "Generated Images",
+    "tiktokContent": "TikTok Content",
+    "blogContent": "Blog Content",
+    "downloading": "Downloading...",
+    "downloadImages": "Download Images",
+    "highResolutionFiles": "High-resolution PNG files",
+    "exporting": "Exporting...",
+    "exportForPlatforms": "Export for Platforms",
+    "platformFormats": "Canva, Buffer, Later, Hootsuite formats",
+    "downloadSceneFrames": "Download Scene Frames",
+    "exportForVideoEditing": "Export for Video Editing",
+    "videoEditingFormats": "CapCut, InShot, Adobe Premiere formats",
+    "generateFirst": "Generate images first to unlock export options",
+    "generateSceneFrames": "Generate scene frames first to unlock export options",
+    "exportMarkdown": "Export as Markdown",
+    "wordpressCmsReady": "WordPress/CMS ready format",
+    "downloadEnhancedContent": "Download Enhanced Content",
+    "wordpressSocialSeo": "WordPress, social snippets, SEO data",
+    "seoAnalysisReport": "SEO Analysis Report",
+    "optimizationInsights": "Detailed optimization insights",
+    "copyEmailSequence": "Copy Email Sequence",
+    "downloadEmailCourse": "Download Email Course",
+    "downloadTemplates": "Download Templates",
+    "exportThread": "Export Thread",
+    "numberedTweets": "Numbered tweets ready to post",
+    "enhancedContentDownloaded": "Enhanced content downloaded!",
+    "seoReportDownloaded": "SEO report downloaded!"
+  },
+  "contentTypeSelector": {
+    "header": {
+      "title": "Choose Content Types",
+      "subtitle": "Select up to {{maxSelections}} content formats to transform your podcast into",
+      "selectionCount": "{{selected}} of {{max}} selected"
+    },
+    "controls": {
+      "category": "Category",
+      "sortBy": "Sort by",
+      "sortOptions": {
+        "name": "Name",
+        "time": "Time", 
+        "difficulty": "Difficulty"
+      }
+    },
+    "categories": {
+      "all": "All",
+      "social": "Social",
+      "professional": "Professional", 
+      "marketing": "Marketing",
+      "educational": "Educational"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "advanced": "Advanced"
+    },
+    "types": {
+      "linkedinCarousel": {
+        "name": "LinkedIn Carousel",
+        "description": "Professional multi-slide posts that drive engagement and establish thought leadership",
+        "estimatedTime": "2-3 min"
+      },
+      "twitterThread": {
+        "name": "Twitter Thread", 
+        "description": "Viral-optimized thread with hooks, value, and engagement tactics",
+        "estimatedTime": "1-2 min"
+      },
+      "instagramStory": {
+        "name": "Instagram Stories",
+        "description": "Interactive story sequence with polls, questions, and swipe-ups", 
+        "estimatedTime": "2-3 min"
+      },
+      "tiktokScript": {
+        "name": "TikTok Script",
+        "description": "Viral video script with hooks, transitions, and production notes",
+        "estimatedTime": "3-4 min"
+      },
+      "blogOutline": {
+        "name": "Blog Post Outline",
+        "description": "SEO-optimized blog structure with headers, keywords, and CTAs",
+        "estimatedTime": "4-5 min"
+      },
+      "emailCourse": {
+        "name": "Email Course", 
+        "description": "7-part email sequence with automation setup and nurture flow",
+        "estimatedTime": "8-10 min"
+      },
+      "infographicData": {
+        "name": "Infographic Data",
+        "description": "Structured data points and design specifications for visual content",
+        "estimatedTime": "3-4 min"
+      }
+    },
+    "platforms": {
+      "linkedin": "LinkedIn",
+      "twitter": "Twitter/X",
+      "instagram": "Instagram", 
+      "tiktok": "TikTok",
+      "instagramReels": "Instagram Reels",
+      "youtubeShorts": "YouTube Shorts",
+      "website": "Website",
+      "medium": "Medium",
+      "linkedinArticles": "LinkedIn Articles",
+      "emailMarketing": "Email Marketing",
+      "socialMedia": "Social Media",
+      "presentations": "Presentations",
+      "reports": "Reports"
+    },
+    "summary": {
+      "title": "Selected Content Types",
+      "estimatedTime": "Estimated total time: {{min}}-{{max}} minutes"
+    }
+  },
+  "repurposingDashboard": {
+    "complete": {
+      "title": "🎉 Content Repurposing Complete!",
+      "subtitle": "Generated {{count}} content formats ready for publishing",
+      "status": "Complete"
+    },
+    "empty": {
+      "title": "No Content Available",
+      "subtitle": "Start by creating some repurposed content."
+    }
+  },
+  "repurposingForm": {
+    "header": {
+      "title": "Content Repurposing",
+      "subtitle": "Transform your content into multiple formats",
+      "popularFeature": "Most Popular Feature"
+    },
+    "contentTypes": {
+      "linkedinCarousel": {
+        "label": "LinkedIn Carousel",
+        "description": "Professional slides for LinkedIn"
+      },
+      "twitterThread": {
+        "label": "Twitter Thread",
+        "description": "Engaging thread posts"
+      },
+      "instagramStory": {
+        "label": "Instagram Stories",
+        "description": "Visual story sequence"
+      },
+      "tiktokScript": {
+        "label": "TikTok Script",
+        "description": "Short-form video script"
+      },
+      "blogOutline": {
+        "label": "Blog Outline",
+        "description": "SEO-optimized blog structure"
+      },
+      "emailCourse": {
+        "label": "Email Course",
+        "description": "Educational email sequence"
+      },
+      "infographicData": {
+        "label": "Infographic Data",
+        "description": "Visual data representation"
+      }
+    },
+    "sourceContent": {
+      "label": "Source Content",
+      "loading": "Loading your content...",
+      "selectPlaceholder": "Select content to repurpose...",
+      "sourceSelected": "Source selected",
+      "noContent": {
+        "title": "No Content Available",
+        "description": "You need to process some audio content first before you can repurpose it.",
+        "goToAudio": "Go to Audio Content tab to upload content"
+      }
+    },
+    "contentTypeSelection": {
+      "label": "Content Types ({{count}} selected)"
+    },
+    "advancedOptions": {
+      "title": "Advanced Options",
+      "targetAudience": {
+        "label": "Target Audience",
+        "placeholder": "e.g., entrepreneurs, marketers..."
+      },
+      "brandVoice": {
+        "label": "Brand Voice",
+        "options": {
+          "professional": "Professional",
+          "casual": "Casual",
+          "friendly": "Friendly",
+          "authoritative": "Authoritative",
+          "humorous": "Humorous",
+          "inspirational": "Inspirational",
+          "educational": "Educational"
+        }
+      },
+      "customInstructions": {
+        "label": "Custom Instructions",
+        "placeholder": "Any specific requirements or style preferences..."
+      },
+      "featureToggles": {
+        "includeDesignSpecs": "Include design specifications",
+        "includeAnalytics": "Include analytics predictions",
+        "includeScheduling": "Include scheduling recommendations"
+      }
+    },
+    "submitButton": {
+      "generating": "Generating Content...",
+      "generate": "Generate {{count}} Content Type{{count, plural, one {} other {s}}}"
+    },
+    "info": {
+      "cost": "Cost: {{count}} minute{{count, plural, one {} other {s}}} from your quota",
+      "selectPrompt": "Select at least one content type to continue"
+    },
+    "validation": {
+      "selectContentType": "Please select at least one content type",
+      "selectSourceJob": "Please select a source job to repurpose"
+    },
+    "unknownJob": "Unknown Job",
+    "unknownDate": "Unknown date",
+    "jobPrefix": "Job {{id}}"
+  },
+  "repurposingProgress": {
+    "title": "Repurposing Content",
+    "subtitle": "Generating {{count}} content formats • {{progress}}% complete",
+    "generatingTitle": "Generating Content Types",
+    "stages": {
+      "queued": "Queued",
+      "initializing": "Initializing",
+      "generatingContent": "Generating Content",
+      "optimizing": "Optimizing for Platforms",
+      "finalizing": "Finalizing",
+      "complete": "Complete"
+    },
+    "contentTypes": {
+      "linkedinCarousel": "LinkedIn Carousel",
+      "twitterThread": "Twitter Thread",
+      "instagramStory": "Instagram Story",
+      "tiktokScript": "TikTok Script",
+      "blogOutline": "Blog Outline",
+      "emailCourse": "Email Course",
+      "infographicData": "Infographic Data"
+    }
+  },
+  "repurposingResults": {
+    "contentTypes": {
+      "linkedinCarousel": "LinkedIn Carousel",
+      "twitterThread": "Twitter Thread",
+      "instagramStory": "Instagram Stories",
+      "tiktokScript": "TikTok Script",
+      "blogOutline": "Blog Outline",
+      "emailCourse": "Email Course",
+      "infographicData": "Infographic Data"
+    },
+    "noContent": {
+      "title": "No Content Generated",
+      "description": "It looks like the repurposing process didn't generate any content yet."
+    },
+    "previewNotAvailable": "Preview not available for {{contentType}}",
+    "summary": {
+      "generated": "Generated {{count}} content type{{count, plural, one {} other {s}}}",
+      "estimatedReach": "Total estimated reach: {{reach}}+ people across platforms"
+    }
+  },
+  "repurposingSection": {
+    "existingContent": {
+      "title": "Repurposed Content",
+      "createMoreButton": "Create More Content"
+    },
+    "form": {
+      "backToExistingContent": "Back to existing content"
+    }
+  },
+  "blogOutlinePreview": {
+    "header": {
+      "title": "Blog Outline",
+      "subtitle": "{{sections}} sections • {{readTime}} min read • SEO optimized"
+    },
+    "viewModes": {
+      "outline": "Outline",
+      "article": "Article Preview",
+      "seo": "SEO"
+    },
+    "buttons": {
+      "copyOutline": "Copy Outline",
+      "downloadAll": "Download All",
+      "enhanceContent": "Enhance Content",
+      "generating": "Generating..."
+    },
+    "enhancedBanner": {
+      "title": "Enhanced Content Generated!",
+      "description": "WordPress-ready content, social snippets, and SEO optimization now available in export options."
+    },
+    "outline": {
+      "defaultTitle": "Blog Post Title",
+      "defaultSubtitle": "Engaging subtitle that draws readers in"
+    },
+    "stats": {
+      "words": "{{count}} words",
+      "readTime": "{{time}} min read",
+      "seoScore": "SEO Score: {{score}}/100",
+      "enhancedReady": "Enhanced content ready"
+    },
+    "sections": {
+      "introduction": "Introduction",
+      "conclusion": "Conclusion",
+      "words": "words",
+      "contentSection": "Content Section",
+      "copy": "Copy",
+      "contentSummary": "Content Summary",
+      "keyPoints": "Key Points to Cover",
+      "subsections": "Subsections"
+    },
+    "article": {
+      "publishedToday": "Published today",
+      "byAuthor": "By Your Name",
+      "keyTakeaways": "Key Takeaways"
+    },
+    "seo": {
+      "title": "SEO Analysis",
+      "excellent": "Excellent",
+      "scoreLabel": "SEO Score",
+      "readability": "Readability",
+      "gradeLevel": "Grade 8 level",
+      "focusKeywords": "Focus Keywords",
+      "keywordsIdentified": "{{count}} identified",
+      "internalLinks": "Internal Links",
+      "suggestions": "{{count}} suggestions",
+      "targetKeywords": "Target Keywords",
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "metaData": "Meta Data",
+      "titleTag": "Title Tag ({{length}}/60)",
+      "metaDescription": "Meta Description ({{length}}/160)",
+      "defaultMetaDescription": "Compelling meta description...",
+      "optimizationSuggestions": "Optimization Suggestions",
+      "good": "Good",
+      "improvements": "Improvements",
+      "goodPoints": {
+        "titleKeyword": "Title contains focus keyword",
+        "contentLength": "Good content length (2000+ words)",
+        "headerStructure": "Headers use semantic structure",
+        "internalLinking": "Internal linking opportunities identified"
+      },
+      "improvementPoints": {
+        "firstParagraph": "Add focus keyword to first paragraph",
+        "relatedKeywords": "Include 2-3 related keywords naturally",
+        "altText": "Add alt text for images",
+        "faqSection": "Consider adding FAQ section"
+      }
+    },
+    "analytics": {
+      "title": "Content Analytics",
+      "readingTime": "Reading time: {{time}} minutes",
+      "expectedEngagement": "Expected engagement: {{percentage}}% above average",
+      "enhancedContent": "Enhanced content: WordPress ready"
+    },
+    "exportOptions": {
+      "title": "Export Options"
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard!",
+      "enhancedContentSuccess": "Enhanced blog content generated successfully!",
+      "enhancedContentError": "Error generating content: {{message}}",
+      "downloadSuccess": "📄 All blog formats downloaded successfully!",
+      "downloadError": "Error downloading files: {{message}}"
+    }
+  },
+  "emailCoursePreview": {
+    "header": {
+      "title": "Email Course",
+      "subtitle": "{{count}} emails • {{duration}} sequence • Auto-scheduled"
+    },
+    "viewModes": {
+      "sequence": "Sequence",
+      "emailView": "Email View",
+      "analytics": "Analytics"
+    },
+    "buttons": {
+      "generating": "⏳ Generating...",
+      "generateEnhanced": "🚀 Generate Enhanced",
+      "copySequence": "Copy Sequence"
+    },
+    "course": {
+      "defaultTitle": "Master the Art of [Topic] in 7 Days",
+      "defaultDescription": "Transform your knowledge into actionable insights with this comprehensive email course.",
+      "stats": {
+        "emails": "{{count}} emails",
+        "duration": "{{duration}}",
+        "openRate": "{{rate}}% avg open rate",
+        "clickRate": "{{rate}}% avg click rate"
+      }
+    },
+    "timeline": {
+      "dayLabel": "Day {{day}} • {{date}}",
+      "defaultType": "Educational",
+      "buttons": {
+        "preview": "Preview",
+        "copy": "Copy"
+      },
+      "metrics": {
+        "estimatedOpen": "Est. open: {{rate}}%",
+        "estimatedClick": "Est. click: {{rate}}%",
+        "readTime": "Read time: {{time}} min",
+        "words": "Words: {{count}}"
+      }
+    },
+    "emailView": {
+      "previewIn": "Preview in",
+      "from": "From",
+      "to": "To",
+      "defaultCta": "Take Action Now",
+      "signature": "Best regards,\nYour Course Team",
+      "sidebar": {
+        "inbox": "Inbox",
+        "sent": "Sent",
+        "drafts": "Drafts",
+        "trash": "Trash"
+      },
+      "actions": {
+        "reply": "Reply",
+        "forward": "Forward",
+        "delete": "Delete"
+      },
+      "navigation": {
+        "previous": "Previous Email",
+        "next": "Next Email",
+        "emailCount": "Email {{current}} of {{total}}"
+      }
+    },
+    "analytics": {
+      "title": "Course Performance Predictions",
+      "metrics": {
+        "expectedSubscribers": "Expected Subscribers",
+        "completionRate": "Completion Rate",
+        "avgOpenRate": "Avg Open Rate",
+        "avgClickRate": "Avg Click Rate"
+      },
+      "emailPerformance": {
+        "title": "Email-by-Email Performance",
+        "headers": {
+          "email": "Email",
+          "subject": "Subject",
+          "openRate": "Est. Open Rate",
+          "clickRate": "Est. Click Rate",
+          "engagementScore": "Engagement Score"
+        },
+        "dayLabel": "Day {{day}}"
+      },
+      "optimization": {
+        "strengths": {
+          "title": "Optimization Strengths",
+          "subjectLines": "Strong subject lines with curiosity gaps",
+          "emailLength": "Good email length (300-500 words)",
+          "callToActions": "Clear call-to-actions in each email",
+          "valueDelivery": "Progressive value delivery"
+        },
+        "opportunities": {
+          "title": "Growth Opportunities",
+          "personalization": "Add personalization tokens",
+          "socialProof": "Include social proof elements",
+          "abTesting": "A/B test subject lines",
+          "interactiveElements": "Add interactive elements"
+        }
+      }
+    },
+    "metrics": {
+      "title": "Course Metrics",
+      "expectedOpenRate": "Expected open rate: {{rate}}%",
+      "completionRate": "Completion rate: {{rate}}%",
+      "estimatedSubscribers": "Est. subscribers: {{count}}"
+    },
+    "downloadOptions": {
+      "downloadAll": "Download All Formats",
+      "includes": "Includes: HTML templates, plain text, automation setup, CSV import"
+    },
+    "tools": {
+      "title": "Email Tools"
+    },
+    "enhanced": {
+      "contentGenerated": "Enhanced content generated!",
+      "copyAutomation": "Copy Automation",
+      "copyHtml": "Copy HTML"
+    },
+    "template": {
+      "dayPrefix": "Day {{day}}",
+      "subscriptionNotice": "You're receiving this because you signed up for our email course.",
+      "unsubscribe": "Unsubscribe",
+      "updatePreferences": "Update preferences",
+      "signature": "Best regards,\nYour Course Team"
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard!",
+      "enhancedContentSuccess": "Enhanced email course content generated successfully!",
+      "enhancedContentError": "Error generating content: {{message}}",
+      "downloadSuccess": "All email formats downloaded successfully!",
+      "downloadError": "Error downloading files: {{message}}"
+    }
+  },
+  "infographicDataPreview": {
+    "header": {
+      "title": "Infographic Data",
+      "subtitle": "{{dataPoints}} data points • {{templates}} design templates • Print ready"
+    },
+    "viewModes": {
+      "preview": "Preview",
+      "data": "Data",
+      "design": "Design"
+    },
+    "buttons": {
+      "generating": "⏳ Generating...",
+      "generateDesigns": "🚀 Generate Designs",
+      "exportData": "Export Data"
+    },
+    "enhancedBanner": {
+      "title": "Enhanced designs generated!",
+      "description": "Professional templates, data visualizations, and print-ready files are now available."
+    },
+    "performance": {
+      "estViews": "Est. Views",
+      "estShares": "Est. Shares",
+      "estSaves": "Est. Saves",
+      "viralityScore": "Virality Score"
+    },
+    "templateSelector": {
+      "label": "Template"
+    },
+    "dataVisualization": {
+      "dataPoint": "Data Point {{number}}"
+    },
+    "keyStats": {
+      "listeners": "Listeners",
+      "satisfaction": "Satisfaction"
+    },
+    "summaryStats": {
+      "dataPoints": "Data Points",
+      "avgConfidence": "Avg Confidence",
+      "templates": "Templates",
+      "printSize": "Print Size"
+    },
+    "dataTable": {
+      "title": "Data Points",
+      "headers": {
+        "label": "Label",
+        "value": "Value", 
+        "type": "Type",
+        "source": "Source",
+        "actions": "Actions"
+      },
+      "dataPoint": "Data Point {{number}}",
+      "copyButton": "Copy"
+    },
+    "exportOptions": {
+      "title": "Export Options",
+      "downloadAll": "Download All Formats",
+      "includesDownload": "Includes: JSON, CSV, Design Specs, Figma Import",
+      "copyCsv": "Copy CSV Data",
+      "includesCsv": "Ready for Excel, Google Sheets, or database import"
+    },
+    "rawData": {
+      "title": "Raw Data (JSON)"
+    },
+    "designMode": {
+      "title": "Design Specifications",
+      "dimensions": "Dimensions",
+      "width": "Width",
+      "height": "Height",
+      "ratio": "Ratio",
+      "dpi": "DPI",
+      "colorPalette": "Color Palette",
+      "typography": "Typography",
+      "heading": "Heading",
+      "body": "Body",
+      "titleSize": "Title Size",
+      "bodySize": "Body Size"
+    },
+    "templateGallery": {
+      "title": "Template Variations",
+      "layout": "Layout",
+      "colors": "Colors"
+    },
+    "brandGuidelines": {
+      "title": "Brand Guidelines",
+      "logoPlacement": "Logo Placement",
+      "designConsistency": "Design Consistency",
+      "logoRules": {
+        "topRight": "Top-right corner with 20px padding",
+        "minSize": "Minimum size: 80px width",
+        "transparent": "Transparent background preferred",
+        "aspectRatio": "Maintain aspect ratio"
+      },
+      "designRules": {
+        "brandColors": "Use brand colors for data visualization",
+        "margins": "Maintain 40px margins on all sides",
+        "fontHierarchy": "Keep font hierarchy consistent",
+        "socialHandles": "Include social media handles"
+      }
+    },
+    "actionButtons": {
+      "designSpecs": "Design Specs",
+      "size": "Size: {{width}} × {{height}}",
+      "templates": "Templates: {{count}} design options",
+      "designTools": "Design Tools"
+    },
+    "templates": {
+      "modernMinimal": "Modern Minimal",
+      "boldImpact": "Bold Impact",
+      "professional": "Professional"
+    },
+    "defaults": {
+      "title": "Key Insights from Our Podcast",
+      "subtitle": "Data-driven insights for growth",
+      "cta": "Listen to our podcast for more insights",
+      "podcastTranscript": "Podcast transcript"
+    },
+    "csvHeaders": {
+      "label": "Label",
+      "value": "Value",
+      "type": "Type",
+      "description": "Description",
+      "source": "Source"
+    },
+    "designSpecs": {
+      "header": "INFOGRAPHIC DESIGN SPECIFICATIONS",
+      "generated": "Generated",
+      "title": "TITLE",
+      "subtitle": "SUBTITLE",
+      "dimensions": "DIMENSIONS",
+      "width": "Width",
+      "height": "Height",
+      "aspectRatio": "Aspect Ratio",
+      "dpi": "DPI",
+      "colors": "COLORS",
+      "color": "Color",
+      "typography": "TYPOGRAPHY",
+      "headingFont": "Heading Font",
+      "bodyFont": "Body Font",
+      "titleSize": "Title Size",
+      "bodySize": "Body Size",
+      "dataPoints": "DATA POINTS",
+      "dataPoint": "Data Point {{number}}",
+      "layout": "LAYOUT",
+      "style": "STYLE",
+      "brandGuidelines": "BRAND GUIDELINES",
+      "logo": "Logo",
+      "logoPlacement": "Top-right corner, 80px minimum width",
+      "margins": "Margins",
+      "marginsValue": "40px on all sides",
+      "socialHandles": "Social handles",
+      "socialHandlesValue": "Include in footer",
+      "cta": "CTA"
+    },
+    "figma": {
+      "defaultName": "Infographic Design",
+      "defaultFooter": "Learn more at yourpodcast.com"
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard!",
+      "enhancedContentSuccess": "Enhanced infographic content generated successfully!",
+      "enhancedContentError": "Error generating content: {{message}}",
+      "downloadSuccess": "All formats downloaded successfully!",
+      "downloadError": "Error downloading files: {{message}}"
+    }
+  },
+  "instagramStoryPreview": {
+    "header": {
+      "title": "Instagram Stories",
+      "subtitle": "{{count}} stories • Interactive preview"
+    },
+    "buttons": {
+      "pause": "Pause",
+      "preview": "Preview",
+      "generating": "Generating...",
+      "generateImages": "Generate Images"
+    },
+    "mockup": {
+      "profileName": "yourprofile",
+      "timeAgo": "2h",
+      "live": "LIVE",
+      "autoPlaying": "Auto-playing"
+    },
+    "storyContent": {
+      "generatedStory": "Generated Story",
+      "readyForInstagram": "Ready for Instagram"
+    },
+    "storyTypes": {
+      "quote": {
+        "cta": "Swipe up for more insights"
+      },
+      "stat": {
+        "source": "Source: Our podcast research"
+      },
+      "tip": {
+        "title": "Pro Tip"
+      },
+      "question": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "storyGrid": {
+      "storyNumber": "Story {{number}}",
+      "ready": "• Ready"
+    },
+    "analytics": {
+      "title": "Story Analytics",
+      "expectedReach": "Expected reach: {{views}} views",
+      "expectedEngagement": "Expected engagement: {{percentage}}%",
+      "imagesGenerated": "Images generated: {{generated}}/{{total}}",
+      "currentlyAutoPlaying": "Currently auto-playing"
+    },
+    "exportOptions": {
+      "title": "Export Options"
+    },
+    "messages": {
+      "imageGenerationSuccess": "Story images generated successfully!",
+      "imageGenerationError": "Error generating images: {{message}}"
+    }
+  },
+  "linkedInCarouselPreview": {
+    "header": {
+      "title": "LinkedIn Carousel",
+      "subtitle": "{{count}} slides • Professional format"
+    },
+    "buttons": {
+      "generating": "Generating...",
+      "generateSlides": "Generate Slides"
+    },
+    "mockup": {
+      "profileName": "Your Name",
+      "profileTitle": "Founder at Your Company • 1st",
+      "postTime": "2h • 🌍"
+    },
+    "slideContent": {
+      "generatedSlide": "Generated Slide",
+      "readyForLinkedIn": "Ready for LinkedIn",
+      "swipePrompt": "Swipe to see insights →",
+      "slideNumber": "{{current}}/{{total}}"
+    },
+    "engagement": {
+      "likes": "👍 You and 47 others",
+      "commentsShares": "12 comments • 8 shares",
+      "likeButton": "Like",
+      "commentButton": "Comment",
+      "shareButton": "Share"
+    },
+    "slideGrid": {
+      "cover": "Cover",
+      "slideNumber": "Slide {{number}}",
+      "ready": "Ready",
+      "text": "Text"
+    },
+    "analytics": {
+      "title": "Performance Predictions",
+      "expectedImpressions": "Expected impressions: {{count}}",
+      "expectedEngagement": "Expected engagement: {{percentage}}%",
+      "slidesGenerated": "Slides generated: {{generated}}/{{total}}"
+    },
+    "exportOptions": {
+      "title": "Export Options"
+    },
+    "defaults": {
+      "title": "LinkedIn Carousel",
+      "coverSlide": "Cover slide"
+    },
+    "messages": {
+      "slideGenerationSuccess": "Carousel slides generated successfully!",
+      "slideGenerationError": "Error generating slides: {{message}}"
+    }
+  },
+  "tikTokScriptPreview": {
+    "header": {
+      "title": "TikTok Script",
+      "subtitle": "{{scenes}} scenes • {{duration}} video"
+    },
+    "viewModes": {
+      "script": "Script",
+      "preview": "Preview",
+      "production": "Production"
+    },
+    "buttons": {
+      "generating": "Generating...",
+      "generateContent": "Generate Content",
+      "copy": "Copy"
+    },
+    "hookVariations": {
+      "title": "Hook Variations (Test These)",
+      "hookLabel": "Hook {{number}}"
+    },
+    "sceneBreakdown": {
+      "title": "Scene Breakdown",
+      "sceneLabel": "Scene {{number}}",
+      "defaultType": "dialogue",
+      "generated": "Generated",
+      "actionLabel": "ACTION",
+      "dialogueLabel": "DIALOGUE",
+      "visualCuesLabel": "VISUAL CUES"
+    },
+    "videoPreview": {
+      "pause": "Pause",
+      "playPreview": "Play Preview",
+      "autoPlaying": "Auto-playing"
+    },
+    "tikTokInterface": {
+      "following": "Following",
+      "forYou": "For You"
+    },
+    "videoContent": {
+      "generatedFrame": "Generated Frame",
+      "readyForTikTok": "Ready for TikTok",
+      "sceneLabel": "Scene {{number}}",
+      "noContent": "No content available"
+    },
+    "profile": {
+      "username": "@yourprofile",
+      "autoPlaying": "AUTO-PLAYING",
+      "defaultDescription": "Key insights from our latest podcast episode! 🎙️"
+    },
+    "production": {
+      "checklistTitle": "Production Checklist",
+      "checklist": {
+        "lighting": "Set up lighting",
+        "audio": "Test audio quality",
+        "props": "Prepare props/visual aids",
+        "hook": "Practice hook delivery",
+        "camera": "Check camera angle",
+        "transitions": "Rehearse scene transitions",
+        "captions": "Prepare captions/text overlay",
+        "engagement": "Plan engagement elements"
+      },
+      "settings": {
+        "title": "Recommended Settings",
+        "resolution": "Resolution",
+        "frameRate": "Frame Rate",
+        "frameRateValue": "30fps or 60fps",
+        "duration": "Duration",
+        "format": "Format",
+        "formatValue": "MP4 or MOV"
+      },
+      "visual": {
+        "title": "Visual Guidelines",
+        "lighting": "Lighting",
+        "lightingValue": "Natural or ring light",
+        "background": "Background",
+        "backgroundValue": "Clean, minimal",
+        "textOverlay": "Text Overlay",
+        "textOverlayValue": "Large, readable font",
+        "colors": "Colors",
+        "colorsValue": "High contrast"
+      },
+      "engagement": {
+        "title": "Engagement Strategy",
+        "hookOptimization": "Hook Optimization",
+        "hookTips": {
+          "firstSeconds": "First 3 seconds are crucial",
+          "patternInterrupts": "Use pattern interrupts",
+          "questions": "Ask compelling questions"
+        },
+        "visualElements": "Visual Elements",
+        "visualTips": {
+          "textOverlays": "Add text overlays for key points",
+          "trendingSounds": "Use trending sounds/music",
+          "quickCuts": "Include quick cuts for pacing"
+        },
+        "callToAction": "Call-to-Action",
+        "ctaTips": {
+          "likeIfAgree": "Like if you agree",
+          "commentThoughts": "Comment your thoughts",
+          "followForMore": "Follow for more tips"
+        }
+      }
+    },
+    "sceneGrid": {
+      "sceneLabel": "Scene {{number}}",
+      "ready": "Ready"
+    },
+    "analytics": {
+      "title": "Production Tips",
+      "optimalDuration": "Optimal duration: {{duration}}",
+      "hookSuccessRate": "Hook success rate: 85% with first 3 seconds",
+      "contentGenerated": "Content generated: {{generated}}/{{total}}",
+      "currentlyAutoPlaying": "Currently auto-playing"
+    },
+    "exportOptions": {
+      "title": "Export Options"
+    },
+    "export": {
+      "sceneLabel": "SCENE {{number}}",
+      "dialogueLabel": "DIALOGUE"
+    },
+    "messages": {
+      "videoGenerationSuccess": "TikTok video content generated successfully!",
+      "videoGenerationError": "Error generating content: {{message}}",
+      "copySuccess": "Copied to clipboard!"
+    }
+  },
+  "twitterThreadPreview": {
+    "header": {
+      "title": "Twitter Thread",
+      "subtitle": "{{count}} tweets • Optimized for engagement"
+    },
+    "viewModes": {
+      "threadView": "Thread View",
+      "individual": "Individual"
+    },
+    "buttons": {
+      "copyThread": "Copy Thread",
+      "downloadFiles": "Download Files",
+      "downloading": "Downloading...",
+      "copy": "Copy",
+      "save": "Save",
+      "copyTweet": "Copy Tweet",
+      "saveTweet": "Save Tweet"
+    },
+    "mockup": {
+      "profileName": "Your Profile",
+      "handle": "@yourhandle",
+      "timeAgo": "now",
+      "hookLabel": "HOOK",
+      "hookBadge": "HOOK",
+      "showMore": "Show more",
+      "showLess": "Show less"
+    },
+    "analytics": {
+      "title": "Performance Predictions",
+      "estimatedReach": "Est. Reach",
+      "engagement": "Engagement",
+      "retweets": "Retweets",
+      "optimizationTips": "Optimization Tips",
+      "tips": {
+        "bestTime": "Best time to post: 9:00 AM or 7:00 PM EST",
+        "viralPotential": "Hook tweet has high viral potential 🔥",
+        "threadLength": "Thread length is optimal for engagement",
+        "pinning": "Consider pinning if hook performs well"
+      }
+    },
+    "exportOptions": {
+      "title": "Export Options"
+    },
+    "export": {
+      "formats": {
+        "simple": {
+          "header": "TWITTER THREAD",
+          "hashtags": "Hashtags",
+          "totalTweets": "Total tweets",
+          "characterCount": "Character count per tweet",
+          "tweet": "Tweet"
+        },
+        "scheduler": {
+          "header": "TWITTER THREAD - SCHEDULER FORMAT",
+          "generated": "Generated",
+          "totalPosts": "Total Posts",
+          "post": "POST",
+          "content": "Content",
+          "type": "Type",
+          "mainTweet": "Main Tweet",
+          "replyToPrevious": "Reply to previous",
+          "characters": "Characters",
+          "hashtags": "Hashtags",
+          "none": "None",
+          "scheduling": "Scheduling",
+          "immediate": "Immediate",
+          "replyAfter": "Reply after {{minutes}} minutes"
+        },
+        "analytics": {
+          "header": "TWITTER THREAD PERFORMANCE REPORT",
+          "generated": "Generated",
+          "threadOverview": "THREAD OVERVIEW",
+          "totalTweets": "Total Tweets",
+          "estimatedReach": "Estimated Reach",
+          "expectedEngagementRate": "Expected Engagement Rate",
+          "hookQualityScore": "Hook Quality Score",
+          "threadCompletionRate": "Thread Completion Rate",
+          "contentAnalysis": "CONTENT ANALYSIS",
+          "tweet": "TWEET",
+          "hook": "HOOK",
+          "followUp": "FOLLOW-UP",
+          "content": "Content",
+          "characterCount": "Character Count",
+          "optimal": "Optimal",
+          "good": "Good",
+          "long": "Long",
+          "wordCount": "Word Count",
+          "words": "words",
+          "engagementFactors": "Engagement Factors",
+          "question": "Question",
+          "noQuestion": "No question",
+          "emojis": "Emojis",
+          "noEmojis": "No emojis",
+          "predictedPerformance": "Predicted Performance",
+          "highHook": "High (Hook tweet)",
+          "mediumHigh": "Medium-High",
+          "medium": "Medium",
+          "optimizationRecommendations": "OPTIMIZATION RECOMMENDATIONS",
+          "bestPostingTime": "Best posting time",
+          "or": "or",
+          "expectedRetweets": "Expected retweets",
+          "expectedReplies": "Expected replies",
+          "viralityPotential": "Virality potential",
+          "viralityHigh": "High 🔥",
+          "viralityMedium": "Medium 📈",
+          "viralityStandard": "Standard 📊",
+          "hashtagStrategy": "HASHTAG STRATEGY",
+          "trendingPotential": "Trending potential",
+          "noHashtags": "No hashtags provided - Consider adding 2-3 relevant tags",
+          "nextSteps": "NEXT STEPS",
+          "step1": "Review and edit any tweets over 250 characters",
+          "step2": "Add relevant hashtags to final tweet",
+          "step3": "Schedule hook tweet for optimal engagement time",
+          "step4": "Monitor first hour performance for viral indicators",
+          "step5": "Engage with early replies to boost visibility"
+        }
+      },
+      "singleTweet": {
+        "tweet": "TWEET",
+        "of": "OF",
+        "typeHook": "TYPE: Hook Tweet 🎣",
+        "typeFollowUp": "TYPE: Follow-up Tweet {{number}}",
+        "content": "CONTENT",
+        "metadata": "METADATA",
+        "characterCount": "Character Count",
+        "wordCount": "Word Count",
+        "words": "words",
+        "generated": "Generated",
+        "performancePrediction": "Performance Prediction",
+        "highHook": "High (Hook)",
+        "mediumHigh": "Medium-High",
+        "optimalPosting": "Optimal Posting",
+        "primeTime": "Prime time (9 AM or 7 PM)",
+        "replyAfter": "Reply {{minutes}} minutes after previous",
+        "suggestedHashtags": "SUGGESTED HASHTAGS",
+        "engagementTips": "ENGAGEMENT TIPS",
+        "hookTips": {
+          "pin": "Pin this tweet if it performs well",
+          "respond": "Respond to early comments quickly",
+          "promote": "Consider promoting if it gains traction"
+        },
+        "followUpTips": {
+          "conversation": "Keep conversation flowing in replies",
+          "tag": "Tag relevant accounts if appropriate",
+          "monitor": "Monitor for viral signals"
+        },
+        "partOfThread": "Part of thread"
+      }
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard!",
+      "filesDownloaded": "📄 Thread files downloaded successfully!",
+      "downloadError": "Error downloading files: {{message}}",
+      "tweetDownloaded": "Tweet {{number}} downloaded!"
     }
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'next-i18next';
 import { useToast } from "../../../contexts/ToastContext";
 import ContentActions from '../ContentActions';
 
@@ -8,6 +9,7 @@ interface EmailCoursePreviewProps {
 }
 
 export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
+  const { t } = useTranslation('common');
   const { showToast } = useToast();
   const [currentEmail, setCurrentEmail] = useState(0);
   const [viewMode, setViewMode] = useState<'sequence' | 'email' | 'analytics'>('sequence');
@@ -23,7 +25,7 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
   const copyToClipboard = (text: string) => {
     console.log('Copying to clipboard:', text);
     navigator.clipboard.writeText(text);
-    showToast('Copied to clipboard!', 'success');
+    showToast(t('emailCoursePreview.messages.copySuccess'), 'success');
   };
 
   const exportEmailSequence = () => {
@@ -32,7 +34,7 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
     ).join('');
   };
 
-  // ✅ Generate enhanced email content (WordPress export, automation setup, etc.)
+  // Generate enhanced email content
   const generateEnhancedContent = async () => {
     setIsGeneratingContent(true);
     
@@ -57,37 +59,33 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
 
       const result = await response.json();
       setGeneratedContent(result);
-      showToast('Enhanced email course content generated successfully!', 'success');
+      showToast(t('emailCoursePreview.messages.enhancedContentSuccess'), 'success');
     } catch (error: any) {
       console.error('Error generating enhanced content:', error);
-      showToast(`Error generating content: ${error.message}`, 'error');
+      showToast(t('emailCoursePreview.messages.enhancedContentError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingContent(false);
     }
   };
 
-  // ✅ Download multiple formats (HTML templates, plain text, automation files)
+  // Download multiple formats
   const downloadMultipleFormats = () => {
     try {
-      // HTML Email Templates
       const htmlContent = generateHTMLTemplates();
       downloadFile(htmlContent, 'email_course_html_templates.html', 'text/html');
 
-      // Plain Text Version
       const plainTextContent = generatePlainTextVersion();
       downloadFile(plainTextContent, 'email_course_plain_text.txt', 'text/plain');
 
-      // Email Automation Setup (JSON)
       const automationContent = generateAutomationSetup();
       downloadFile(JSON.stringify(automationContent, null, 2), 'email_automation_setup.json', 'application/json');
 
-      // Mailchimp Import CSV
       const csvContent = generateMailchimpCSV();
       downloadFile(csvContent, 'mailchimp_email_sequence.csv', 'text/csv');
 
-      showToast('All email formats downloaded successfully!', 'success');
+      showToast(t('emailCoursePreview.messages.downloadSuccess'), 'success');
     } catch (error: any) {
-      showToast(`Error downloading files: ${error.message}`, 'error');
+      showToast(t('emailCoursePreview.messages.downloadError', { message: error.message }), 'error');
     }
   };
 
@@ -124,15 +122,15 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Day ${index + 1}: ${email.subject}</h1>
+            <h1>${t('emailCoursePreview.template.dayPrefix', { day: index + 1 })}: ${email.subject}</h1>
         </div>
         <div class="content">
             ${email.content.replace(/\n/g, '<br>')}
             ${email.cta ? `<p style="text-align: center;"><a href="${email.cta.url || '#'}" class="cta-button">${email.cta.text}</a></p>` : ''}
         </div>
         <div class="footer">
-            <p>You're receiving this because you signed up for our email course.</p>
-            <p><a href="#">Unsubscribe</a> | <a href="#">Update preferences</a></p>
+            <p>${t('emailCoursePreview.template.subscriptionNotice')}</p>
+            <p><a href="#">${t('emailCoursePreview.template.unsubscribe')}</a> | <a href="#">${t('emailCoursePreview.template.updatePreferences')}</a></p>
         </div>
     </div>
 </body>
@@ -151,12 +149,11 @@ ${email.content}
 ${email.cta ? `👉 ${email.cta.text}: ${email.cta.url || '[INSERT_LINK]'}` : ''}
 
 --
-Best regards,
-Your Course Team
+${t('emailCoursePreview.template.signature')}
 
-You're receiving this because you signed up for our email course.
-Unsubscribe: [UNSUBSCRIBE_LINK]
-Update preferences: [PREFERENCES_LINK]
+${t('emailCoursePreview.template.subscriptionNotice')}
+${t('emailCoursePreview.template.unsubscribe')}: [UNSUBSCRIBE_LINK]
+${t('emailCoursePreview.template.updatePreferences')}: [PREFERENCES_LINK]
 
 `).join('\n' + '='.repeat(60) + '\n');
   };
@@ -257,9 +254,12 @@ Update preferences: [PREFERENCES_LINK]
             <span className="text-xl text-white">📧</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">Email Course</h3>
+            <h3 className="text-xl font-bold text-gray-900">{t('emailCoursePreview.header.title')}</h3>
             <p className="text-sm text-gray-600">
-              {emails.length} emails • {course.duration || '7-day'} sequence • Auto-scheduled
+              {t('emailCoursePreview.header.subtitle', { 
+                count: emails.length, 
+                duration: course.duration || '7-day' 
+              })}
             </p>
           </div>
         </div>
@@ -272,7 +272,7 @@ Update preferences: [PREFERENCES_LINK]
                 viewMode === 'sequence' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📋 Sequence
+              📋 {t('emailCoursePreview.viewModes.sequence')}
             </button>
             <button
               onClick={() => setViewMode('email')}
@@ -280,7 +280,7 @@ Update preferences: [PREFERENCES_LINK]
                 viewMode === 'email' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📧 Email View
+              📧 {t('emailCoursePreview.viewModes.emailView')}
             </button>
             <button
               onClick={() => setViewMode('analytics')}
@@ -288,7 +288,7 @@ Update preferences: [PREFERENCES_LINK]
                 viewMode === 'analytics' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600'
               }`}
             >
-              📊 Analytics
+              📊 {t('emailCoursePreview.viewModes.analytics')}
             </button>
           </div>
           
@@ -297,14 +297,14 @@ Update preferences: [PREFERENCES_LINK]
             disabled={isGeneratingContent}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium disabled:opacity-50"
           >
-            {isGeneratingContent ? '⏳ Generating...' : '🚀 Generate Enhanced'}
+            {isGeneratingContent ? t('emailCoursePreview.buttons.generating') : t('emailCoursePreview.buttons.generateEnhanced')}
           </button>
 
           <button
             onClick={() => copyToClipboard(exportEmailSequence())}
             className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
           >
-            📋 Copy Sequence
+            📋 {t('emailCoursePreview.buttons.copySequence')}
           </button>
         </div>
       </div>
@@ -315,24 +315,24 @@ Update preferences: [PREFERENCES_LINK]
           {/* Course Header */}
           <div className="bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-200 rounded-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {course.title || 'Master the Art of [Topic] in 7 Days'}
+              {course.title || t('emailCoursePreview.course.defaultTitle')}
             </h1>
             <p className="text-gray-600 mb-4">
-              {course.description || 'Transform your knowledge into actionable insights with this comprehensive email course.'}
+              {course.description || t('emailCoursePreview.course.defaultDescription')}
             </p>
             
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center gap-1">
-                📧 {emails.length} emails
+                📧 {t('emailCoursePreview.course.stats.emails', { count: emails.length })}
               </span>
               <span className="flex items-center gap-1">
-                📅 {course.duration || '7 days'}
+                📅 {t('emailCoursePreview.course.stats.duration', { duration: course.duration || '7 days' })}
               </span>
               <span className="flex items-center gap-1">
-                📈 {analytics.expected_open_rate || '45'}% avg open rate
+                📈 {t('emailCoursePreview.course.stats.openRate', { rate: analytics.expected_open_rate || '45' })}
               </span>
               <span className="flex items-center gap-1">
-                🎯 {analytics.expected_click_rate || '12'}% avg click rate
+                🎯 {t('emailCoursePreview.course.stats.clickRate', { rate: analytics.expected_click_rate || '12' })}
               </span>
             </div>
           </div>
@@ -364,10 +364,10 @@ Update preferences: [PREFERENCES_LINK]
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-medium text-orange-600">
-                              Day {sendDay} • {formatDate(sendDay)}
+                              {t('emailCoursePreview.timeline.dayLabel', { day: sendDay, date: formatDate(sendDay) })}
                             </span>
                             <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                              {email.type || 'Educational'}
+                              {email.type || t('emailCoursePreview.timeline.defaultType')}
                             </span>
                           </div>
                           <h4 className="font-bold text-gray-900 mb-2">{email.subject}</h4>
@@ -384,13 +384,13 @@ Update preferences: [PREFERENCES_LINK]
                             }}
                             className="px-3 py-1 bg-orange-100 text-orange-700 rounded text-sm hover:bg-orange-200 transition-colors"
                           >
-                            Preview
+                            {t('emailCoursePreview.timeline.buttons.preview')}
                           </button>
                           <button
                             onClick={() => copyToClipboard(email.content)}
                             className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
                           >
-                            Copy
+                            {t('emailCoursePreview.timeline.buttons.copy')}
                           </button>
                         </div>
                       </div>
@@ -398,16 +398,16 @@ Update preferences: [PREFERENCES_LINK]
                       {/* Email Metrics */}
                       <div className="flex items-center gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
                         <span className="flex items-center gap-1">
-                          📖 Est. open: {Math.floor(Math.random() * 20) + 40}%
+                          📖 {t('emailCoursePreview.timeline.metrics.estimatedOpen', { rate: Math.floor(Math.random() * 20) + 40 })}
                         </span>
                         <span className="flex items-center gap-1">
-                          🖱️ Est. click: {Math.floor(Math.random() * 10) + 8}%
+                          🖱️ {t('emailCoursePreview.timeline.metrics.estimatedClick', { rate: Math.floor(Math.random() * 10) + 8 })}
                         </span>
                         <span className="flex items-center gap-1">
-                          ⏱️ Read time: {estimateReadingTime(email.content)} min
+                          ⏱️ {t('emailCoursePreview.timeline.metrics.readTime', { time: estimateReadingTime(email.content) })}
                         </span>
                         <span className="flex items-center gap-1">
-                          📝 Words: {formatWordCount(email.content)}
+                          📝 {t('emailCoursePreview.timeline.metrics.words', { count: formatWordCount(email.content) })}
                         </span>
                       </div>
                       
@@ -438,7 +438,7 @@ Update preferences: [PREFERENCES_LINK]
         <div className="space-y-4">
           {/* Email Client Selector */}
           <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-sm text-gray-600 mr-2">Preview in:</span>
+            <span className="text-sm text-gray-600 mr-2">{t('emailCoursePreview.emailView.previewIn')}:</span>
             {['gmail', 'outlook', 'apple'].map((client) => (
               <button
                 key={client}
@@ -478,10 +478,10 @@ Update preferences: [PREFERENCES_LINK]
                   {/* Sidebar */}
                   <div className={`${getEmailClientStyles().sidebar} w-64 p-4 border-r border-gray-200`}>
                     <div className="space-y-2 text-sm">
-                      <div className="font-medium text-gray-900 p-2 bg-white rounded">📥 Inbox</div>
-                      <div className="text-gray-600 p-2">📤 Sent</div>
-                      <div className="text-gray-600 p-2">📝 Drafts</div>
-                      <div className="text-gray-600 p-2">🗑️ Trash</div>
+                      <div className="font-medium text-gray-900 p-2 bg-white rounded">📥 {t('emailCoursePreview.emailView.sidebar.inbox')}</div>
+                      <div className="text-gray-600 p-2">📤 {t('emailCoursePreview.emailView.sidebar.sent')}</div>
+                      <div className="text-gray-600 p-2">📝 {t('emailCoursePreview.emailView.sidebar.drafts')}</div>
+                      <div className="text-gray-600 p-2">🗑️ {t('emailCoursePreview.emailView.sidebar.trash')}</div>
                     </div>
                   </div>
 
@@ -495,9 +495,9 @@ Update preferences: [PREFERENCES_LINK]
                             {emails[currentEmail]?.subject}
                           </h2>
                           <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>From: your.course@example.com</span>
+                            <span>{t('emailCoursePreview.emailView.from')}: your.course@example.com</span>
                             <span>•</span>
-                            <span>To: subscriber@email.com</span>
+                            <span>{t('emailCoursePreview.emailView.to')}: subscriber@email.com</span>
                           </div>
                         </div>
                         <div className="text-xs text-gray-500">
@@ -507,13 +507,13 @@ Update preferences: [PREFERENCES_LINK]
                       
                       <div className="flex items-center gap-4 text-sm">
                         <button className={`${getEmailClientStyles().accent} hover:underline`}>
-                          ↩️ Reply
+                          ↩️ {t('emailCoursePreview.emailView.actions.reply')}
                         </button>
                         <button className={`${getEmailClientStyles().accent} hover:underline`}>
-                          ↪️ Forward
+                          ↪️ {t('emailCoursePreview.emailView.actions.forward')}
                         </button>
                         <button className={`${getEmailClientStyles().accent} hover:underline`}>
-                          🗑️ Delete
+                          🗑️ {t('emailCoursePreview.emailView.actions.delete')}
                         </button>
                       </div>
                     </div>
@@ -538,18 +538,18 @@ Update preferences: [PREFERENCES_LINK]
                           {emails[currentEmail]?.cta && (
                             <div className="text-center my-8">
                               <button className="px-6 py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors">
-                                {emails[currentEmail].cta.text || 'Take Action Now'}
+                                {emails[currentEmail].cta.text || t('emailCoursePreview.emailView.defaultCta')}
                               </button>
                             </div>
                           )}
                           
                           <div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-                            <p>Best regards,<br />Your Course Team</p>
+                            <p>{t('emailCoursePreview.emailView.signature')}</p>
                             <div className="mt-4 text-xs">
-                              <p>You're receiving this because you signed up for our email course.</p>
+                              <p>{t('emailCoursePreview.template.subscriptionNotice')}</p>
                               <p>
-                                <a href="#" className="text-blue-500 hover:underline">Unsubscribe</a> | 
-                                <a href="#" className="text-blue-500 hover:underline ml-1">Update preferences</a>
+                                <a href="#" className="text-blue-500 hover:underline">{t('emailCoursePreview.template.unsubscribe')}</a> | 
+                                <a href="#" className="text-blue-500 hover:underline ml-1">{t('emailCoursePreview.template.updatePreferences')}</a>
                               </p>
                             </div>
                           </div>
@@ -566,12 +566,12 @@ Update preferences: [PREFERENCES_LINK]
                       onClick={() => setCurrentEmail(prev => prev > 0 ? prev - 1 : emails.length - 1)}
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      ← Previous Email
+                      ← {t('emailCoursePreview.emailView.navigation.previous')}
                     </button>
                     
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">
-                        Email {currentEmail + 1} of {emails.length}
+                        {t('emailCoursePreview.emailView.navigation.emailCount', { current: currentEmail + 1, total: emails.length })}
                       </span>
                       <div className="flex gap-1">
                         {emails.map((_, index) => (
@@ -590,7 +590,7 @@ Update preferences: [PREFERENCES_LINK]
                       onClick={() => setCurrentEmail(prev => prev < emails.length - 1 ? prev + 1 : 0)}
                       className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Next Email →
+                      {t('emailCoursePreview.emailView.navigation.next')} →
                     </button>
                   </div>
                 </div>
@@ -605,32 +605,32 @@ Update preferences: [PREFERENCES_LINK]
         <div className="space-y-6">
           {/* Performance Overview */}
           <div className="bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-200 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">📊 Course Performance Predictions</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">📊 {t('emailCoursePreview.analytics.title')}</h3>
             
             <div className="grid md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-white rounded-lg border border-orange-200">
                 <div className="text-3xl font-bold text-orange-600 mb-1">
                   {analytics.expected_subscribers || '2.5K'}
                 </div>
-                <div className="text-sm text-orange-800">Expected Subscribers</div>
+                <div className="text-sm text-orange-800">{t('emailCoursePreview.analytics.metrics.expectedSubscribers')}</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg border border-orange-200">
                 <div className="text-3xl font-bold text-green-600 mb-1">
                   {analytics.expected_completion_rate || '68'}%
                 </div>
-                <div className="text-sm text-green-800">Completion Rate</div>
+                <div className="text-sm text-green-800">{t('emailCoursePreview.analytics.metrics.completionRate')}</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg border border-orange-200">
                 <div className="text-3xl font-bold text-blue-600 mb-1">
                   {analytics.expected_open_rate || '45'}%
                 </div>
-                <div className="text-sm text-blue-800">Avg Open Rate</div>
+                <div className="text-sm text-blue-800">{t('emailCoursePreview.analytics.metrics.avgOpenRate')}</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg border border-orange-200">
                 <div className="text-3xl font-bold text-purple-600 mb-1">
                   {analytics.expected_click_rate || '12'}%
                 </div>
-                <div className="text-sm text-purple-800">Avg Click Rate</div>
+                <div className="text-sm text-purple-800">{t('emailCoursePreview.analytics.metrics.avgClickRate')}</div>
               </div>
             </div>
           </div>
@@ -638,18 +638,18 @@ Update preferences: [PREFERENCES_LINK]
           {/* Email Performance Breakdown */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-              <h4 className="font-medium text-gray-900">Email-by-Email Performance</h4>
+              <h4 className="font-medium text-gray-900">{t('emailCoursePreview.analytics.emailPerformance.title')}</h4>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Est. Open Rate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Est. Click Rate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Engagement Score</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('emailCoursePreview.analytics.emailPerformance.headers.email')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('emailCoursePreview.analytics.emailPerformance.headers.subject')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('emailCoursePreview.analytics.emailPerformance.headers.openRate')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('emailCoursePreview.analytics.emailPerformance.headers.clickRate')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('emailCoursePreview.analytics.emailPerformance.headers.engagementScore')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -669,7 +669,7 @@ Update preferences: [PREFERENCES_LINK]
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900">{email.subject}</div>
-                          <div className="text-sm text-gray-500">Day {index * (course.interval_days || 1)}</div>
+                          <div className="text-sm text-gray-500">{t('emailCoursePreview.analytics.emailPerformance.dayLabel', { day: index * (course.interval_days || 1) })}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -713,45 +713,45 @@ Update preferences: [PREFERENCES_LINK]
           {/* Optimization Tips */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-green-50 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-3">✅ Optimization Strengths</h4>
+              <h4 className="font-medium text-green-900 mb-3">✅ {t('emailCoursePreview.analytics.optimization.strengths.title')}</h4>
               <ul className="text-sm text-green-800 space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-green-600 mt-0.5">•</span>
-                  <span>Strong subject lines with curiosity gaps</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.strengths.subjectLines')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600 mt-0.5">•</span>
-                  <span>Good email length (300-500 words)</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.strengths.emailLength')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600 mt-0.5">•</span>
-                  <span>Clear call-to-actions in each email</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.strengths.callToActions')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-600 mt-0.5">•</span>
-                  <span>Progressive value delivery</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.strengths.valueDelivery')}</span>
                 </li>
               </ul>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-3">🚀 Growth Opportunities</h4>
+              <h4 className="font-medium text-blue-900 mb-3">🚀 {t('emailCoursePreview.analytics.optimization.opportunities.title')}</h4>
               <ul className="text-sm text-blue-800 space-y-2">
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-0.5">•</span>
-                  <span>Add personalization tokens</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.opportunities.personalization')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-0.5">•</span>
-                  <span>Include social proof elements</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.opportunities.socialProof')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-0.5">•</span>
-                  <span>A/B test subject lines</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.opportunities.abTesting')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 mt-0.5">•</span>
-                  <span>Add interactive elements</span>
+                  <span>{t('emailCoursePreview.analytics.optimization.opportunities.interactiveElements')}</span>
                 </li>
               </ul>
             </div>
@@ -762,67 +762,63 @@ Update preferences: [PREFERENCES_LINK]
       {/* Action Buttons & Downloads */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         <div className="bg-orange-50 rounded-lg p-4">
-          <h4 className="font-medium text-orange-900 mb-3">📧 Course Metrics</h4>
+          <h4 className="font-medium text-orange-900 mb-3">📧 {t('emailCoursePreview.metrics.title')}</h4>
           <div className="space-y-3">
             <div className="p-3 bg-white border border-orange-200 rounded-lg">
               <div className="text-sm text-orange-800">
-                📈 Expected open rate: {analytics.expected_open_rate || '45'}%
+                📈 {t('emailCoursePreview.metrics.expectedOpenRate', { rate: analytics.expected_open_rate || '45' })}
               </div>
             </div>
             <div className="p-3 bg-white border border-orange-200 rounded-lg">
               <div className="text-sm text-orange-800">
-                🎯 Completion rate: {analytics.expected_completion_rate || '68'}%
+                🎯 {t('emailCoursePreview.metrics.completionRate', { rate: analytics.expected_completion_rate || '68' })}
               </div>
             </div>
             <div className="p-3 bg-white border border-orange-200 rounded-lg">
               <div className="text-sm text-orange-800">
-                📊 Est. subscribers: {analytics.expected_subscribers || '2.5K'}
+                📊 {t('emailCoursePreview.metrics.estimatedSubscribers', { count: analytics.expected_subscribers || '2.5K' })}
               </div>
             </div>
             
-            {/* ✅ Enhanced download options */}
             <div className="pt-3 border-t border-orange-200">
               <button
                 onClick={downloadMultipleFormats}
                 className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium mb-2"
               >
-                📦 Download All Formats
+                📦 {t('emailCoursePreview.downloadOptions.downloadAll')}
               </button>
               <div className="text-xs text-orange-700">
-                Includes: HTML templates, plain text, automation setup, CSV import
+                {t('emailCoursePreview.downloadOptions.includes')}
               </div>
             </div>
           </div>
         </div>
 
         <div className="bg-pink-50 rounded-lg p-4">
-          <h4 className="font-medium text-pink-900 mb-3">🚀 Email Tools</h4>
+          <h4 className="font-medium text-pink-900 mb-3">🚀 {t('emailCoursePreview.tools.title')}</h4>
           <ContentActions 
             content={data}
             contentType="email_course"
             filename="email_course.txt"
           />
           
-          {/* ✅ Enhanced content options */}
           {Object.keys(generatedContent).length > 0 && (
             <div className="mt-4 p-3 bg-white border border-pink-200 rounded-lg">
-              <div className="text-sm text-pink-800 mb-2">✅ Enhanced content generated!</div>
+              <div className="text-sm text-pink-800 mb-2">✅ {t('emailCoursePreview.enhanced.contentGenerated')}</div>
               <div className="flex gap-2">
                 <button
                   onClick={() => copyToClipboard(JSON.stringify(generatedContent.automation_setup, null, 2))}
                   className="px-3 py-1 bg-pink-100 text-pink-700 rounded text-xs hover:bg-pink-200 transition-colors"
                 >
-                  Copy Automation
+                  {t('emailCoursePreview.enhanced.copyAutomation')}
                 </button>
                 <button
                   onClick={() => {
                     let htmlContent = '';
                     
                     if (typeof generatedContent.html_templates === 'string') {
-                      // If it's already a string
                       htmlContent = generatedContent.html_templates;
                     } else if (Array.isArray(generatedContent.html_templates)) {
-                      // If it's an array, join the HTML content
                       console.log(generatedContent.html_templates);
                       htmlContent = generatedContent.html_templates
                         .map(template => template.content || template.html || template.template)
@@ -833,7 +829,7 @@ Update preferences: [PREFERENCES_LINK]
                   }}
                   className="px-3 py-1 bg-pink-100 text-pink-700 rounded text-xs hover:bg-pink-200 transition-colors"
                 >
-                  Copy HTML
+                  {t('emailCoursePreview.enhanced.copyHtml')}
                 </button>
               </div>
             </div>

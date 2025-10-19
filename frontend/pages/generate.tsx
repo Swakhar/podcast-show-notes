@@ -243,13 +243,6 @@ export default function Generate() {
     formData.append("template_ids", data.templateIds.join(","));
     formData.append("user_email", me.email);
 
-    console.log("🔍 Direct guest research to backend:", {
-      guestName: data.guestName,
-      features: data.features,
-      userEmail: me.email,
-      backend: API_BASE_URL
-    });
-
     // ✅ Submit directly to Railway backend
     const response = await fetch(`${API_BASE_URL}/jobs/guest-research`, {
       method: "POST",
@@ -273,7 +266,6 @@ export default function Generate() {
       throw new Error("Backend did not return a job id.");
     }
 
-    console.log("✅ Guest research request successful:", result);
     return result as JobStatus;
   }
 
@@ -288,13 +280,6 @@ export default function Generate() {
     if (me.monthlyMinutesUsed + estimatedMinutes > me.monthlyMinutesLimit) {
       throw new Error("Quota exceeded. Please upgrade.");
     }
-
-    console.log("🔄 Starting repurposing job:", {
-      sourceJobId: data.sourceJobId, // ✅ Use actual source job ID
-      contentTypes: data.contentTypes,
-      userEmail: me.email,
-      backend: API_BASE_URL
-    });
 
     // ✅ Submit to backend repurposing API with real source job ID
     const response = await fetch(`/api/repurpose`, {
@@ -331,7 +316,6 @@ export default function Generate() {
       throw new Error("Backend did not return a job id.");
     }
 
-    console.log("✅ Repurposing job started:", result);
     return {
       id: result.jobId,
       status: "pending",
@@ -544,7 +528,7 @@ export default function Generate() {
                           : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      🔄 Repurpose
+                      {t('generate.tabs.repurpose')}
                     </button>
                   </nav>
                 </div>
@@ -716,18 +700,18 @@ export default function Generate() {
                       </>
                     ) : activeTab === 'repurpose' ? (
                       <>
-                        <h3 className="text-2xl font-bold text-gray-900">Ready to Repurpose Content</h3>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.repurpose.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
-                          Select existing podcast content from your library to transform into engaging social media posts, LinkedIn carousels, and more.
+                          {t('generate.ready.repurpose.subtitle')}
                         </p>
                         <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                           <div className="p-4 bg-purple-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">⚡</div>
-                            <p className="text-sm font-medium text-gray-700">Lightning Fast</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.repurpose.features.fast')}</p>
                           </div>
                           <div className="p-4 bg-pink-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">🎯</div>
-                            <p className="text-sm font-medium text-gray-700">Multi-Platform</p>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.repurpose.features.multiPlatform')}</p>
                           </div>
                         </div>
                       </>

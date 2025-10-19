@@ -1073,7 +1073,6 @@ Return ONLY the JSON object with no additional text."""
             "twitter_thread": ["#thread", "#twitter", "#tips"],
             "instagram_story": ["#story", "#instagram", "#visual"],
             "email_course": ["#emailmarketing", "#onlinelearning", "#education", "#course"],
-            # ✅ NEW: Infographic hashtags
             "infographic_data": ["#infographic", "#datavisualization", "#statistics", "#insights", "#visual"]
         }
         
