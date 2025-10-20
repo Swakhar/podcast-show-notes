@@ -239,7 +239,7 @@ export default function Generate() {
     formData.append("additional_context", data.additionalContext);
     formData.append("show_focus", data.showFocus);
     formData.append("features", features);
-    formData.append("language", data.language);
+    formData.append("language", language);
     formData.append("template_ids", data.templateIds.join(","));
     formData.append("user_email", me.email);
 
@@ -296,7 +296,7 @@ export default function Generate() {
         includeDesignSpecs: data.includeDesignSpecs,
         includeAnalytics: data.includeAnalytics,
         includeScheduling: data.includeScheduling,
-        language: data.language,
+        language: language,
       }),
     });
 
