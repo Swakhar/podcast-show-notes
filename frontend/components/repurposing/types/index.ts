@@ -7,6 +7,7 @@ export interface RepurposingConfig {
   includeDesignSpecs?: boolean;
   includeAnalytics?: boolean;
   includeScheduling?: boolean;
+  language?: string;
 }
 
 export interface RepurposingJobResult {

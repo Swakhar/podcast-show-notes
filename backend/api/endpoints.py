@@ -27,7 +27,7 @@ from services.youtube_service import YouTubeService
 from services.transcript_service import get_youtube_transcript
 import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
-from core.repurposing import ContentRepurposer
+from core.language_detection import detect_content_language
 
 router = APIRouter()
 
@@ -345,9 +345,15 @@ async def create_repurposing_job(request: Request):
         target_audience = data.get('target_audience', '')
         brand_voice = data.get('brand_voice', 'professional')
         user_email = data.get('user_email')
+        language = data.get('language', 'auto')
         
         if not source_content or not content_types:
             raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        detected_language = language
+        if language == 'auto':
+            detected_language = detect_content_language(source_content)
+            print(f"🌐 Auto-detected language: {detected_language}")
         
         # Generate unique job ID
         job_id = f"repurpose_{int(time.time() * 1000)}"
@@ -365,7 +371,8 @@ async def create_repurposing_job(request: Request):
             'brand_voice': brand_voice,
             'source_content': source_content,
             'billed_minutes': 1,
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': datetime.utcnow().isoformat(),
+            'language': detected_language
         }
         
         # Save job using your existing save_job function
@@ -379,7 +386,8 @@ async def create_repurposing_job(request: Request):
         return {
             "job_id": job_id,
             "status": "queued",
-            "message": "Repurposing job created successfully"
+            "message": "Repurposing job created successfully",
+            "language": detected_language
         }
         
     except Exception as e:

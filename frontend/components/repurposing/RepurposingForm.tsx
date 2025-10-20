@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 import { RepurposingSectionMode, RepurposingConfig } from './types';
 
 interface Job {
@@ -21,7 +22,9 @@ interface RepurposingFormProps {
 
 // Replace the hardcoded CONTENT_TYPES array with translation-based one
 export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: propSourceJobId }: RepurposingFormProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
+  const router = useRouter();
+  const currentLocale = router.locale || i18n.language || 'en';
   
   // Use translation for content types
   const CONTENT_TYPES = [
@@ -140,7 +143,6 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
       return;
     }
 
-    // ✅ Now passing the complete RepurposingConfig object
     await onSubmit({
       sourceJobId: finalSourceJobId,
       contentTypes: selectedTypes,
@@ -150,6 +152,7 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
       includeDesignSpecs,
       includeAnalytics,
       includeScheduling,
+      language: currentLocale,
     });
   };
 

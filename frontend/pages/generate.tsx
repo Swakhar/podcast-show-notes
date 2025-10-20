@@ -296,6 +296,7 @@ export default function Generate() {
         includeDesignSpecs: data.includeDesignSpecs,
         includeAnalytics: data.includeAnalytics,
         includeScheduling: data.includeScheduling,
+        language: data.language,
       }),
     });
 

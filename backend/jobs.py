@@ -558,9 +558,10 @@ async def process_repurposing_job(job_id: str):
         custom_instructions = job.get('custom_instructions', '')
         target_audience = job.get('target_audience', '')
         brand_voice = job.get('brand_voice', 'professional')
+        language = job.get('language', 'en')
         
         set_stage(job_id, "generating content")
-        print(f"📝 Repurposing {len(content_types)} content types for job {job_id}")
+        print(f"📝 Repurposing {len(content_types)} content types for job {job_id} in {language}")
         
         # Execute repurposing
         results = await repurposer.repurpose_content(
@@ -568,7 +569,8 @@ async def process_repurposing_job(job_id: str):
             content_types=content_types,
             custom_instructions=custom_instructions,
             target_audience=target_audience,
-            brand_voice=brand_voice
+            brand_voice=brand_voice,
+            language=language
         )
         
         # ✅ FIX: Ensure proper structure
@@ -576,13 +578,14 @@ async def process_repurposing_job(job_id: str):
             JOBS[job_id]['result'] = {}
             
         JOBS[job_id]['result']['repurposed_content'] = results['results']
+        JOBS[job_id]['result']['metadata'] = results['metadata']
         JOBS[job_id]['status'] = 'complete'
         JOBS[job_id]['stage'] = 'finished'
         JOBS[job_id]['completed_at'] = datetime.utcnow().isoformat()
         
         save_job(job_id)
         
-        print(f"✅ Repurposing job {job_id} completed successfully")
+        print(f"✅ Repurposing job {job_id} completed successfully in {language}")
         print(f"🔍 Result keys: {list(JOBS[job_id]['result'].keys())}")
         print(f"🔍 Repurposed content keys: {list(JOBS[job_id]['result']['repurposed_content'].keys())}")
         

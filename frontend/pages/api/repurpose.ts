@@ -16,19 +16,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { 
-      sourceJobId, // Changed from jobId to sourceJobId to match frontend
-      contentTypes, 
-      customInstructions, 
-      targetAudience, 
-      brandVoice 
+      sourceJobId,
+      contentTypes,
+      customInstructions,
+      targetAudience,
+      brandVoice,
+      language
     } = req.body;
 
-    // 📍 Fetch the original job from BACKEND, not frontend database
     const originalJobResponse = await fetch(`${BACKEND}/jobs/${sourceJobId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        // Add user context for security
         'X-User-Email': session.user.email
       }
     });
@@ -56,6 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'No content available for repurposing' });
     }
 
+    const finalLanguage = language || 'auto';
+
     // 📍 Send repurposing request to BACKEND
     const repurposingResponse = await fetch(`${BACKEND}/jobs/repurpose`, {
       method: 'POST',
@@ -69,7 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         custom_instructions: customInstructions,
         target_audience: targetAudience,
         brand_voice: brandVoice,
-        user_email: session.user.email
+        user_email: session.user.email,
+        language: finalLanguage
       })
     });
 
@@ -80,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const repurposingJob = await repurposingResponse.json();
 
-    res.status(200).json({ 
+    res.status(200).json({
       jobId: repurposingJob.job_id || repurposingJob.id,
       status: 'started',
       message: 'Repurposing job started successfully'
