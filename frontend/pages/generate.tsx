@@ -269,62 +269,6 @@ export default function Generate() {
     return result as JobStatus;
   }
 
-  async function submitRepurposingJob(data: any) {
-    // ✅ Authentication check
-    if (!me?.email) {
-      throw new Error("Sign in required");
-    }
-
-    // ✅ Quota pre-check - repurposing costs 1 minute per content type
-    const estimatedMinutes = data.contentTypes.length;
-    if (me.monthlyMinutesUsed + estimatedMinutes > me.monthlyMinutesLimit) {
-      throw new Error("Quota exceeded. Please upgrade.");
-    }
-
-    // ✅ Submit to backend repurposing API with real source job ID
-    const response = await fetch(`/api/repurpose`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sourceJobId: data.sourceJobId, // ✅ Pass the real source job ID
-        contentTypes: data.contentTypes,
-        customInstructions: data.customInstructions,
-        targetAudience: data.targetAudience,
-        brandVoice: data.brandVoice,
-        includeDesignSpecs: data.includeDesignSpecs,
-        includeAnalytics: data.includeAnalytics,
-        includeScheduling: data.includeScheduling,
-        language: language,
-      }),
-    });
-
-    if (!response.ok) {
-      let errorMessage = `Repurposing failed (${response.status})`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch {
-        errorMessage = `Network error: ${response.statusText}`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-    
-    if (!result?.jobId) {
-      throw new Error("Backend did not return a job id.");
-    }
-
-    return {
-      id: result.jobId,
-      status: "pending",
-      stage: "queued",
-      billed_minutes: estimatedMinutes
-    } as JobStatus;
-  }
-
   // polling + usage booking/rollback
   useEffect(() => {
     if (!jobId) return;

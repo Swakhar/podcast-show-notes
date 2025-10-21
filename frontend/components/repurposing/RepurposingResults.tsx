@@ -155,7 +155,9 @@ export function RepurposingResults({ results, jobId, mode }: RepurposingResultsP
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900">
-                {t('repurposingResults.summary.generated', { count: contentTypes.length })}
+                {contentTypes.length > 1
+                  ? t('repurposingResults.summary.generated', { count: contentTypes.length })
+                  : t('repurposingResults.summary.generatedSingle')}
               </p>
               <p className="text-xs text-gray-600">
                 {t('repurposingResults.summary.estimatedReach', { reach: contentTypes.length * 2500 })}

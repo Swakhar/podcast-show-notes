@@ -1765,7 +1765,9 @@
     },
     "submitButton": {
       "generating": "Inhalt wird generiert...",
-      "generate": "{{count}} Inhaltstyp{{count, plural, one {} other {en}} generieren"
+      "generateSingle": "1 Inhaltstyp generieren",
+      "generate": "{{count}} Inhaltstypen generieren",
+      "quotaExceeded": "Kontingent überschritten"
     },
     "info": {
       "cost": "Kosten: {{count}} Minute{{count, plural, one {} other {n}}} von Ihrem Kontingent",
@@ -1773,7 +1775,14 @@
     },
     "validation": {
       "selectContentType": "Bitte wählen Sie mindestens einen Inhaltstyp",
-      "selectSourceJob": "Bitte wählen Sie einen Quell-Job zum Wiederverwenden"
+      "selectSourceJob": "Bitte wählen Sie einen Quell-Job zum Wiederverwenden",
+      "quotaExceeded": "Diese Operation würde Ihr monatliches Kontingent überschreiten. Bitte upgraden Sie oder warten Sie bis zum nächsten Monat."
+    },
+    "quota": {
+      "usage": "Verbrauch",
+      "minutes": "Minuten",
+      "willUse": "Dies wird {{minutes}} Minute(n) verbrauchen",
+      "exceedsLimit": "Überschreitet Limit!"
     },
     "unknownJob": "Unbekannter Job",
     "unknownDate": "Unbekanntes Datum",
@@ -1817,7 +1826,8 @@
     },
     "previewNotAvailable": "Vorschau für {{contentType}} nicht verfügbar",
     "summary": {
-      "generated": "{{count}} Inhaltstyp{{count, plural, one {} other {en}} generiert",
+      "generatedSingle": "1 Inhaltstyp generiert",
+      "generated": "{{count}} Inhaltstypen generiert",
       "estimatedReach": "Geschätzte Gesamtreichweite: {{reach}}+ Personen über alle Plattformen"
     }
   },

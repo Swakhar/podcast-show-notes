@@ -20,6 +20,7 @@ from jobs import (
   process_audio_job,
   process_text_job,
   process_guest_research_job,
+  process_repurposing_job,
   save_job
 )
 from models.schemas import EstimateRequest
@@ -333,7 +334,10 @@ async def create_guest_research_job(
     }
 
 @router.post("/jobs/repurpose")
-async def create_repurposing_job(request: Request):
+async def create_repurposing_job(
+    background: BackgroundTasks,
+    request: Request
+):
     """Create a repurposing job from existing content"""
     try:
         data = await request.json()
@@ -355,6 +359,9 @@ async def create_repurposing_job(request: Request):
             detected_language = detect_content_language(source_content)
             print(f"🌐 Auto-detected language: {detected_language}")
         
+        # ✅ Calculate billed minutes based on content types (1 minute per type)
+        billed_minutes = len(content_types)
+        
         # Generate unique job ID
         job_id = f"repurpose_{int(time.time() * 1000)}"
         
@@ -370,24 +377,31 @@ async def create_repurposing_job(request: Request):
             'target_audience': target_audience,
             'brand_voice': brand_voice,
             'source_content': source_content,
-            'billed_minutes': 1,
+            'billed_minutes': billed_minutes,
             'created_at': datetime.utcnow().isoformat(),
             'language': detected_language
         }
         
-        # Save job using your existing save_job function
         save_job(job_id)
-        
-        # Start background processing
-        from jobs import process_repurposing_job
-        import asyncio
-        asyncio.create_task(process_repurposing_job(job_id))
+        background.add_task(
+            process_repurposing_job, 
+            job_id, 
+            source_content,
+            content_types,
+            custom_instructions,
+            target_audience,
+            brand_voice,
+            detected_language,
+            user_email
+        )
         
         return {
             "job_id": job_id,
-            "status": "queued",
+            "status": "pending",
+            "stage": "queued",
             "message": "Repurposing job created successfully",
-            "language": detected_language
+            "language": detected_language,
+            "billed_minutes": billed_minutes
         }
         
     except Exception as e:

@@ -1764,7 +1764,9 @@
     },
     "submitButton": {
       "generating": "Generating Content...",
-      "generate": "Generate {{count}} Content Type{{count, plural, one {} other {s}}}"
+      "generateSingle": "Generate 1 Content Type",
+      "generate": "Generate {{count}} Content Types",
+      "quotaExceeded": "Quota Exceeded"
     },
     "info": {
       "cost": "Cost: {{count}} minute{{count, plural, one {} other {s}}} from your quota",
@@ -1772,7 +1774,14 @@
     },
     "validation": {
       "selectContentType": "Please select at least one content type",
-      "selectSourceJob": "Please select a source job to repurpose"
+      "selectSourceJob": "Please select a source job to repurpose",
+      "quotaExceeded": "This operation would exceed your monthly quota. Please upgrade or wait for next month."
+    },
+    "quota": {
+      "usage": "Usage",
+      "minutes": "minutes",
+      "willUse": "This will use {{minutes}} minute(s)",
+      "exceedsLimit": "Exceeds limit!"
     },
     "unknownJob": "Unknown Job",
     "unknownDate": "Unknown date",
@@ -1816,7 +1825,8 @@
     },
     "previewNotAvailable": "Preview not available for {{contentType}}",
     "summary": {
-      "generated": "Generated {{count}} content type{{count, plural, one {} other {s}}}",
+      "generatedSingle": "Generated 1 content type",
+      "generated": "Generated {{count}} content types",
       "estimatedReach": "Total estimated reach: {{reach}}+ people across platforms"
     }
   },

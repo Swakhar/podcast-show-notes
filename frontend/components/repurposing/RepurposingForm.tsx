@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import { RepurposingSectionMode, RepurposingConfig } from './types';
+import { useRepurposing } from './useRepurposing';
 
 interface Job {
   id: string;
@@ -13,15 +14,16 @@ interface Job {
 }
 
 interface RepurposingFormProps {
-  onSubmit: (data: RepurposingConfig) => Promise<void>;
   isSubmitting: boolean;
   mode: RepurposingSectionMode;
   sourceJobId?: string;
+  onJobCreated?: (jobId: string) => void;
 }
 
-export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: propSourceJobId }: RepurposingFormProps) {
+export function RepurposingForm({ isSubmitting: externalIsSubmitting, mode, sourceJobId: propSourceJobId, onJobCreated }: Omit<RepurposingFormProps, 'onSubmit'> & { onJobCreated?: (jobId: string) => void }) {
   const { t, i18n } = useTranslation('common');
   const currentLocale = i18n.language || 'en';
+  const { submitRepurposingJob, isSubmitting, me } = useRepurposing(); // ✅ Use the hook directly
   
   // Use translation for content types
   const CONTENT_TYPES = [
@@ -92,27 +94,19 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
   const fetchUserJobs = async () => {
     try {
       setLoadingJobs(true);
-      console.log('🔍 Fetching user jobs...');
-      
       const response = await fetch('/api/jobs/completed');
-      console.log(`🔍 Response status: ${response.status}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Received ${data.jobs?.length || 0} jobs`);
         setAvailableJobs(data.jobs || []);
         
         // Auto-select the most recent job if no sourceJobId provided
         if (data.jobs && data.jobs.length > 0 && !propSourceJobId) {
           setSourceJobId(data.jobs[0].id);
-          console.log(`🎯 Auto-selected job: ${data.jobs[0].id}`);
         }
       } else {
-        const errorText = await response.text();
-        console.error(`❌ Failed to fetch jobs: ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.error('Failed to fetch jobs:', error);
     } finally {
       setLoadingJobs(false);
     }
@@ -125,6 +119,12 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
         : [...prev, typeId]
     );
   };
+
+  // ✅ Calculate quota information
+  const estimatedMinutes = selectedTypes.length;
+  const usagePercent = me ? Math.round((me.monthlyMinutesUsed / me.monthlyMinutesLimit) * 100) : 0;
+  const wouldExceedQuota = me ? (me.monthlyMinutesUsed + estimatedMinutes > me.monthlyMinutesLimit) : false;
+  const isNearLimit = usagePercent > 80;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,17 +140,32 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
       return;
     }
 
-    await onSubmit({
-      sourceJobId: finalSourceJobId,
-      contentTypes: selectedTypes,
-      customInstructions,
-      targetAudience,
-      brandVoice,
-      includeDesignSpecs,
-      includeAnalytics,
-      includeScheduling,
-      language: currentLocale,
-    });
+    // ✅ Check quota before submitting
+    if (wouldExceedQuota) {
+      alert(t('repurposingForm.validation.quotaExceeded'));
+      return;
+    }
+
+    try {
+      const jobId = await submitRepurposingJob({
+        sourceJobId: finalSourceJobId,
+        contentTypes: selectedTypes,
+        customInstructions,
+        targetAudience,
+        brandVoice,
+        includeDesignSpecs,
+        includeAnalytics,
+        includeScheduling,
+        language: currentLocale,
+      });
+      
+      // ✅ Notify parent component if callback provided
+      if (onJobCreated) {
+        onJobCreated(jobId);
+      }
+    } catch (error) {
+      console.error('Repurposing failed:', error);
+    }
   };
 
   const formatJobTitle = (job: Job) => {
@@ -387,10 +402,35 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
         )}
       </div>
 
-      {/* Submit Button */}
+      {/* ✅ Add quota display */}
+      {me && (
+        <div className={`p-3 rounded-lg border ${wouldExceedQuota ? 'bg-red-50 border-red-200' : isNearLimit ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'}`}>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-700">
+              {t('repurposingForm.quota.usage')}: {me.monthlyMinutesUsed}/{me.monthlyMinutesLimit === 999999 ? '∞' : me.monthlyMinutesLimit} {t('repurposingForm.quota.minutes')}
+            </span>
+            <span className={`font-medium ${wouldExceedQuota ? 'text-red-600' : isNearLimit ? 'text-yellow-600' : 'text-blue-600'}`}>
+              {usagePercent}%
+            </span>
+          </div>
+          
+          {selectedTypes.length > 0 && (
+            <div className="mt-2 text-xs text-gray-600">
+              {t('repurposingForm.quota.willUse', { minutes: estimatedMinutes })}
+              {wouldExceedQuota && (
+                <span className="text-red-600 font-medium ml-2">
+                  {t('repurposingForm.quota.exceedsLimit')}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Submit Button - update disabled condition */}
       <button
         type="submit"
-        disabled={isSubmitting || selectedTypes.length === 0 || !(propSourceJobId || sourceJobId)}
+        disabled={isSubmitting || selectedTypes.length === 0 || !(propSourceJobId || sourceJobId) || wouldExceedQuota}
         className={`w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
           mode === 'standalone' ? 'text-lg py-4' : ''
         }`}
@@ -400,18 +440,23 @@ export function RepurposingForm({ onSubmit, isSubmitting, mode, sourceJobId: pro
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             <span>{t('repurposingForm.submitButton.generating')}</span>
           </>
+        ) : wouldExceedQuota ? (
+          <>
+            <span>⚠️</span>
+            <span>{t('repurposingForm.submitButton.quotaExceeded')}</span>
+          </>
         ) : (
           <>
             <span>🚀</span>
-            <span>{t('repurposingForm.submitButton.generate', { count: selectedTypes.length })}</span>
+            {selectedTypes.length === 1 && (
+              <span>{t('repurposingForm.submitButton.generateSingle')}</span>
+            )}
+            {selectedTypes.length > 1 && (
+              <span>{t('repurposingForm.submitButton.generate', { count: selectedTypes.length })}</span>
+            )}
           </>
         )}
       </button>
-
-      {/* Info */}
-      <div className="text-xs text-gray-500 text-center">
-        {t('repurposingForm.info.cost', { count: selectedTypes.length })}
-      </div>
 
       {selectedTypes.length === 0 && (
         <p className="text-sm text-gray-500 text-center">

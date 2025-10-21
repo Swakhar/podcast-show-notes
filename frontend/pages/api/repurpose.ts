@@ -24,6 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       language
     } = req.body;
 
+    // ✅ Calculate estimated minutes
+    const estimatedMinutes = contentTypes.length;
+
+    // ✅ Fetch original job and validate
     const originalJobResponse = await fetch(`${BACKEND}/jobs/${sourceJobId}`, {
       method: 'GET',
       headers: {
@@ -57,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const finalLanguage = language || 'auto';
 
-    // 📍 Send repurposing request to BACKEND
+    // ✅ Send repurposing request to BACKEND
     const repurposingResponse = await fetch(`${BACKEND}/jobs/repurpose`, {
       method: 'POST',
       headers: {
@@ -81,11 +85,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const repurposingJob = await repurposingResponse.json();
+    const jobId = repurposingJob.job_id || repurposingJob.id;
+
+    // ✅ Bill usage immediately when job is created
+    try {
+      await fetch(`${req.headers.origin}/api/usage/adjust`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': req.headers.cookie || ''
+        },
+        body: JSON.stringify({ 
+          minutes: estimatedMinutes, 
+          op: 'inc' 
+        })
+      });
+    } catch (billingError) {
+    }
 
     res.status(200).json({
-      jobId: repurposingJob.job_id || repurposingJob.id,
+      jobId: jobId,
       status: 'started',
-      message: 'Repurposing job started successfully'
+      message: 'Repurposing job started successfully',
+      billed_minutes: estimatedMinutes
     });
 
   } catch (error: any) {

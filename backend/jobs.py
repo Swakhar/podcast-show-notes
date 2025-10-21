@@ -18,7 +18,6 @@ from core.business import (
     generate_interview_questions,
     generate_conversation_starters
 )
-from core.repurposing import ContentRepurposer
 
 # ✅ Import email utilities
 from core.email_utils import send_completion_email, send_error_email
@@ -538,33 +537,36 @@ def process_guest_research_job(job_id: str, guest_name: str, guest_info: str, ad
         save_job(job_id)
         mark_job_failed(job_id, error_msg, user_email)
 
-async def process_repurposing_job(job_id: str):
-    """Process a content repurposing job"""
+async def process_repurposing_job(
+    job_id: str,
+    source_content: str,
+    content_types: list,
+    custom_instructions: str,
+    target_audience: str,
+    brand_voice: str,
+    language: str,
+    user_email: str
+):
+    """Process repurposing job with proper status updates"""
     try:
-        job = JOBS.get(job_id)
-        if not job:
-            print(f"Repurposing job {job_id} not found")
-            return
-        
         print(f"🔄 Starting repurposing job {job_id}")
-        set_stage(job_id, "initializing repurposer")
         
-        # Initialize repurposer
+        # ✅ Update status to processing (this triggers billing)
+        JOBS[job_id]['status'] = 'processing'
+        set_stage(job_id, "processing")
+        save_job(job_id)
+        
+        # Import here to avoid circular imports
+        from core.repurposing import ContentRepurposer
+        
         repurposer = ContentRepurposer()
         
-        # Extract job data
-        source_content = job.get('source_content', '')
-        content_types = job.get('content_types', [])
-        custom_instructions = job.get('custom_instructions', '')
-        target_audience = job.get('target_audience', '')
-        brand_voice = job.get('brand_voice', 'professional')
-        language = job.get('language', 'en')
+        # ✅ Update stage to generating (more specific)
+        set_stage(job_id, "generating")
+        save_job(job_id)
         
-        set_stage(job_id, "generating content")
-        print(f"📝 Repurposing {len(content_types)} content types for job {job_id} in {language}")
-        
-        # Execute repurposing
-        results = await repurposer.repurpose_content(
+        # ✅ Await the async function
+        result = await repurposer.repurpose_content(
             source_content=source_content,
             content_types=content_types,
             custom_instructions=custom_instructions,
@@ -573,36 +575,24 @@ async def process_repurposing_job(job_id: str):
             language=language
         )
         
-        # ✅ FIX: Ensure proper structure
-        if not JOBS[job_id].get('result'):
-            JOBS[job_id]['result'] = {}
-            
-        JOBS[job_id]['result']['repurposed_content'] = results['results']
-        JOBS[job_id]['result']['metadata'] = results['metadata']
+        # ✅ Store repurposed content in the job result
+        JOBS[job_id]['result'] = {
+            'repurposed_content': result.get('results', {}),
+            'metadata': result.get('metadata', {})
+        }
         JOBS[job_id]['status'] = 'complete'
-        JOBS[job_id]['stage'] = 'finished'
-        JOBS[job_id]['completed_at'] = datetime.utcnow().isoformat()
+        set_stage(job_id, "finished")
         
         save_job(job_id)
         
-        print(f"✅ Repurposing job {job_id} completed successfully in {language}")
-        print(f"🔍 Result keys: {list(JOBS[job_id]['result'].keys())}")
-        print(f"🔍 Repurposed content keys: {list(JOBS[job_id]['result']['repurposed_content'].keys())}")
+        print(f"✅ Repurposing job {job_id} completed successfully")
         
     except Exception as e:
         print(f"❌ Repurposing job {job_id} failed: {e}")
         JOBS[job_id]['status'] = 'failed'
         JOBS[job_id]['error'] = str(e)
+        set_stage(job_id, "failed")
         save_job(job_id)
-        
-        # Send error email if user_email exists
-        user_email = JOBS[job_id].get('user_email')
-        if user_email:
-            try:
-                from core.email_utils import send_error_email
-                send_error_email(user_email, str(e), "content repurposing")
-            except Exception as email_error:
-                print(f"Failed to send error email: {email_error}")
 
 # ✅ Initialize on startup
 print("🚀 Initializing jobs system...")

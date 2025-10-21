@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { RepurposingForm } from './RepurposingForm';
 import { RepurposingResults } from './RepurposingResults';
-import { useRepurposing } from './useRepurposing';
-import { RepurposingSectionMode, RepurposingConfig } from './types';
+import { RepurposingSectionMode } from './types';
 
 interface RepurposingSectionProps {
   sourceJobId?: string;
@@ -19,17 +18,12 @@ export function RepurposingSection({
   onJobCreated 
 }: RepurposingSectionProps) {
   const { t } = useTranslation('common');
-  const { submitRepurposingJob, isSubmitting } = useRepurposing();
   const [showForm, setShowForm] = useState(!existingRepurposedContent);
 
-  const handleSubmit = async (data: RepurposingConfig) => {
-    try {
-      const newJobId = await submitRepurposingJob(data);
-      onJobCreated?.(newJobId);
-      setShowForm(false);
-    } catch (error) {
-      // Error handling is done in the hook
-    }
+  // ✅ Handle job creation with proper callback flow
+  const handleJobCreated = (jobId: string) => {
+    onJobCreated?.(jobId);
+    setShowForm(false);
   };
 
   // If we have existing content, show results
@@ -62,10 +56,10 @@ export function RepurposingSection({
   return (
     <div className="space-y-6">
       <RepurposingForm
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={false} // ✅ The hook manages its own submitting state now
         mode={mode}
         sourceJobId={sourceJobId}
+        onJobCreated={handleJobCreated} // ✅ Pass the callback
       />
       
       {existingRepurposedContent && (
