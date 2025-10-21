@@ -43,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(200).json(enhancedContent);
 
   } catch (error: any) {
-    console.error('Error generating enhanced infographic content:', error);
     return res.status(500).json({ 
       error: 'Failed to generate enhanced content',
       details: error.message 

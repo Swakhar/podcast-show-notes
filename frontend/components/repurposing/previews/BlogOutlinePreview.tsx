@@ -113,7 +113,6 @@ ${seoData.primary_keywords ? `
       setGeneratedContent(result);
       showToast(t('blogOutlinePreview.messages.enhancedContentSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error generating enhanced content:', error);
       showToast(t('blogOutlinePreview.messages.enhancedContentError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingContent(false);
@@ -256,7 +255,6 @@ ${(seoData.primary_keywords || ['content', 'guide', 'tips']).map((keyword: strin
 
       showToast(t('blogOutlinePreview.messages.downloadSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error downloading blog formats:', error);
       showToast(t('blogOutlinePreview.messages.downloadError', { message: error.message }), 'error');
     }
   };

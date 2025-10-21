@@ -122,7 +122,6 @@ export default function InstagramStoryPreview({ data }: InstagramStoryPreviewPro
       setGeneratedImages(result.images || {});
       showToast(t('instagramStoryPreview.messages.imageGenerationSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error generating story images:', error);
       showToast(t('instagramStoryPreview.messages.imageGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingImages(false);

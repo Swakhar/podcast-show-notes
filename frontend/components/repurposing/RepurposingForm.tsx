@@ -164,7 +164,6 @@ export function RepurposingForm({ isSubmitting: externalIsSubmitting, mode, sour
         onJobCreated(jobId);
       }
     } catch (error) {
-      console.error('Repurposing failed:', error);
     }
   };
 

@@ -39,7 +39,6 @@ export default function LandingContentAdmin() {
         setStats(data.stats);
       }
     } catch (error) {
-      console.error('Failed to fetch landing content:', error);
     } finally {
       setLoading(false);
     }

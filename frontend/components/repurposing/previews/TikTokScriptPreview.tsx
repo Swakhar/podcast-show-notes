@@ -112,7 +112,6 @@ export default function TikTokScriptPreview({ data }: TikTokScriptPreviewProps) 
       setGeneratedVideos(result.images || {});
       showToast(t('tikTokScriptPreview.messages.videoGenerationSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error generating video content:', error);
       showToast(t('tikTokScriptPreview.messages.videoGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingVideos(false);

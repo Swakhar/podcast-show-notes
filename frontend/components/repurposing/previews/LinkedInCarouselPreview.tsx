@@ -49,7 +49,6 @@ export default function LinkedInCarouselPreview({ data }: LinkedInCarouselPrevie
       setGeneratedSlides(result.images || {});
       showToast(t('linkedInCarouselPreview.messages.slideGenerationSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error generating carousel slides:', error);
       showToast(t('linkedInCarouselPreview.messages.slideGenerationError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingSlides(false);

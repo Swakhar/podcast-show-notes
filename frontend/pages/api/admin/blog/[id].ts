@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       return res.json({ post });
     } catch (error) {
-      console.error('Error fetching post:', error);
       return res.status(500).json({ error: 'Failed to fetch post' });
     }
   }
@@ -91,7 +90,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       return res.json({ post });
     } catch (error) {
-      console.error('Error updating post:', error);
       return res.status(500).json({ error: 'Failed to update post' });
     }
   }
@@ -112,7 +110,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       return res.json({ message: 'Post deleted successfully' });
     } catch (error) {
-      console.error('Error deleting post:', error);
       return res.status(500).json({ error: 'Failed to delete post' });
     }
   }

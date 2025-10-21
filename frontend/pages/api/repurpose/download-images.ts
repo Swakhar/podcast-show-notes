@@ -56,8 +56,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             zip.file(filename, buffer);
           } else {
-            // ✅ NEW: Handle missing TikTok files
-            console.warn(`TikTok scene file not found: ${filePath}`);
             // Don't add to zip, but continue processing other images
           }
         } else {

@@ -24,7 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ user: updatedUser });
     } catch (error) {
-      console.error('Error updating user:', error);
       return res.status(500).json({ error: 'Failed to update user' });
     }
   }
@@ -34,7 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.user.delete({ where: { id } });
       return res.json({ message: 'User deleted successfully' });
     } catch (error) {
-      console.error('Error deleting user:', error);
       return res.status(500).json({ error: 'Failed to delete user' });
     }
   }

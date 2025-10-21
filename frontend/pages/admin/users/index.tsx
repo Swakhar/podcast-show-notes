@@ -37,7 +37,6 @@ export default function UsersAdmin() {
         setUsers(data.users);
       }
     } catch (error) {
-      console.error('Failed to fetch users:', error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +54,6 @@ export default function UsersAdmin() {
         fetchUsers(); // Refresh the list
       }
     } catch (error) {
-      console.error('Failed to update admin status:', error);
     }
   };
 
@@ -71,7 +69,6 @@ export default function UsersAdmin() {
         fetchUsers(); // Refresh the list
       }
     } catch (error) {
-      console.error('Failed to delete user:', error);
     }
   };
 

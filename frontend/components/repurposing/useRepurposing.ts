@@ -103,7 +103,6 @@ export function useRepurposing() {
         }
         
       } catch (error: any) {
-        console.error('Polling error:', error);
         clearInterval(interval);
         setIsSubmitting(false);
       }

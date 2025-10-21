@@ -42,7 +42,6 @@ export default function BlogIndex() {
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (error) {
-      console.error('Failed to fetch posts:', error);
       setError('Failed to load blog posts');
     } finally {
       setLoading(false);

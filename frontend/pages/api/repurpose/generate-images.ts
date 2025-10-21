@@ -92,8 +92,6 @@ async function generateInstagramStoryImages(
       
       images[i] = imageUrl;
     } catch (error) {
-      console.error(`Error generating story ${i}:`, error);
-      // Continue with other images even if one fails
     }
   }
   
@@ -123,7 +121,6 @@ async function generateLinkedInCarouselImages(
       
       images[i] = imageUrl;
     } catch (error) {
-      console.error(`Error generating slide ${i}:`, error);
     }
   }
   
@@ -154,7 +151,6 @@ async function generateTikTokSceneImages(
       
       images[i] = imageUrl;
     } catch (error) {
-      console.error(`Error generating TikTok scene ${i}:`, error);
     }
   }
   
@@ -185,7 +181,6 @@ async function createStoryImage(params: {
       }
     }
   } catch (error) {
-    console.warn('Error parsing dimensions, using defaults:', error);
   }
   
   const canvas = createCanvas(width, height);
@@ -286,7 +281,6 @@ async function createCarouselSlide(params: {
       }
     }
   } catch (error) {
-    console.warn('Error parsing dimensions, using defaults:', error);
   }
   
   const canvas = createCanvas(width, height);
@@ -400,7 +394,6 @@ async function createTikTokScene(params: {
       }
     }
   } catch (error) {
-    console.warn('Error parsing dimensions, using defaults:', error);
   }
   
   const canvas = createCanvas(width, height);
@@ -549,10 +542,8 @@ function scheduleFileCleanup(filePath: string, delayMinutes: number = 5) {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        console.log(`🗑️ Auto-cleaned TikTok file: ${path.basename(filePath)}`);
       }
     } catch (error) {
-      console.warn(`Failed to auto-clean file: ${filePath}`, error);
     }
   }, delayMinutes * 60 * 1000); // Convert minutes to milliseconds
 }

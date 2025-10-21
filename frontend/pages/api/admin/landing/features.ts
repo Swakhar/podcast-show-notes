@@ -17,7 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ features });
     } catch (error) {
-      console.error('Error fetching landing features:', error);
       return res.status(500).json({ error: 'Failed to fetch features' });
     }
   }
@@ -46,7 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ message: 'Features updated successfully' });
     } catch (error) {
-      console.error('Error updating landing features:', error);
       return res.status(500).json({ error: 'Failed to update features' });
     }
   }

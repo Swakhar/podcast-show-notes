@@ -23,7 +23,6 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
   const analytics = data?.email_analytics || {};
 
   const copyToClipboard = (text: string) => {
-    console.log('Copying to clipboard:', text);
     navigator.clipboard.writeText(text);
     showToast(t('emailCoursePreview.messages.copySuccess'), 'success');
   };
@@ -61,7 +60,6 @@ export default function EmailCoursePreview({ data }: EmailCoursePreviewProps) {
       setGeneratedContent(result);
       showToast(t('emailCoursePreview.messages.enhancedContentSuccess'), 'success');
     } catch (error: any) {
-      console.error('Error generating enhanced content:', error);
       showToast(t('emailCoursePreview.messages.enhancedContentError', { message: error.message }), 'error');
     } finally {
       setIsGeneratingContent(false);
@@ -819,7 +817,6 @@ ${t('emailCoursePreview.template.updatePreferences')}: [PREFERENCES_LINK]
                     if (typeof generatedContent.html_templates === 'string') {
                       htmlContent = generatedContent.html_templates;
                     } else if (Array.isArray(generatedContent.html_templates)) {
-                      console.log(generatedContent.html_templates);
                       htmlContent = generatedContent.html_templates
                         .map(template => template.content || template.html || template.template)
                         .join('\n\n');
