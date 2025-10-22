@@ -44,8 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           averageProcessingTime: 45
         };
       } catch (error) {
-        // If Job model doesn't exist, use placeholder data
-        console.log('Job model not found, using placeholder data');
         jobStats = {
           totalJobs: 0,
           successfulJobs: 0,
@@ -75,7 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           count
         }));
       } catch (error) {
-        console.error('Error fetching user growth:', error);
         userGrowth = [];
       }
 
@@ -95,8 +92,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           usage: item._count.job_type
         }));
       } catch (error) {
-        // If Job model doesn't exist, use placeholder data
-        console.log('Job model not found, using placeholder features');
         topFeatures = [
           { feature: 'Transcription', usage: 0 },
           { feature: 'Show Notes', usage: 0 },
@@ -113,7 +108,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json(analytics);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
       return res.status(500).json({ error: 'Failed to fetch analytics' });
     }
   }

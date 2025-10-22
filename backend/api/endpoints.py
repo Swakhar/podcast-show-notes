@@ -1,5 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Body, HTTPException
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, Form, Body, HTTPException, Request
 from typing import Optional
+from datetime import datetime
+import time
 
 from core.features import parse_features
 from core.estimate import est_llm_cost, PRICE_WHISPER_PER_MIN
@@ -18,6 +20,7 @@ from jobs import (
   process_audio_job,
   process_text_job,
   process_guest_research_job,
+  process_repurposing_job,
   save_job
 )
 from models.schemas import EstimateRequest
@@ -25,6 +28,7 @@ from services.youtube_service import YouTubeService
 from services.transcript_service import get_youtube_transcript
 import math, os, tempfile, shutil
 from core.openai_utils import CHAT_MODEL
+from core.language_detection import detect_content_language
 
 router = APIRouter()
 
@@ -328,3 +332,118 @@ async def create_guest_research_job(
         "stage": "queued",
         "billed_minutes": 1
     }
+
+@router.post("/jobs/repurpose")
+async def create_repurposing_job(
+    background: BackgroundTasks,
+    request: Request
+):
+    """Create a repurposing job from existing content"""
+    try:
+        data = await request.json()
+        
+        source_job_id = data.get('source_job_id')
+        source_content = data.get('source_content')
+        content_types = data.get('content_types', [])
+        custom_instructions = data.get('custom_instructions', '')
+        target_audience = data.get('target_audience', '')
+        brand_voice = data.get('brand_voice', 'professional')
+        user_email = data.get('user_email')
+        language = data.get('language', 'auto')
+        
+        if not source_content or not content_types:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        detected_language = language
+        if language == 'auto':
+            detected_language = detect_content_language(source_content)
+            print(f"🌐 Auto-detected language: {detected_language}")
+        
+        # ✅ Calculate billed minutes based on content types (1 minute per type)
+        billed_minutes = len(content_types)
+        
+        # Generate unique job ID
+        job_id = f"repurpose_{int(time.time() * 1000)}"
+        
+        # Store job in JOBS dictionary (using your existing system)
+        JOBS[job_id] = {
+            'id': job_id,
+            'status': 'pending',
+            'stage': 'queued',
+            'user_email': user_email,
+            'source_job_id': source_job_id,
+            'content_types': content_types,
+            'custom_instructions': custom_instructions,
+            'target_audience': target_audience,
+            'brand_voice': brand_voice,
+            'source_content': source_content,
+            'billed_minutes': billed_minutes,
+            'created_at': datetime.utcnow().isoformat(),
+            'language': detected_language
+        }
+        
+        save_job(job_id)
+        background.add_task(
+            process_repurposing_job, 
+            job_id, 
+            source_content,
+            content_types,
+            custom_instructions,
+            target_audience,
+            brand_voice,
+            detected_language,
+            user_email
+        )
+        
+        return {
+            "job_id": job_id,
+            "status": "pending",
+            "stage": "queued",
+            "message": "Repurposing job created successfully",
+            "language": detected_language,
+            "billed_minutes": billed_minutes
+        }
+        
+    except Exception as e:
+        print(f"Repurposing job creation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Add this new endpoint:
+@router.get("/jobs/completed/{user_email}")
+async def get_completed_jobs(user_email: str):
+    """Get user's completed jobs for repurposing"""
+    print(f"🔍 Fetching completed jobs for user: {user_email}")
+    
+    completed_jobs = []
+    
+    for job_id, job_data in JOBS.items():
+        print(f"🔍 Checking job {job_id}: user={job_data.get('user_email')}, status={job_data.get('status')}")
+        
+        if (job_data.get('user_email') == user_email and 
+            job_data.get('status') == 'complete' and
+            job_data.get('result')):
+            
+            # Only include jobs with actual content (not repurposing jobs)
+            if not job_data.get('result', {}).get('repurposed_content'):
+                # Add a created_at timestamp if missing
+                created_at = job_data.get('created_at')
+                if not created_at:
+                    created_at = datetime.utcnow().isoformat()
+                    job_data['created_at'] = created_at  # Store for future use
+                
+                completed_jobs.append({
+                    'id': job_id,
+                    'created_at': created_at,
+                    'billed_minutes': job_data.get('billed_minutes', 1),
+                    'result': {
+                        'seo': job_data.get('result', {}).get('seo'),
+                        'summary': job_data.get('result', {}).get('summary', '')[:100] + '...' if job_data.get('result', {}).get('summary') else None
+                    }
+                })
+                print(f"✅ Added job {job_id} to completed jobs")
+    
+    # Sort by creation date (newest first)
+    completed_jobs.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    
+    print(f"📊 Found {len(completed_jobs)} completed jobs for {user_email}")
+    return {"jobs": completed_jobs}

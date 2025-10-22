@@ -17,6 +17,7 @@ import { toYouTubeChapters } from "../lib/chapters";
 import { useToast } from "../contexts/ToastContext";
 import GuestResearchForm from '../components/GuestResearchForm';
 import AudioUploadForm from '../components/AudioUploadForm';
+import { RepurposingSection } from '../components/repurposing';
 
 /* ---------- Small helpers ---------- */
 function downloadTextAsFile(filename: string, text: string) {
@@ -57,6 +58,7 @@ interface JobResult {
   guest_research?: string;
   interview_questions?: string;
   conversation_starters?: string;
+  repurposed_content?: Record<string, any>;
 }
 interface JobStatus {
   id: string;
@@ -169,7 +171,7 @@ export default function Generate() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   // New state for tab navigation
-  const [activeTab, setActiveTab] = useState<'audio' | 'guest'>('audio');
+  const [activeTab, setActiveTab] = useState<'audio' | 'guest' | 'repurpose'>('audio');
 
   const isBusy = isSubmitting || (jobStatus && jobStatus.status !== "complete" && jobStatus.status !== "failed");
   const progress = (() => {
@@ -237,16 +239,9 @@ export default function Generate() {
     formData.append("additional_context", data.additionalContext);
     formData.append("show_focus", data.showFocus);
     formData.append("features", features);
-    formData.append("language", data.language);
+    formData.append("language", language);
     formData.append("template_ids", data.templateIds.join(","));
     formData.append("user_email", me.email);
-
-    console.log("🔍 Direct guest research to backend:", {
-      guestName: data.guestName,
-      features: data.features,
-      userEmail: me.email,
-      backend: API_BASE_URL
-    });
 
     // ✅ Submit directly to Railway backend
     const response = await fetch(`${API_BASE_URL}/jobs/guest-research`, {
@@ -271,7 +266,6 @@ export default function Generate() {
       throw new Error("Backend did not return a job id.");
     }
 
-    console.log("✅ Guest research request successful:", result);
     return result as JobStatus;
   }
 
@@ -471,6 +465,16 @@ export default function Generate() {
                     >
                       {t('generate.tabs.guest')}
                     </button>
+                    <button
+                      onClick={() => setActiveTab('repurpose')}
+                      className={`px-6 py-4 text-sm font-semibold ${
+                        activeTab === 'repurpose'
+                          ? 'border-b-2 border-pink-500 text-pink-600 bg-pink-50'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {t('generate.tabs.repurpose')}
+                    </button>
                   </nav>
                 </div>
 
@@ -506,7 +510,7 @@ export default function Generate() {
                     setJobStatus={setJobStatus}
                     setErrorMessage={setErrorMessage}
                   />
-                ) : (
+                ) : activeTab === 'guest' ? (
                   <GuestResearchForm
                     onSubmit={async (data) => {
                       try {
@@ -529,23 +533,91 @@ export default function Generate() {
                     templates={templates}
                     me={me}
                   />
+                ) : activeTab === 'repurpose' && (
+                  <RepurposingSection
+                    mode="sidebar"
+                    onJobCreated={(newJobId) => {
+                      setJobId(newJobId);
+                      setActiveTab('repurpose');
+                    }}
+                  />
                 )}
               </div>
             </section>
 
-            {/* Enhanced Results Section */}
+            {/* ✅ Enhanced Results Section with Better Loading States */}
             <section className="lg:col-span-3 space-y-6">
-              {!jobStatus?.result ? (
+              {/* Show loading state while processing */}
+              {isBusy && !jobStatus?.result ? (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
                   <div className="text-center space-y-6">
                     <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
                       activeTab === 'guest' 
                         ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                        : activeTab === 'repurpose'
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-500'
+                        : 'bg-gradient-to-br from-[#9CEE69] to-green-400'
+                    }`}>
+                      {/* Loading spinner */}
+                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    
+                    {/* Show stage timeline with current stage */}
+                    <StageTimeline stage={jobStatus?.stage || "queued"} />
+                    
+                    {/* Show current stage text */}
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {jobStatus?.stage ? 
+                          jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
+                          "Starting..."
+                        }
+                      </h3>
+                      <p className="text-gray-600">
+                        {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
+                      </p>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full max-w-md mx-auto">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-500 ${
+                            activeTab === 'guest' 
+                              ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
+                              : activeTab === 'repurpose'
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500'
+                              : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
+                          }`}
+                          style={{ width: `${Math.max(5, progress)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 max-w-md mx-auto">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-4 w-5/6" />
+                      <Skeleton className="h-4 w-4/6" />
+                    </div>
+                  </div>
+                </div>
+              ) : !jobStatus?.result ? (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+                  <div className="text-center space-y-6">
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
+                      activeTab === 'guest' 
+                        ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                        : activeTab === 'repurpose'
+                        ? 'bg-gradient-to-br from-purple-500 to-pink-500'
                         : 'bg-gradient-to-br from-[#9CEE69] to-green-400'
                     }`}>
                       {activeTab === 'guest' ? (
                         <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      ) : activeTab === 'repurpose' ? (
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       ) : (
                         <svg className="w-10 h-10 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -554,45 +626,7 @@ export default function Generate() {
                       )}
                     </div>
                     
-                    {isBusy ? (
-                      <>
-                        {/* Show stage timeline with current stage */}
-                        <StageTimeline stage={jobStatus?.stage || "queued"} />
-                        
-                        {/* Show current stage text */}
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-bold text-gray-900">
-                            {jobStatus?.stage ? 
-                              jobStatus.stage.charAt(0).toUpperCase() + jobStatus.stage.slice(1) : 
-                              "Starting..."
-                            }
-                          </h3>
-                          <p className="text-gray-600">
-                            {progress}% {t('generate.processing.complete')} • {t('generate.processing.takesTime')}
-                          </p>
-                        </div>
-                        
-                        {/* Progress bar */}
-                        <div className="w-full max-w-md mx-auto">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-500 ${
-                                activeTab === 'guest' 
-                                  ? 'bg-gradient-to-r from-purple-500 to-blue-500' 
-                                  : 'bg-gradient-to-r from-[#9CEE69] to-green-400'
-                              }`}
-                              style={{ width: `${Math.max(5, progress)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-4 max-w-md mx-auto">
-                          <Skeleton className="h-6 w-full" />
-                          <Skeleton className="h-4 w-5/6" />
-                          <Skeleton className="h-4 w-4/6" />
-                        </div>
-                      </>
-                    ) : activeTab === 'guest' ? (
+                    {activeTab === 'guest' ? (
                       <>
                         <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.guest.title')}</h3>
                         <p className="text-gray-600 max-w-md mx-auto">
@@ -606,6 +640,23 @@ export default function Generate() {
                           <div className="p-4 bg-blue-50 rounded-lg text-center">
                             <div className="text-2xl mb-2">❓</div>
                             <p className="text-sm font-medium text-gray-700">{t('generate.ready.guest.features.questions')}</p>
+                          </div>
+                        </div>
+                      </>
+                    ) : activeTab === 'repurpose' ? (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-900">{t('generate.ready.repurpose.title')}</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">
+                          {t('generate.ready.repurpose.subtitle')}
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+                          <div className="p-4 bg-purple-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">⚡</div>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.repurpose.features.fast')}</p>
+                          </div>
+                          <div className="p-4 bg-pink-50 rounded-lg text-center">
+                            <div className="text-2xl mb-2">🎯</div>
+                            <p className="text-sm font-medium text-gray-700">{t('generate.ready.repurpose.features.multiPlatform')}</p>
                           </div>
                         </div>
                       </>
@@ -631,291 +682,306 @@ export default function Generate() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Results Header */}
-                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-2xl font-bold text-gray-900">{t('generate.results.title')}</h2>
-                        <p className="text-gray-600 mt-1">{t('generate.results.subtitle')}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-green-700">{t('generate.results.complete')}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Results Grid */}
-                  {jobStatus.result.summary && features.summary && (
-                    <ProCard 
-                      title={t('generate.cards.summary')} 
-                      icon="📋" 
-                      expanded={expandedCard === 'summary'}
-                      onToggle={() => setExpandedCard(expandedCard === 'summary' ? null : 'summary')}
-                    >
-                      <p className="text-gray-700 whitespace-pre-line leading-relaxed">{jobStatus.result.summary}</p>
-                    </ProCard>
-                  )}
-
-                  {jobStatus.result.show_notes && features.show_notes && (
-                    <ProCard 
-                      title={t('generate.cards.showNotes')} 
-                      icon="📝"
-                      expanded={expandedCard === 'show_notes'}
-                      onToggle={() => setExpandedCard(expandedCard === 'show_notes' ? null : 'show_notes')}
-                      actions={[
-                        {
-                          label: t('generate.actions.downloadMarkdown'),
-                          icon: "📥",
-                          onClick: () => {
-                            const title = jobStatus.result?.seo?.title;
-                            const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
-                            const base = title ? safeSlug(title) : "show-notes";
-                            downloadTextAsFile(`${base}.md`, md);
-                          }
-                        }
-                      ]}
-                    >
-                      <div className="prose prose-sm max-w-none">
-                        <ul className="list-disc ml-6 space-y-2 text-gray-700">
-                          {jobStatus.result.show_notes.split(/\r?\n/).filter(Boolean).map((line, i) => (
-                            <li key={i} className="leading-relaxed">{line}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </ProCard>
-                  )}
-
-                  {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
-                    <ProCard 
-                      title={t('generate.cards.timestamps')} 
-                      icon="⏰"
-                      expanded={expandedCard === 'timestamps'}
-                      onToggle={() => setExpandedCard(expandedCard === 'timestamps' ? null : 'timestamps')}
-                      actions={[
-                        {
-                          label: t('generate.actions.copyYouTubeChapters'),
-                          icon: "📺",
-                          onClick: () => {
-                            const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
-                            navigator.clipboard.writeText(txt);
-                            showToast("YouTube chapters copied to clipboard!", "info", 3000);
-                          }
-                        }
-                      ]}
-                    >
-                      <ul className="space-y-2">
-                        {jobStatus.result.timestamps.map((t, i) => (
-                          <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                            <span className="text-blue-600 font-mono text-sm mt-0.5">{i + 1}</span>
-                            <span className="text-gray-700 leading-relaxed">{t}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </ProCard>
-                  )}
-
-                  {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
-                    <ProCard 
-                      title={t('generate.cards.socialSnippets')} 
-                      icon="📱"
-                      expanded={expandedCard === 'social_snippets'}
-                      onToggle={() => setExpandedCard(expandedCard === 'social_snippets' ? null : 'social_snippets')}
-                    >
-                      <div className="grid gap-4">
-                        {jobStatus.result.social_snippets.map((snippet, i) => (
-                          <div key={i} className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                            <div className="flex items-start justify-between">
-                              <p className="text-gray-700 leading-relaxed flex-1">{snippet}</p>
-                              <button
-                                onClick={() => navigator.clipboard.writeText(snippet)}
-                                className="ml-3 p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-lg transition-colors"
-                                title="Copy to clipboard"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                              </button>
-                            </div>
+                  {/* Check if this is a repurposing job with repurposed content */}
+                  {jobStatus.result.repurposed_content && Object.keys(jobStatus.result.repurposed_content).length > 0 ? (
+                    <RepurposingSection
+                      sourceJobId={jobStatus.id}
+                      existingRepurposedContent={jobStatus.result.repurposed_content}
+                      mode="inline"
+                      onJobCreated={(newJobId) => {
+                        setJobId(newJobId);
+                      }}
+                    />
+                  ) : (
+                    // ✅ Keep existing results display for audio/guest jobs
+                    <>
+                      {/* Results Header */}
+                      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="text-2xl font-bold text-gray-900">{t('generate.results.title')}</h2>
+                            <p className="text-gray-600 mt-1">{t('generate.results.subtitle')}</p>
                           </div>
-                        ))}
-                      </div>
-                    </ProCard>
-                  )}
-
-                  {jobStatus.result.seo && features.seo && (
-                    <ProCard 
-                      title={t('generate.cards.seo')} 
-                      icon="🔍"
-                      expanded={expandedCard === 'seo'}
-                      onToggle={() => setExpandedCard(expandedCard === 'seo' ? null : 'seo')}
-                    >
-                      <div className="space-y-4">
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <label className="block text-sm font-semibold text-green-800 mb-2">{t('generate.seo.title')}</label>
-                          <p className="text-gray-700 font-medium">{jobStatus.result.seo.title}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-sm font-medium text-green-700">{t('generate.results.complete')}</span>
+                          </div>
                         </div>
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <label className="block text-sm font-semibold text-blue-800 mb-2">{t('generate.seo.keywords')}</label>
-                          <div className="flex flex-wrap gap-2">
-                            {jobStatus.result.seo.keywords.split(',').map((keyword, i) => (
-                              <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                                {keyword.trim()}
-                              </span>
+                      </div>
+
+                      {/* Existing Results Cards (audio/guest) */}
+                      {jobStatus.result.summary && features.summary && (
+                        <ProCard 
+                          title={t('generate.cards.summary')} 
+                          icon="📋" 
+                          expanded={expandedCard === 'summary'}
+                          onToggle={() => setExpandedCard(expandedCard === 'summary' ? null : 'summary')}
+                        >
+                          <p className="text-gray-700 whitespace-pre-line leading-relaxed">{jobStatus.result.summary}</p>
+                        </ProCard>
+                      )}
+
+                      {jobStatus.result.show_notes && features.show_notes && (
+                        <ProCard 
+                          title={t('generate.cards.showNotes')} 
+                          icon="📝"
+                          expanded={expandedCard === 'show_notes'}
+                          onToggle={() => setExpandedCard(expandedCard === 'show_notes' ? null : 'show_notes')}
+                          actions={[
+                            {
+                              label: t('generate.actions.downloadMarkdown'),
+                              icon: "📥",
+                              onClick: () => {
+                                const title = jobStatus.result?.seo?.title;
+                                const md = mkShowNotesMarkdown(title, jobStatus.result!.show_notes!, coverPreviewUrl);
+                                const base = title ? safeSlug(title) : "show-notes";
+                                downloadTextAsFile(`${base}.md`, md);
+                              }
+                            }
+                          ]}
+                        >
+                          <div className="prose prose-sm max-w-none">
+                            <ul className="list-disc ml-6 space-y-2 text-gray-700">
+                              {jobStatus.result.show_notes.split(/\r?\n/).filter(Boolean).map((line, i) => (
+                                <li key={i} className="leading-relaxed">{line}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </ProCard>
+                      )}
+
+                      {jobStatus.result.timestamps && jobStatus.result.timestamps.length > 0 && features.timestamps && (
+                        <ProCard 
+                          title={t('generate.cards.timestamps')} 
+                          icon="⏰"
+                          expanded={expandedCard === 'timestamps'}
+                          onToggle={() => setExpandedCard(expandedCard === 'timestamps' ? null : 'timestamps')}
+                          actions={[
+                            {
+                              label: t('generate.actions.copyYouTubeChapters'),
+                              icon: "📺",
+                              onClick: () => {
+                                const txt = toYouTubeChapters(jobStatus.result!.timestamps!);
+                                navigator.clipboard.writeText(txt);
+                                showToast("YouTube chapters copied to clipboard!", "info", 3000);
+                              }
+                            }
+                          ]}
+                        >
+                          <ul className="space-y-2">
+                            {jobStatus.result.timestamps.map((t, i) => (
+                              <li key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                <span className="text-blue-600 font-mono text-sm mt-0.5">{i + 1}</span>
+                                <span className="text-gray-700 leading-relaxed">{t}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </ProCard>
+                      )}
+
+                      {jobStatus.result.social_snippets && jobStatus.result.social_snippets.length > 0 && features.social_snippets && (
+                        <ProCard 
+                          title={t('generate.cards.socialSnippets')} 
+                          icon="📱"
+                          expanded={expandedCard === 'social_snippets'}
+                          onToggle={() => setExpandedCard(expandedCard === 'social_snippets' ? null : 'social_snippets')}
+                        >
+                          <div className="grid gap-4">
+                            {jobStatus.result.social_snippets.map((snippet, i) => (
+                              <div key={i} className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                                <div className="flex items-start justify-between">
+                                  <p className="text-gray-700 leading-relaxed flex-1">{snippet}</p>
+                                  <button
+                                    onClick={() => navigator.clipboard.writeText(snippet)}
+                                    className="ml-3 p-2 text-gray-500 hover:text-gray-700 hover:bg-white rounded-lg transition-colors"
+                                    title="Copy to clipboard"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
                             ))}
                           </div>
-                        </div>
-                      </div>
-                    </ProCard>
-                  )}
+                        </ProCard>
+                      )}
 
-                  {jobStatus.result.newsletter && features.newsletter && (
-                    <ProCard 
-                      title={t('generate.cards.newsletter')} 
-                      icon="📧"
-                      expanded={expandedCard === 'newsletter'}
-                      onToggle={() => setExpandedCard(expandedCard === 'newsletter' ? null : 'newsletter')}
-                      actions={[
-                        {
-                          label: t('generate.actions.copyMarkdown'),
-                          icon: "📋",
-                          onClick: () => {
-                            const n = jobStatus.result!.newsletter!;
-                            navigator.clipboard.writeText(`# ${n.subject}\n\n${n.body_markdown}`);
-                          }
-                        },
-                        {
-                          label: t('generate.actions.downloadFile'),
-                          icon: "📥",
-                          onClick: () => {
-                            const n = jobStatus.result!.newsletter!;
-                            const md = mkNewsletterMarkdown(n.subject, n.body_markdown, coverPreviewUrl);
-                            const base = n.subject ? safeSlug(n.subject) : "newsletter";
-                            downloadTextAsFile(`${base}.md`, md);
-                          }
-                        },
-                        {
-                          label: t('generate.actions.publishWordPress'),
-                          icon: "🌐",
-                          onClick: async () => {
-                            const newsletter = jobStatus.result!.newsletter!;
-                            const title = newsletter.subject || "New Episode Highlights";
-                            const md = mkNewsletterMarkdown(newsletter.subject, newsletter.body_markdown, coverPreviewUrl);
-                            try {
-                              const r = await fetch("/api/wp/publish", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ title, markdown: md, status: "draft" }),
-                              });
-                              const j = await r.json();
-                              if (!r.ok) throw new Error(j.error || "Failed to publish");
-                              if (j.demo) {
-                                showToast(`${t('generate.messages.demoPublished')} ${j.message}`, "success");
-                              } else {
-                                showToast(`${t('generate.messages.publishedWordPress')} ${j.link}`, "success");
+                      {jobStatus.result.seo && features.seo && (
+                        <ProCard 
+                          title={t('generate.cards.seo')} 
+                          icon="🔍"
+                          expanded={expandedCard === 'seo'}
+                          onToggle={() => setExpandedCard(expandedCard === 'seo' ? null : 'seo')}
+                        >
+                          <div className="space-y-4">
+                            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                              <label className="block text-sm font-semibold text-green-800 mb-2">{t('generate.seo.title')}</label>
+                              <p className="text-gray-700 font-medium">{jobStatus.result.seo.title}</p>
+                            </div>
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                              <label className="block text-sm font-semibold text-blue-800 mb-2">{t('generate.seo.keywords')}</label>
+                              <div className="flex flex-wrap gap-2">
+                                {jobStatus.result.seo.keywords.split(',').map((keyword, i) => (
+                                  <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                                    {keyword.trim()}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </ProCard>
+                      )}
+
+                      {jobStatus.result.newsletter && features.newsletter && (
+                        <ProCard 
+                          title={t('generate.cards.newsletter')} 
+                          icon="📧"
+                          expanded={expandedCard === 'newsletter'}
+                          onToggle={() => setExpandedCard(expandedCard === 'newsletter' ? null : 'newsletter')}
+                          actions={[
+                            {
+                              label: t('generate.actions.copyMarkdown'),
+                              icon: "📋",
+                              onClick: () => {
+                                const n = jobStatus.result!.newsletter!;
+                                navigator.clipboard.writeText(`# ${n.subject}\n\n${n.body_markdown}`);
                               }
-                            } catch (error: any) {
-                              showToast(`${t('generate.messages.publishingFailed')} ${error.message}`, "error", 5000);
+                            },
+                            {
+                              label: t('generate.actions.downloadFile'),
+                              icon: "📥",
+                              onClick: () => {
+                                const n = jobStatus.result!.newsletter!;
+                                const md = mkNewsletterMarkdown(n.subject, n.body_markdown, coverPreviewUrl);
+                                const base = n.subject ? safeSlug(n.subject) : "newsletter";
+                                downloadTextAsFile(`${base}.md`, md);
+                              }
+                            },
+                            {
+                              label: t('generate.actions.publishWordPress'),
+                              icon: "🌐",
+                              onClick: async () => {
+                                const newsletter = jobStatus.result!.newsletter!;
+                                const title = newsletter.subject || "New Episode Highlights";
+                                const md = mkNewsletterMarkdown(newsletter.subject, newsletter.body_markdown, coverPreviewUrl);
+                                try {
+                                  const r = await fetch("/api/wp/publish", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ title, markdown: md, status: "draft" }),
+                                  });
+                                  const j = await r.json();
+                                  if (!r.ok) throw new Error(j.error || "Failed to publish");
+                                  if (j.demo) {
+                                    showToast(`${t('generate.messages.demoPublished')} ${j.message}`, "success");
+                                  } else {
+                                    showToast(`${t('generate.messages.publishedWordPress')} ${j.link}`, "success");
+                                  }
+                                } catch (error: any) {
+                                  showToast(`${t('generate.messages.publishingFailed')} ${error.message}`, "error", 5000);
+                                }
+                              }
                             }
-                          }
-                        }
-                      ]}
-                    >
-                      <div className="space-y-4">
-                        <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                          <label className="block text-sm font-semibold text-purple-800 mb-2">{t('generate.newsletter.subject')}</label>
-                          <p className="text-gray-700 font-medium">{jobStatus.result.newsletter.subject}</p>
-                        </div>
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">{t('generate.newsletter.content')}</label>
-                          <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
-                            {jobStatus.result.newsletter.body_markdown}
-                          </pre>
-                        </div>
-                      </div>
-                    </ProCard>
-                  )}
+                          ]}
+                        >
+                          <div className="space-y-4">
+                            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                              <label className="block text-sm font-semibold text-purple-800 mb-2">{t('generate.newsletter.subject')}</label>
+                              <p className="text-gray-700 font-medium">{jobStatus.result.newsletter.subject}</p>
+                            </div>
+                            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('generate.newsletter.content')}</label>
+                              <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+                                {jobStatus.result.newsletter.body_markdown}
+                              </pre>
+                            </div>
+                          </div>
+                        </ProCard>
+                      )}
 
-                  {jobStatus.result.transcript && (
-                    <ProCard 
-                      title={t('generate.cards.transcript')}
-                      icon="📄"
-                      expanded={showTranscript}
-                      onToggle={() => setShowTranscript(!showTranscript)}
-                    >
-                      <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
-                          {jobStatus.result.transcript}
-                        </pre>
-                      </div>
-                    </ProCard>
-                  )}
+                      {jobStatus.result.transcript && (
+                        <ProCard 
+                          title={t('generate.cards.transcript')}
+                          icon="📄"
+                          expanded={showTranscript}
+                          onToggle={() => setShowTranscript(!showTranscript)}
+                        >
+                          <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+                              {jobStatus.result.transcript}
+                            </pre>
+                          </div>
+                        </ProCard>
+                      )}
 
-                  {/* New Guest Research Results */}
-                  {jobStatus.result.guest_research && (
-                    <ProCard 
-                      title={t('generate.cards.guestResearch')}
-                      icon="📊"
-                      expanded={expandedCard === 'guest_research'}
-                      onToggle={() => setExpandedCard(expandedCard === 'guest_research' ? null : 'guest_research')}
-                      actions={[
-                        {
-                          label: t('generate.actions.downloadReport'),
-                          icon: "📥",
-                          onClick: () => {
-                            const guestName = jobStatus.result?.guest_name || "guest";
-                            const content = `# Guest Research: ${guestName}\n\n${jobStatus.result!.guest_research}`;
-                            downloadTextAsFile(`${safeSlug(guestName)}-research.md`, content);
-                          }
-                        }
-                      ]}
-                    >
-                      <div className="prose prose-sm max-w-none">
-                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                          {jobStatus.result.guest_research}
-                        </pre>
-                      </div>
-                    </ProCard>
-                  )}
+                      {/* New Guest Research Results */}
+                      {jobStatus.result.guest_research && (
+                        <ProCard 
+                          title={t('generate.cards.guestResearch')}
+                          icon="📊"
+                          expanded={expandedCard === 'guest_research'}
+                          onToggle={() => setExpandedCard(expandedCard === 'guest_research' ? null : 'guest_research')}
+                          actions={[
+                            {
+                              label: t('generate.actions.downloadReport'),
+                              icon: "📥",
+                              onClick: () => {
+                                const guestName = jobStatus.result?.guest_name || "guest";
+                                const content = `# Guest Research: ${guestName}\n\n${jobStatus.result!.guest_research}`;
+                                downloadTextAsFile(`${safeSlug(guestName)}-research.md`, content);
+                              }
+                            }
+                          ]}
+                        >
+                          <div className="prose prose-sm max-w-none">
+                            <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                              {jobStatus.result.guest_research}
+                            </pre>
+                          </div>
+                        </ProCard>
+                      )}
 
-                  {jobStatus.result.interview_questions && (
-                    <ProCard 
-                      title={t('generate.cards.interviewQuestions')}
-                      icon="❓"
-                      expanded={expandedCard === 'interview_questions'}
-                      onToggle={() => setExpandedCard(expandedCard === 'interview_questions' ? null : 'interview_questions')}
-                      actions={[
-                        {
-                          label: t('generate.actions.copyQuestions'),
-                          icon: "📋",
-                          onClick: () => {
-                            navigator.clipboard.writeText(jobStatus.result!.interview_questions!);
-                            showToast(t('generate.messages.questionsCopied'), "info", 3000);
-                          }
-                        }
-                      ]}
-                    >
-                      <div className="prose prose-sm max-w-none">
-                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                          {jobStatus.result.interview_questions}
-                        </pre>
-                      </div>
-                    </ProCard>
-                  )}
+                      {jobStatus.result.interview_questions && (
+                        <ProCard 
+                          title={t('generate.cards.interviewQuestions')}
+                          icon="❓"
+                          expanded={expandedCard === 'interview_questions'}
+                          onToggle={() => setExpandedCard(expandedCard === 'interview_questions' ? null : 'interview_questions')}
+                          actions={[
+                            {
+                              label: t('generate.actions.copyQuestions'),
+                              icon: "📋",
+                              onClick: () => {
+                                navigator.clipboard.writeText(jobStatus.result!.interview_questions!);
+                                showToast(t('generate.messages.questionsCopied'), "info", 3000);
+                              }
+                            }
+                          ]}
+                        >
+                          <div className="prose prose-sm max-w-none">
+                            <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                              {jobStatus.result.interview_questions}
+                            </pre>
+                          </div>
+                        </ProCard>
+                      )}
 
-                  {jobStatus.result.conversation_starters && (
-                    <ProCard 
-                      title={t('generate.cards.conversationStarters')} 
-                      icon="💬"
-                      expanded={expandedCard === 'conversation_starters'}
-                      onToggle={() => setExpandedCard(expandedCard === 'conversation_starters' ? null : 'conversation_starters')}
-                    >
-                      <div className="prose prose-sm max-w-none">
-                        <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                          {jobStatus.result.conversation_starters}
-                        </pre>
-                      </div>
-                    </ProCard>
+                      {jobStatus.result.conversation_starters && (
+                        <ProCard 
+                          title={t('generate.cards.conversationStarters')} 
+                          icon="💬"
+                          expanded={expandedCard === 'conversation_starters'}
+                          onToggle={() => setExpandedCard(expandedCard === 'conversation_starters' ? null : 'conversation_starters')}
+                        >
+                          <div className="prose prose-sm max-w-none">
+                            <pre className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                              {jobStatus.result.conversation_starters}
+                            </pre>
+                          </div>
+                        </ProCard>
+                      )}
+                    </>
                   )}
                 </div>
               )}

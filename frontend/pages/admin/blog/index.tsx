@@ -34,7 +34,6 @@ export default function BlogAdmin() {
       const data = await res.json();
       setPosts(data.posts || []);
     } catch (error) {
-      console.error('Failed to fetch posts:', error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +46,6 @@ export default function BlogAdmin() {
       await fetch(`/api/admin/blog/${id}`, { method: 'DELETE' });
       fetchPosts(); // Refresh list
     } catch (error) {
-      console.error('Failed to delete post:', error);
     }
   };
 

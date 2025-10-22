@@ -15,10 +15,10 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <SessionProvider session={session}>
       <ToastProvider>
-        <ToastContainer />
-        <NotificationSystem />
         <div className={inter.className}>
           <Component {...pageProps} />
+          <ToastContainer />
+          <NotificationSystem />
           <SpeedInsights />
           <Analytics />
         </div>

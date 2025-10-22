@@ -28,7 +28,6 @@ export default function NewBlogPost() {
         throw new Error('Failed to save post');
       }
     } catch (error) {
-      console.error('Error saving post:', error);
       alert(t('blog.errors.saveFailed'));
     } finally {
       setLoading(false);

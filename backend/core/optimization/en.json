@@ -1,0 +1,169 @@
+{
+  "blog_outline": {
+    "content_upgrades": [
+      "Downloadable checklist",
+      "Email course signup", 
+      "Resource library access",
+      "Free consultation offer"
+    ],
+    "internal_linking_strategy": {
+      "pillar_pages": ["Main topic pillar page", "Related topic pillar"],
+      "cluster_content": ["Supporting article 1", "Supporting article 2"],
+      "conversion_pages": ["About page", "Services page", "Contact page"]
+    },
+    "promotion_checklist": [
+      "Share on LinkedIn with professional angle",
+      "Create Twitter thread with key points",
+      "Design Instagram carousel with main insights", 
+      "Send to email list with value-first approach",
+      "Reach out for backlink opportunities",
+      "Submit to content aggregators",
+      "Create YouTube video version",
+      "Repurpose into podcast episode"
+    ],
+    "conversion_optimization": {
+      "lead_magnets": ["Checklist", "Template", "Cheat sheet", "Mini-course"],
+      "cta_placement": ["After introduction", "Mid-content", "Before conclusion"],
+      "social_proof": ["Testimonials", "Case studies", "User statistics"],
+      "urgency_elements": ["Limited time offer", "Exclusive content", "Early access"]
+    }
+  },
+  "email_course": {
+    "automation_platforms": {
+      "mailchimp": "Automation workflow setup guide",
+      "convertkit": "Sequence creation instructions",
+      "activecampaign": "Advanced automation setup",
+      "klaviyo": "E-commerce focused sequences"
+    },
+    "segmentation_strategy": {
+      "engagement_based": ["High openers", "Click-through users", "Non-engagers"],
+      "behavior_based": ["Course completers", "Resource downloaders", "Link clickers"],
+      "demographic": ["Industry", "Company size", "Experience level"]
+    },
+    "deliverability_optimization": [
+      "Use consistent from name and email",
+      "Avoid spam trigger words",
+      "Include unsubscribe link",
+      "Maintain clean email list",
+      "Monitor sender reputation"
+    ],
+    "conversion_optimization": {
+      "lead_magnets": ["7-day course preview", "Bonus email templates", "Success tracker"],
+      "upsell_opportunities": ["Advanced course", "1:1 coaching", "Done-for-you services"],
+      "retention_tactics": ["Bonus content", "Community access", "Live Q&A sessions"],
+      "re_engagement_campaigns": ["Win-back sequences", "Content highlights", "Special offers"]
+    },
+    "a_b_test_ideas": [
+      "Subject line variations",
+      "Send time optimization", 
+      "CTA button text",
+      "Email length (short vs long)",
+      "Personalization level"
+    ]
+  },
+  "infographic_data": {
+    "design_tools": {
+      "canva": "Ready-to-use Canva templates",
+      "figma": "Professional design components",
+      "adobe_illustrator": "Vector-based templates",
+      "piktochart": "Infographic-specific tool"
+    },
+    "distribution_strategy": {
+      "social_platforms": ["LinkedIn", "Instagram", "Pinterest", "Twitter"],
+      "content_syndication": ["SlideShare", "Scribd", "Visual.ly"],
+      "email_marketing": "Include in newsletters",
+      "blog_integration": "Embed in related articles"
+    },
+    "seo_optimization": [
+      "Alt text for all visual elements",
+      "Descriptive filename optimization", 
+      "Schema markup for infographics",
+      "Backlink opportunities through visual content"
+    ],
+    "engagement_tactics": {
+      "interactive_elements": ["Clickable sections", "Hover effects", "Animated reveals"],
+      "social_sharing": ["Platform-specific sizing", "Share-friendly formats"],
+      "lead_generation": ["Gated high-res downloads", "Email signup for templates"],
+      "virality_features": ["Shareable quotes", "Statistic callouts", "Branded elements"]
+    },
+    "performance_tracking": [
+      "Social media share counts",
+      "Download/save metrics",
+      "Backlink acquisition",
+      "Traffic referral data",
+      "Lead generation conversion"
+    ]
+  },
+  "posting_times": {
+    "linkedin_carousel": {
+      "best_days": ["Tuesday", "Wednesday", "Thursday"],
+      "timezone": "EST"
+    },
+    "twitter_thread": {
+      "best_days": ["Monday", "Tuesday", "Wednesday"], 
+      "timezone": "EST"
+    },
+    "instagram_story": {
+      "best_days": ["Wednesday", "Thursday", "Friday"],
+      "timezone": "EST"
+    },
+    "blog_outline": {
+      "best_days": ["Tuesday", "Wednesday", "Thursday"],
+      "timezone": "EST",
+      "promotion_schedule": {
+        "immediate": "Share on social within 1 hour",
+        "day_1": "Email to subscribers",
+        "day_3": "LinkedIn article version",
+        "week_1": "Twitter thread with key points",
+        "week_2": "Instagram carousel design",
+        "month_1": "Repurpose into video content"
+      }
+    },
+    "email_course": {
+      "best_days": ["Tuesday", "Wednesday", "Thursday"],
+      "timezone": "Subscriber's timezone",
+      "automation_schedule": {
+        "welcome_email": "Immediate (within 5 minutes)",
+        "email_2": "24 hours after signup",
+        "email_3": "48 hours after signup",
+        "email_4": "72 hours after signup", 
+        "email_5": "96 hours after signup",
+        "email_6": "120 hours after signup",
+        "email_7": "144 hours after signup"
+      },
+      "optimization_notes": [
+        "Test different time zones for global audience",
+        "Avoid Mondays (high inbox volume)",
+        "Avoid Fridays (lower engagement)", 
+        "Consider B2B vs B2C audience timing differences",
+        "Monitor open rates and adjust accordingly"
+      ]
+    },
+    "infographic_data": {
+      "best_days": ["Tuesday", "Wednesday", "Thursday"],
+      "timezone": "EST",
+      "platform_specific": {
+        "linkedin": "Tuesday-Thursday 8:00 AM - 10:00 AM",
+        "instagram": "Wednesday-Friday 11:00 AM - 1:00 PM",
+        "pinterest": "Saturday-Sunday 8:00 PM - 11:00 PM", 
+        "twitter": "Monday-Friday 12:00 PM - 3:00 PM"
+      },
+      "distribution_schedule": {
+        "immediate": "Post on primary platform",
+        "2_hours": "Share on secondary platforms",
+        "day_1": "Email to subscribers",
+        "day_3": "Submit to content aggregators",
+        "week_1": "Reach out for backlinks",
+        "week_2": "Repurpose into carousel/thread"
+      }
+    }
+  },
+  "hashtags": {
+    "base": ["#podcast", "#content", "#marketing"],
+    "linkedin_carousel": ["#linkedin", "#professional", "#business"],
+    "twitter_thread": ["#thread", "#twitter", "#tips"],
+    "instagram_story": ["#story", "#instagram", "#visual"],
+    "email_course": ["#emailmarketing", "#onlinelearning", "#education", "#course"],
+    "infographic_data": ["#infographic", "#datavisualization", "#statistics", "#insights", "#visual"]
+  }
+}

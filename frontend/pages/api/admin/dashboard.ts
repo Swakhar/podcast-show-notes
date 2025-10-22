@@ -69,7 +69,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.json({ stats });
   } catch (error) {
-    console.error('Dashboard stats error:', error);
     return res.status(500).json({ error: 'Failed to fetch dashboard stats' });
   }
 }
@@ -108,7 +107,6 @@ async function calculateMonthlyRevenue(): Promise<number> {
 
     return totalRevenue;
   } catch (error) {
-    console.error('Revenue calculation error:', error);
     return 0;
   }
 }

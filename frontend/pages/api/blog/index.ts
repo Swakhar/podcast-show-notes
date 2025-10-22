@@ -32,7 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ posts: formattedPosts });
     } catch (error) {
-      console.error('Error fetching posts:', error);
       return res.status(500).json({ error: 'Failed to fetch posts' });
     }
   }

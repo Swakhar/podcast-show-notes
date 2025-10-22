@@ -43,7 +43,6 @@ export default function EditBlogPost() {
         throw new Error('Failed to fetch post');
       }
     } catch (error) {
-      console.error('Error fetching post:', error);
       alert(t('blog.errors.fetchFailed'));
       router.push('/admin/blog');
     } finally {
@@ -66,7 +65,6 @@ export default function EditBlogPost() {
         throw new Error('Failed to update post');
       }
     } catch (error) {
-      console.error('Error updating post:', error);
       alert(t('blog.errors.updateFailed'));
     } finally {
       setLoading(false);

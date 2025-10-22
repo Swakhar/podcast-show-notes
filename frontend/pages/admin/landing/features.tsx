@@ -50,7 +50,6 @@ export default function LandingFeaturesAdmin() {
         de: deData.features || getDefaultFeatures('de')
       });
     } catch (error) {
-      console.error('Failed to fetch features:', error);
       // Set default features
       setFeatures({
         en: getDefaultFeatures('en'),
