@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       stats: stats || defaultStats 
     });
   } catch (error) {
-    console.error('Error fetching landing stats:', error);
     return res.status(500).json({ error: 'Failed to fetch stats' });
   }
 }

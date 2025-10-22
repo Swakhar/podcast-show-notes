@@ -22,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ success: true });
     } catch (error) {
-      console.error('Error incrementing view count:', error);
       return res.status(500).json({ error: 'Failed to track view' });
     }
   }

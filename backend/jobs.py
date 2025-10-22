@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Dict, Set
+from datetime import datetime
 import sqlite3
 import tempfile
 from contextlib import contextmanager
@@ -535,6 +536,63 @@ def process_guest_research_job(job_id: str, guest_name: str, guest_info: str, ad
         JOBS[job_id]["status"] = "failed"
         save_job(job_id)
         mark_job_failed(job_id, error_msg, user_email)
+
+async def process_repurposing_job(
+    job_id: str,
+    source_content: str,
+    content_types: list,
+    custom_instructions: str,
+    target_audience: str,
+    brand_voice: str,
+    language: str,
+    user_email: str
+):
+    """Process repurposing job with proper status updates"""
+    try:
+        print(f"🔄 Starting repurposing job {job_id}")
+        
+        # ✅ Update status to processing (this triggers billing)
+        JOBS[job_id]['status'] = 'processing'
+        set_stage(job_id, "processing")
+        save_job(job_id)
+        
+        # Import here to avoid circular imports
+        from core.repurposing import ContentRepurposer
+        
+        repurposer = ContentRepurposer()
+        
+        # ✅ Update stage to generating (more specific)
+        set_stage(job_id, "generating")
+        save_job(job_id)
+        
+        # ✅ Await the async function
+        result = await repurposer.repurpose_content(
+            source_content=source_content,
+            content_types=content_types,
+            custom_instructions=custom_instructions,
+            target_audience=target_audience,
+            brand_voice=brand_voice,
+            language=language
+        )
+        
+        # ✅ Store repurposed content in the job result
+        JOBS[job_id]['result'] = {
+            'repurposed_content': result.get('results', {}),
+            'metadata': result.get('metadata', {})
+        }
+        JOBS[job_id]['status'] = 'complete'
+        set_stage(job_id, "finished")
+        
+        save_job(job_id)
+        
+        print(f"✅ Repurposing job {job_id} completed successfully")
+        
+    except Exception as e:
+        print(f"❌ Repurposing job {job_id} failed: {e}")
+        JOBS[job_id]['status'] = 'failed'
+        JOBS[job_id]['error'] = str(e)
+        set_stage(job_id, "failed")
+        save_job(job_id)
 
 # ✅ Initialize on startup
 print("🚀 Initializing jobs system...")

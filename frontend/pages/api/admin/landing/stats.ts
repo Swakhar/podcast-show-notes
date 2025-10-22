@@ -14,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ stats });
     } catch (error) {
-      console.error('Error fetching landing stats:', error);
       return res.status(500).json({ error: 'Failed to fetch stats' });
     }
   }
@@ -44,7 +43,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.json({ message: 'Stats updated successfully' });
     } catch (error) {
-      console.error('Error updating landing stats:', error);
       return res.status(500).json({ error: 'Failed to update stats' });
     }
   }

@@ -59,7 +59,6 @@ const useLandingContent = (locale: string) => {
           features: featuresData.features || []
         });
       } catch (error) {
-        console.error('Failed to fetch landing content:', error);
         setContent({});
       } finally {
         setLoading(false);
@@ -239,7 +238,6 @@ export default function Landing() {
         showToast("Failed to create checkout session", "error");
       }
     } catch (e: any) {
-      console.error("Checkout error:", e);
       showToast("Something went wrong. Please try again.", "error");
     }
   };

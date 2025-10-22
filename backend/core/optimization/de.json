@@ -1,0 +1,169 @@
+{
+  "blog_outline": {
+    "content_upgrades": [
+      "Herunterladbare Checkliste",
+      "E-Mail-Kurs Anmeldung",
+      "Ressourcen-Bibliothek Zugang", 
+      "Kostenloses Beratungsgespräch"
+    ],
+    "internal_linking_strategy": {
+      "pillar_pages": ["Haupt-Thema Pillar-Seite", "Verwandte Themen Pillar"],
+      "cluster_content": ["Unterstützender Artikel 1", "Unterstützender Artikel 2"],
+      "conversion_pages": ["Über uns Seite", "Leistungen Seite", "Kontakt Seite"]
+    },
+    "promotion_checklist": [
+      "Auf LinkedIn mit professionellem Winkel teilen",
+      "Twitter-Thread mit Hauptpunkten erstellen",
+      "Instagram-Karussell mit wichtigsten Erkenntnissen gestalten",
+      "An E-Mail-Liste mit Wert-zuerst-Ansatz senden",
+      "Backlink-Möglichkeiten erreichen",
+      "Bei Content-Aggregatoren einreichen",
+      "YouTube-Video-Version erstellen",
+      "In Podcast-Episode umwandeln"
+    ],
+    "conversion_optimization": {
+      "lead_magnets": ["Checkliste", "Vorlage", "Spickzettel", "Mini-Kurs"],
+      "cta_placement": ["Nach Einleitung", "Mitte des Inhalts", "Vor Schlussfolgerung"],
+      "social_proof": ["Testimonials", "Fallstudien", "Nutzer-Statistiken"],
+      "urgency_elements": ["Zeitlich begrenztes Angebot", "Exklusiver Inhalt", "Früher Zugang"]
+    }
+  },
+  "email_course": {
+    "automation_platforms": {
+      "mailchimp": "Automatisierungs-Workflow Setup-Anleitung",
+      "convertkit": "Sequenz-Erstellungs-Anweisungen", 
+      "activecampaign": "Erweiterte Automatisierungs-Einrichtung",
+      "klaviyo": "E-Commerce fokussierte Sequenzen"
+    },
+    "segmentation_strategy": {
+      "engagement_based": ["Hohe Öffner", "Klick-Nutzer", "Nicht-Engagierte"],
+      "behavior_based": ["Kurs-Abschließer", "Ressourcen-Downloader", "Link-Klicker"],
+      "demographic": ["Branche", "Unternehmensgröße", "Erfahrungslevel"]
+    },
+    "deliverability_optimization": [
+      "Konsistenten Absender-Namen und E-Mail verwenden",
+      "Spam-Trigger-Wörter vermeiden",
+      "Abmelde-Link einschließen",
+      "Saubere E-Mail-Liste pflegen", 
+      "Absender-Reputation überwachen"
+    ],
+    "conversion_optimization": {
+      "lead_magnets": ["7-Tage-Kurs Vorschau", "Bonus E-Mail-Vorlagen", "Erfolgs-Tracker"],
+      "upsell_opportunities": ["Erweiterter Kurs", "1:1 Coaching", "Done-for-you Services"],
+      "retention_tactics": ["Bonus-Inhalt", "Community-Zugang", "Live Q&A-Sessions"],
+      "re_engagement_campaigns": ["Rückgewinn-Sequenzen", "Content-Highlights", "Spezielle Angebote"]
+    },
+    "a_b_test_ideas": [
+      "Betreffzeilen-Variationen",
+      "Sendezeit-Optimierung",
+      "CTA-Button Text",
+      "E-Mail-Länge (kurz vs. lang)",
+      "Personalisierungsgrad"
+    ]
+  },
+  "infographic_data": {
+    "design_tools": {
+      "canva": "Gebrauchsfertige Canva-Vorlagen",
+      "figma": "Professionelle Design-Komponenten",
+      "adobe_illustrator": "Vektor-basierte Vorlagen",
+      "piktochart": "Infografik-spezifisches Tool"
+    },
+    "distribution_strategy": {
+      "social_platforms": ["LinkedIn", "Instagram", "Pinterest", "Twitter"],
+      "content_syndication": ["SlideShare", "Scribd", "Visual.ly"],
+      "email_marketing": "In Newsletter einbinden",
+      "blog_integration": "In verwandte Artikel einbetten"
+    },
+    "seo_optimization": [
+      "Alt-Text für alle visuellen Elemente",
+      "Beschreibende Dateinamen-Optimierung",
+      "Schema-Markup für Infografiken", 
+      "Backlink-Möglichkeiten durch visuellen Inhalt"
+    ],
+    "engagement_tactics": {
+      "interactive_elements": ["Klickbare Bereiche", "Hover-Effekte", "Animierte Enthüllungen"],
+      "social_sharing": ["Plattform-spezifische Größen", "Share-freundliche Formate"],
+      "lead_generation": ["Gesperrte High-Res Downloads", "E-Mail-Anmeldung für Vorlagen"],
+      "virality_features": ["Teilbare Zitate", "Statistik-Callouts", "Branded Elemente"]
+    },
+    "performance_tracking": [
+      "Social Media Share-Anzahl",
+      "Download/Speichern Metriken",
+      "Backlink-Akquisition",
+      "Traffic-Verweis-Daten",
+      "Lead-Generierungs-Conversion"
+    ]
+  },
+  "posting_times": {
+    "linkedin_carousel": {
+      "best_days": ["Dienstag", "Mittwoch", "Donnerstag"],
+      "timezone": "MEZ"
+    },
+    "twitter_thread": {
+      "best_days": ["Montag", "Dienstag", "Mittwoch"],
+      "timezone": "MEZ"
+    },
+    "instagram_story": {
+      "best_days": ["Mittwoch", "Donnerstag", "Freitag"],
+      "timezone": "MEZ"
+    },
+    "blog_outline": {
+      "best_days": ["Dienstag", "Mittwoch", "Donnerstag"],
+      "timezone": "MEZ",
+      "promotion_schedule": {
+        "immediate": "Innerhalb einer Stunde in sozialen Medien teilen",
+        "day_1": "An Abonnenten per E-Mail senden",
+        "day_3": "LinkedIn-Artikel-Version",
+        "week_1": "Twitter-Thread mit Hauptpunkten",
+        "week_2": "Instagram-Karussell-Design",
+        "month_1": "In Video-Inhalt umwandeln"
+      }
+    },
+    "email_course": {
+      "best_days": ["Dienstag", "Mittwoch", "Donnerstag"],
+      "timezone": "Abonnenten-Zeitzone",
+      "automation_schedule": {
+        "welcome_email": "Sofort (innerhalb 5 Minuten)",
+        "email_2": "24 Stunden nach Anmeldung",
+        "email_3": "48 Stunden nach Anmeldung",
+        "email_4": "72 Stunden nach Anmeldung",
+        "email_5": "96 Stunden nach Anmeldung", 
+        "email_6": "120 Stunden nach Anmeldung",
+        "email_7": "144 Stunden nach Anmeldung"
+      },
+      "optimization_notes": [
+        "Verschiedene Zeitzonen für globale Zielgruppe testen",
+        "Montage vermeiden (hohes Posteingang-Volumen)",
+        "Freitage vermeiden (geringeres Engagement)",
+        "B2B vs. B2C Zielgruppen-Timing-Unterschiede berücksichtigen",
+        "Öffnungsraten überwachen und entsprechend anpassen"
+      ]
+    },
+    "infographic_data": {
+      "best_days": ["Dienstag", "Mittwoch", "Donnerstag"],
+      "timezone": "MEZ",
+      "platform_specific": {
+        "linkedin": "Dienstag-Donnerstag 8:00-10:00 Uhr",
+        "instagram": "Mittwoch-Freitag 11:00-13:00 Uhr",
+        "pinterest": "Samstag-Sonntag 20:00-23:00 Uhr",
+        "twitter": "Montag-Freitag 12:00-15:00 Uhr"
+      },
+      "distribution_schedule": {
+        "immediate": "Auf Hauptplattform posten",
+        "2_hours": "Auf Sekundärplattformen teilen",
+        "day_1": "An Abonnenten per E-Mail senden", 
+        "day_3": "Bei Content-Aggregatoren einreichen",
+        "week_1": "Backlinks erreichen",
+        "week_2": "In Karussell/Thread umwandeln"
+      }
+    }
+  },
+  "hashtags": {
+    "base": ["#podcast", "#content", "#marketing"],
+    "linkedin_carousel": ["#linkedin", "#professionell", "#business"],
+    "twitter_thread": ["#thread", "#twitter", "#tipps"],
+    "instagram_story": ["#story", "#instagram", "#visuell"],
+    "email_course": ["#emailmarketing", "#onlinelearning", "#bildung", "#kurs"],
+    "infographic_data": ["#infografik", "#datenvisualisierung", "#statistiken", "#erkenntnisse", "#visuell"]
+  }
+}

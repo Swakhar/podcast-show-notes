@@ -80,7 +80,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // ---------- forward to FastAPI ----------
     const fd = new FormData();
     const buf = fs.readFileSync(fileObj.filepath);
-    console.log("Read file", fileObj.filepath, buf.length);
     fd.append("file", buf, {
       filename: fileObj.originalFilename || "audio.bin",
       contentType: fileObj.mimetype || "application/octet-stream"
@@ -89,8 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (features) fd.append("features", features);
     if (language) fd.append("language", language);
     fd.append("user_email", session.user.email);
-
-    console.log("Forwarding upload to backend:", { filename: fileObj.originalFilename, size: fileObj.size, features, language, effectivePreview });
     // Axios: pass fd and headers
     const r = await axios.post(`${BACKEND}/jobs/upload`, fd, {
       headers: fd.getHeaders(),
@@ -126,7 +123,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       billed_minutes: billed,
     });
   } catch (e: any) {
-    console.error("Upload error:", e);
     logger.error("[upload] error:", e);
     // Common developer mistakes surfaced nicely:
     if (String(e?.message || "").includes("maxFileSize")) {

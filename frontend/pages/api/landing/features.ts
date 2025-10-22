@@ -21,7 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       features: features.length > 0 ? features : [] 
     });
   } catch (error) {
-    console.error('Error fetching landing features:', error);
     return res.status(500).json({ error: 'Failed to fetch features' });
   }
 }

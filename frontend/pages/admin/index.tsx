@@ -46,7 +46,6 @@ export default function AdminDashboard() {
         router.push('/login');
       }
     } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error);
     } finally {
       setLoading(false);
     }
@@ -217,7 +216,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error('Admin auth error:', error);
     return {
       redirect: {
         destination: '/login',

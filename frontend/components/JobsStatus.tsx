@@ -28,7 +28,6 @@ export default function JobsStatus() {
         throw new Error(`HTTP ${res.status}`);
       }
     } catch (error) {
-      console.error('Failed to fetch jobs:', error);
       setError('Failed to load jobs');
     } finally {
       setLoading(false);

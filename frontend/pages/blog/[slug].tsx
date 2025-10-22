@@ -161,7 +161,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       },
     };
   } catch (error) {
-    console.error('Error fetching post:', error);
     return { 
       props: { 
         post: null,
